@@ -6,7 +6,7 @@ const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID_MONTHLY || 'price_placeholde
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
 
 export const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2023-10-16',
   typescript: true,
 });
 
