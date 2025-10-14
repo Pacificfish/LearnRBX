@@ -101,18 +101,10 @@ export default async function PricingPage() {
                 <Button disabled className="w-full" size="lg">
                   Current Plan
                 </Button>
-              ) : user ? (
-                <form action="/api/checkout" method="POST" className="w-full">
-                  <Button type="submit" className="w-full" size="lg">
-                    Upgrade to Pro
-                  </Button>
-                </form>
               ) : (
-                <Link href="/auth" className="w-full">
-                  <Button className="w-full" size="lg">
-                    Sign In to Upgrade
-                  </Button>
-                </Link>
+                <Button disabled className="w-full" size="lg">
+                  Coming Soon - Stripe Setup in Progress
+                </Button>
               )}
             </CardFooter>
           </Card>

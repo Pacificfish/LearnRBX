@@ -7,6 +7,11 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
+  // Check if Stripe is configured
+  if (STRIPE_WEBHOOK_SECRET === 'whsec_placeholder') {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 });
+  }
+
   const body = await request.text();
   const headersList = await headers();
   const signature = headersList.get('stripe-signature');

@@ -29,15 +29,20 @@ In your Railway project dashboard:
 2. **Add these environment variables**:
 
 ```env
+# Required
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-STRIPE_SECRET_KEY=sk_live_... (or sk_test_... for testing)
-STRIPE_PRICE_ID_MONTHLY=price_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_SITE_URL=https://your-app.railway.app
+
+# Optional - Stripe (will use placeholders if not set)
+# STRIPE_SECRET_KEY=sk_test_...
+# STRIPE_PRICE_ID_MONTHLY=price_...
+# STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-**Important**: Replace `NEXT_PUBLIC_SITE_URL` with your actual Railway app URL after deployment.
+**Important**: 
+- Replace `NEXT_PUBLIC_SITE_URL` with your actual Railway app URL after deployment
+- Stripe variables are optional - the app will work with placeholders for now
 
 ## Step 4: Get Your App URL
 

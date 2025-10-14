@@ -12,6 +12,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if Stripe is configured
+    if (STRIPE_PRICE_ID === 'price_placeholder') {
+      return NextResponse.json({ 
+        error: 'Stripe not configured yet. Please contact support.' 
+      }, { status: 503 });
+    }
+
     const supabase = await createServerSupabaseClient();
 
     // Check if user already has a subscription

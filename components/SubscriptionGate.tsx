@@ -42,7 +42,7 @@ export function SubscriptionGate({
           </div>
           <Link href="/pricing" className="block">
             <Button className="w-full" size="lg">
-              Upgrade to Pro - $15/month
+              View Pricing - Coming Soon
             </Button>
           </Link>
         </CardContent>
