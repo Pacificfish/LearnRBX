@@ -4,6 +4,8 @@ import Stripe from 'stripe';
 import { stripe, STRIPE_WEBHOOK_SECRET } from '@/lib/stripe';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
   const body = await request.text();
   const headersList = await headers();

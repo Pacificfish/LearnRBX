@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { stripe, STRIPE_PRICE_ID } from '@/lib/stripe';
 import { createServerSupabaseClient, getUser } from '@/lib/supabase/server';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
   try {
     const user = await getUser();

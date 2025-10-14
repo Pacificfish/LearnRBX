@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createLessonExport } from '@/lib/exporter';
 
+export const runtime = 'nodejs';
+
 export async function POST(
   request: Request,
   { params }: { params: { slug: string } }

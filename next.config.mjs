@@ -4,6 +4,9 @@ import createMDX from '@next/mdx';
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
+  },
   webpack: (config, { isServer }) => {
     // Fengari requires certain polyfills
     if (!isServer) {
