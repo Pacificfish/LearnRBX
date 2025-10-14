@@ -1,0 +1,75 @@
+---
+title: "Variables & Printing"
+slug: "variables-and-printing"
+summary: "Learn how to create variables and output text in Lua."
+duration_min: 10
+---
+
+# Variables & Printing
+
+Welcome to your first Lua lesson! In this lesson, you'll learn the fundamentals of working with variables and outputting information.
+
+## What are Variables?
+
+Variables are containers that store data in your programs. In Lua, you create variables using the `local` keyword:
+
+```lua
+local playerName = "Alex"
+local score = 100
+local isAlive = true
+```
+
+### Why use `local`?
+
+Using `local` creates a variable that only exists in the current scope. This is a best practice in Lua and Roblox scripting because it:
+- Prevents naming conflicts
+- Improves performance
+- Makes your code easier to understand
+
+## Data Types
+
+Lua has several basic data types:
+
+- **Strings**: Text wrapped in quotes `"Hello"` or `'Hello'`
+- **Numbers**: Integers or decimals like `42` or `3.14`
+- **Booleans**: `true` or `false`
+- **nil**: Represents "no value"
+
+## Printing to the Console
+
+The `print()` function outputs information to the console. This is super useful for debugging and understanding what your code is doing!
+
+```lua
+print("Hello, world!")
+print(42)
+print(true)
+```
+
+## String Concatenation
+
+You can combine strings using the `..` operator:
+
+```lua
+local name = "Player1"
+local greeting = "Welcome, " .. name .. "!"
+print(greeting)  -- Output: Welcome, Player1!
+```
+
+## Converting to Strings
+
+Use `tostring()` to convert other data types to strings:
+
+```lua
+local health = 100
+print("Health: " .. tostring(health))
+```
+
+## Your Challenge
+
+Now it's your turn! Complete the challenge on the right to practice creating variables and printing them.
+
+**Tips:**
+- Remember to use `local` for your variables
+- Use `..` to concatenate strings
+- The `print()` function can take multiple arguments separated by commas
+

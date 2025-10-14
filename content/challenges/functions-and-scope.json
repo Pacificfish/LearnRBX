@@ -1,0 +1,39 @@
+{
+  "starterCode": "-- Create a function called 'calculateArea' that takes width and height\n-- The function should return width * height\n-- Then call the function with 5 and 10, and print the result\n\n",
+  "tests": [
+    {
+      "id": "has-function",
+      "type": "static",
+      "assert": "function_exists",
+      "value": "calculateArea",
+      "description": "Create a function named 'calculateArea'"
+    },
+    {
+      "id": "has-parameters",
+      "type": "static",
+      "assert": "identifier_exists",
+      "value": "width",
+      "description": "Function should have a 'width' parameter"
+    },
+    {
+      "id": "uses-print",
+      "type": "runtime",
+      "assert": "output_contains",
+      "value": "50",
+      "description": "Print the result of 5 * 10"
+    },
+    {
+      "id": "no-errors",
+      "type": "runtime",
+      "assert": "no_errors",
+      "description": "Code runs without errors"
+    }
+  ],
+  "hints": [
+    "Define a function: local function calculateArea(width, height)",
+    "Return the product: return width * height",
+    "Call it and print: local area = calculateArea(5, 10) then print(area)"
+  ],
+  "successMessage": "Perfect! Functions are powerful tools for organizing your code. You'll use them constantly in Roblox scripting!"
+}
+

@@ -1,0 +1,148 @@
+---
+title: "Tables & Loops"
+slug: "tables-and-loops"
+summary: "Master Lua tables and iteration with for loops."
+duration_min: 15
+---
+
+# Tables & Loops
+
+Tables are Lua's main data structure. They're incredibly flexible and can act as arrays, dictionaries, or even objects!
+
+## Creating Tables
+
+### Array-style Tables
+
+```lua
+local fruits = {"Apple", "Banana", "Orange"}
+print(fruits[1])  -- Output: Apple (Lua arrays start at index 1!)
+```
+
+**Important:** Lua arrays start at index 1, not 0 like many other languages!
+
+### Dictionary-style Tables
+
+```lua
+local player = {
+  name = "Alex",
+  health = 100,
+  level = 5
+}
+
+print(player.name)     -- Output: Alex
+print(player["health"]) -- Output: 100
+```
+
+### Mixed Tables
+
+You can even mix both styles:
+
+```lua
+local gameData = {
+  title = "My Game",
+  version = 1.0,
+  players = {"Player1", "Player2", "Player3"}
+}
+```
+
+## Adding to Tables
+
+```lua
+local inventory = {}
+table.insert(inventory, "Sword")
+table.insert(inventory, "Shield")
+
+-- Or assign directly
+inventory.gold = 100
+```
+
+## For Loops - Numeric
+
+Use numeric for loops when you know how many times to iterate:
+
+```lua
+for i = 1, 5 do
+  print(i)
+end
+-- Output: 1, 2, 3, 4, 5
+```
+
+With a step:
+
+```lua
+for i = 0, 10, 2 do
+  print(i)
+end
+-- Output: 0, 2, 4, 6, 8, 10
+```
+
+## For Loops - ipairs
+
+Use `ipairs()` to iterate over array-style tables:
+
+```lua
+local weapons = {"Sword", "Bow", "Staff"}
+
+for index, weapon in ipairs(weapons) do
+  print(index .. ": " .. weapon)
+end
+-- Output:
+-- 1: Sword
+-- 2: Bow
+-- 3: Staff
+```
+
+## For Loops - pairs
+
+Use `pairs()` to iterate over all key-value pairs:
+
+```lua
+local stats = {
+  strength = 10,
+  agility = 15,
+  magic = 8
+}
+
+for key, value in pairs(stats) do
+  print(key .. " = " .. tostring(value))
+end
+```
+
+## While Loops
+
+While loops continue until a condition is false:
+
+```lua
+local count = 0
+while count < 3 do
+  print("Count: " .. tostring(count))
+  count = count + 1
+end
+```
+
+**Warning:** Be careful not to create infinite loops!
+
+## Roblox Use Case
+
+In Roblox, you'll use tables constantly:
+
+```lua
+-- Store player inventory
+local inventory = {
+  coins = 0,
+  items = {"Starter Sword"},
+  equipped = "Starter Sword"
+}
+
+-- Loop through parts in a folder
+for _, part in ipairs(workspace.Coins:GetChildren()) do
+  part.Touched:Connect(function(hit)
+    -- Coin collection logic
+  end)
+end
+```
+
+## Your Challenge
+
+Practice creating tables and using loops in the challenge to the right!
+
