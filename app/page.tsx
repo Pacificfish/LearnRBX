@@ -80,7 +80,7 @@ export default function HomePage() {
       <section className="py-16 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What You'll Learn</h2>
+            <h2 className="text-3xl font-bold mb-4">What You&apos;ll Learn</h2>
             <p className="text-muted-foreground">Structured tracks from basics to advanced gameplay scripting</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">

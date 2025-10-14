@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { CodeEditor } from '@/components/CodeEditor';
 import { ConsolePanel } from '@/components/ConsolePanel';
@@ -82,7 +82,7 @@ export default function LessonPage() {
     return () => clearTimeout(timer);
   }, [code, params.lesson]);
 
-  async function handleRun() {
+  const handleRun = useCallback(async () => {
     if (!challenge) return;
 
     setIsRunning(true);
@@ -107,7 +107,7 @@ export default function LessonPage() {
     } finally {
       setIsRunning(false);
     }
-  }
+  }, [code, challenge]);
 
   // Listen for keyboard shortcut
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function LessonPage() {
 
     window.addEventListener('editorRun', handleEditorRun);
     return () => window.removeEventListener('editorRun', handleEditorRun);
-  }, [code, challenge]);
+  }, [handleRun]);
 
   async function handleExport() {
     try {
@@ -174,7 +174,7 @@ export default function LessonPage() {
                   data that you can use later in your scripts.
                 </p>
                 <pre>
-                  <code>local playerName = "Alex"</code>
+                  <code>local playerName = &quot;Alex&quot;</code>
                 </pre>
 
                 <h2>Printing Output</h2>
@@ -183,7 +183,7 @@ export default function LessonPage() {
                   This is helpful for debugging and seeing what your code is doing.
                 </p>
                 <pre>
-                  <code>print("Hello, world!")</code>
+                  <code>print(&quot;Hello, world!&quot;)</code>
                 </pre>
 
                 <h2>String Concatenation</h2>
@@ -191,7 +191,7 @@ export default function LessonPage() {
                   Combine strings using the <code>..</code> operator:
                 </p>
                 <pre>
-                  <code>print("Welcome, " .. playerName)</code>
+                  <code>print(&quot;Welcome, &quot; .. playerName)</code>
                 </pre>
               </CardContent>
             </Card>
