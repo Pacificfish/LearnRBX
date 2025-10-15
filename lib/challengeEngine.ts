@@ -348,20 +348,21 @@ export async function executeCode(source: string): Promise<{ output: string[]; e
     `;
 
     const blob = new Blob([workerCode], { type: 'application/javascript' });
-    const worker = new Worker(URL.createObjectURL(blob));
+    const workerUrl = URL.createObjectURL(blob);
+    const worker = new Worker(workerUrl);
     
     worker.postMessage({ source });
     
     worker.onmessage = (e) => {
       const { output, errors } = e.data;
       worker.terminate();
-      URL.revokeObjectURL(blob);
+      URL.revokeObjectURL(workerUrl);
       resolve({ output, errors });
     };
     
     worker.onerror = (error) => {
       worker.terminate();
-      URL.revokeObjectURL(blob);
+      URL.revokeObjectURL(workerUrl);
       resolve({ output: [], errors: [error.message] });
     };
   });
