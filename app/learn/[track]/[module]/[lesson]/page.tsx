@@ -13,7 +13,7 @@ import { Download, Loader2 } from 'lucide-react';
 import { runAllTests, executeCode } from '@/lib/challengeEngine';
 import { Challenge, TestResult } from '@/types/database';
 import { getLessonContent } from '@/lib/lessonContent';
-import { createClientSupabaseClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 // This would normally fetch from DB + read MDX
 // For now, using placeholder
@@ -38,7 +38,7 @@ export default function LessonPage() {
   // Function to fetch navigation data
   const fetchNavigation = useCallback(async () => {
     try {
-      const supabase = createClientSupabaseClient();
+      const supabase = createClient();
       const trackSlug = params.track as string;
       const moduleId = params.module as string;
       const lessonSlug = params.lesson as string;
