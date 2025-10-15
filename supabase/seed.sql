@@ -73,9 +73,11 @@ BEGIN
 
   -- Insert lessons for Advanced Luau Concepts module
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
-    (module_advanced_id, 'roblox-services-deep-dive', 'Roblox Services Deep Dive', '/content/lessons/roblox-services-deep-dive.mdx', '/content/challenges/roblox-services-deep-dive.json', 1),
-    (module_advanced_id, 'advanced-events-and-signals', 'Advanced Events & Signals', '/content/lessons/advanced-events-and-signals.mdx', '/content/challenges/advanced-events-and-signals.json', 2),
-    (module_advanced_id, 'memory-management-optimization', 'Memory Management & Optimization', '/content/lessons/memory-management-optimization.mdx', '/content/challenges/memory-management-optimization.json', 3)
+    (module_advanced_id, 'error-handling-debugging', 'Error Handling & Debugging', '/content/lessons/error-handling-debugging.mdx', '/content/challenges/error-handling-debugging.json', 1),
+    (module_advanced_id, 'advanced-data-structures', 'Advanced Data Structures', '/content/lessons/advanced-data-structures.mdx', '/content/challenges/advanced-data-structures.json', 2),
+    (module_advanced_id, 'roblox-services-deep-dive', 'Roblox Services Deep Dive', '/content/lessons/roblox-services-deep-dive.mdx', '/content/challenges/roblox-services-deep-dive.json', 3),
+    (module_advanced_id, 'advanced-events-and-signals', 'Advanced Events & Signals', '/content/lessons/advanced-events-and-signals.mdx', '/content/challenges/advanced-events-and-signals.json', 4),
+    (module_advanced_id, 'memory-management-optimization', 'Memory Management & Optimization', '/content/lessons/memory-management-optimization.mdx', '/content/challenges/memory-management-optimization.json', 5)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,
@@ -98,8 +100,9 @@ BEGIN
     (module_parts_id, 'advanced-cframes', 'Advanced CFrame Techniques', '/content/lessons/advanced-cframes.mdx', '/content/challenges/advanced-cframes.json', 3),
     (module_parts_id, 'physics-and-constraints', 'Physics & Constraints', '/content/lessons/physics-and-constraints.mdx', '/content/challenges/physics-and-constraints.json', 4),
     (module_parts_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 5),
-    (module_advanced_mechanics_id, 'advanced-tweening-systems', 'Advanced Tweening Systems', '/content/lessons/advanced-tweening-systems.mdx', '/content/challenges/advanced-tweening-systems.json', 1),
-    (module_advanced_mechanics_id, 'physics-simulation-advanced', 'Advanced Physics Simulation', '/content/lessons/physics-simulation-advanced.mdx', '/content/challenges/physics-simulation-advanced.json', 2)
+    (module_advanced_mechanics_id, 'ai-and-pathfinding', 'AI & Pathfinding Systems', '/content/lessons/ai-and-pathfinding.mdx', '/content/challenges/ai-and-pathfinding.json', 1),
+    (module_advanced_mechanics_id, 'advanced-tweening-systems', 'Advanced Tweening Systems', '/content/lessons/advanced-tweening-systems.mdx', '/content/challenges/advanced-tweening-systems.json', 2),
+    (module_advanced_mechanics_id, 'physics-simulation-advanced', 'Advanced Physics Simulation', '/content/lessons/physics-simulation-advanced.mdx', '/content/challenges/physics-simulation-advanced.json', 3)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

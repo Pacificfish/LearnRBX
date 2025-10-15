@@ -2351,6 +2351,2112 @@ print("\\nNetworking architecture demo complete!")`,
     }
   },
 
+  // === INTERMEDIATE LUAU CONCEPTS ===
+  'error-handling-debugging': {
+    title: 'Error Handling & Debugging',
+    description: 'Master error handling, debugging techniques, and code troubleshooting in Roblox',
+    sections: [
+      {
+        title: 'Understanding Errors and Warnings',
+        content: `Errors and warnings are your friends when learning to code. They tell you exactly what's wrong and how to fix it.
+
+**Types of Errors:**
+- **Syntax Errors**: Mistakes in code structure (missing brackets, typos)
+- **Runtime Errors**: Problems that happen when code runs (dividing by zero, accessing nil values)
+- **Logic Errors**: Code runs but doesn't do what you intended
+
+**Common Roblox Errors:**
+- "Attempt to index a nil value" - trying to use something that doesn't exist
+- "Expected 'end' to close 'if'" - missing end statements
+- "Bad argument" - wrong type of data passed to a function`,
+        codeExample: `-- Common error examples and how to fix them
+
+-- 1. Nil value error
+local player = game.Players:FindFirstChild("NonExistentPlayer")
+-- This will cause an error because player is nil
+-- print(player.Name) -- ERROR!
+
+-- Safe way to check:
+if player then
+    print(player.Name)
+else
+    print("Player not found!")
+end
+
+-- 2. Using pcall for error handling
+local success, result = pcall(function()
+    local part = workspace.NonExistentPart
+    return part.Size -- This might cause an error
+end)
+
+if success then
+    print("Success:", result)
+else
+    print("Error occurred:", result)
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Debugging Techniques',
+        content: `Debugging is the process of finding and fixing errors in your code. Good debugging skills are essential for any programmer.
+
+**Debugging Strategies:**
+1. **Read Error Messages**: They tell you exactly what's wrong
+2. **Use Print Statements**: Add print() to see what values your variables have
+3. **Check the Output Window**: Roblox shows errors and print statements here
+4. **Test Small Parts**: Break your code into smaller pieces to test
+5. **Use the Developer Console**: Press F9 in Roblox Studio
+
+**Best Practices:**
+- Always test your code frequently
+- Use meaningful variable names
+- Comment your code to explain what it does
+- Start simple and add complexity gradually`,
+        codeExample: `-- Debugging example: Finding why a script isn't working
+
+local function calculatePlayerLevel(experience)
+    print("Debug: Starting calculation with experience =", experience)
+    
+    if not experience then
+        print("Debug: Experience is nil!")
+        return 0
+    end
+    
+    if experience < 0 then
+        print("Debug: Experience is negative:", experience)
+        return 0
+    end
+    
+    local level = math.floor(experience / 100) + 1
+    print("Debug: Calculated level =", level)
+    
+    return level
+end
+
+-- Test the function
+local testExperience = 250
+local playerLevel = calculatePlayerLevel(testExperience)
+print("Final result: Player level is", playerLevel)`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced Error Handling',
+        content: `Professional scripts use advanced error handling to make them robust and reliable.
+
+**Error Handling Patterns:**
+- **pcall()**: Safely call functions that might error
+- **xpcall()**: More advanced error handling with custom error handlers
+- **assert()**: Check conditions and throw errors if they fail
+- **warn()**: Show warnings without stopping the script
+
+**When to Use Each:**
+- **pcall()**: For risky operations like accessing remote services
+- **assert()**: For checking that required conditions are met
+- **warn()**: For non-critical issues that should be noted
+- **error()**: For serious problems that should stop execution`,
+        codeExample: `-- Advanced error handling patterns
+
+local function safeGetPlayerData(player)
+    -- Use pcall to safely access player data
+    local success, data = pcall(function()
+        -- This might fail if player is nil or doesn't have the data
+        return {
+            level = player.leaderstats.Level.Value,
+            coins = player.leaderstats.Coins.Value,
+            experience = player.leaderstats.Experience.Value
+        }
+    end)
+    
+    if not success then
+        warn("Failed to get player data for", player and player.Name or "unknown player")
+        return nil
+    end
+    
+    return data
+end
+
+local function validatePlayerInput(input)
+    -- Use assert to check required conditions
+    assert(type(input) == "string", "Input must be a string")
+    assert(#input > 0, "Input cannot be empty")
+    assert(#input <= 100, "Input too long (max 100 characters)")
+    
+    return input
+end
+
+-- Example usage
+local player = game.Players.LocalPlayer
+local playerData = safeGetPlayerData(player)
+
+if playerData then
+    print("Player level:", playerData.level)
+else
+    print("Could not get player data")
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Error Handling & Debugging - Comprehensive Learning Example
+-- Learn to identify, handle, and prevent errors in your Roblox scripts
+
+print("=== ERROR HANDLING & DEBUGGING DEMO ===")
+print("Learning to write robust, error-free code...")
+
+-- 1. COMMON ERROR TYPES AND SOLUTIONS
+print("\\n1. DEMONSTRATING COMMON ERRORS...")
+
+-- Error 1: Nil value access
+local function demonstrateNilError()
+    print("\\n--- Nil Value Error Example ---")
+    local player = game.Players:FindFirstChild("NonExistentPlayer")
+    
+    -- This would cause an error:
+    -- print(player.Name) -- ERROR: Attempt to index a nil value
+    
+    -- Safe way to handle:
+    if player then
+        print("Player found:", player.Name)
+    else
+        print("Player not found - this is expected!")
+    end
+end
+
+-- Error 2: Type errors
+local function demonstrateTypeError()
+    print("\\n--- Type Error Example ---")
+    local number = "not a number"
+    
+    -- This would cause an error:
+    -- local result = number + 5 -- ERROR: attempt to perform arithmetic on a string
+    
+    -- Safe way to handle:
+    if type(number) == "number" then
+        local result = number + 5
+        print("Result:", result)
+    else
+        print("Cannot add 5 to a string!")
+    end
+end
+
+-- Error 3: Division by zero
+local function demonstrateDivisionError()
+    print("\\n--- Division by Zero Example ---")
+    local divisor = 0
+    
+    -- This would cause an error:
+    -- local result = 10 / divisor -- ERROR: attempt to divide by zero
+    
+    -- Safe way to handle:
+    if divisor ~= 0 then
+        local result = 10 / divisor
+        print("Result:", result)
+    else
+        print("Cannot divide by zero!")
+    end
+end
+
+-- 2. USING PCALL FOR ERROR HANDLING
+print("\\n2. DEMONSTRATING PCALL ERROR HANDLING...")
+
+local function riskyOperation(data)
+    print("Attempting risky operation with data:", data)
+    
+    local success, result = pcall(function()
+        -- This operation might fail
+        if type(data) ~= "table" then
+            error("Data must be a table")
+        end
+        
+        if not data.value then
+            error("Data must have a 'value' property")
+        end
+        
+        return data.value * 2
+    end)
+    
+    if success then
+        print("Operation successful! Result:", result)
+        return result
+    else
+        print("Operation failed! Error:", result)
+        return nil
+    end
+end
+
+-- Test the risky operation
+local testData1 = {value = 5}
+local testData2 = "not a table"
+local testData3 = {}
+
+print("\\nTesting with valid data:")
+riskyOperation(testData1)
+
+print("\\nTesting with invalid data:")
+riskyOperation(testData2)
+
+print("\\nTesting with incomplete data:")
+riskyOperation(testData3)
+
+-- 3. DEBUGGING TECHNIQUES
+print("\\n3. DEMONSTRATING DEBUGGING TECHNIQUES...")
+
+local function debugPlayerStats(player)
+    print("\\n--- Debugging Player Stats ---")
+    
+    -- Step 1: Check if player exists
+    print("Debug: Checking if player exists...")
+    if not player then
+        print("Debug: Player is nil!")
+        return
+    end
+    print("Debug: Player exists:", player.Name)
+    
+    -- Step 2: Check if player has leaderstats
+    print("Debug: Checking for leaderstats...")
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if not leaderstats then
+        print("Debug: No leaderstats found!")
+        return
+    end
+    print("Debug: Leaderstats found")
+    
+    -- Step 3: Check individual stats
+    print("Debug: Checking individual stats...")
+    local stats = {"Level", "Coins", "Experience"}
+    
+    for _, statName in ipairs(stats) do
+        local stat = leaderstats:FindFirstChild(statName)
+        if stat and stat:IsA("IntValue") then
+            print("Debug: " .. statName .. " =", stat.Value)
+        else
+            print("Debug: " .. statName .. " not found or wrong type!")
+        end
+    end
+end
+
+-- 4. ADVANCED ERROR HANDLING PATTERNS
+print("\\n4. DEMONSTRATING ADVANCED ERROR HANDLING...")
+
+local ErrorHandler = {}
+ErrorHandler.__index = ErrorHandler
+
+function ErrorHandler.new()
+    local self = setmetatable({}, ErrorHandler)
+    self.errorCount = 0
+    self.lastError = nil
+    return self
+end
+
+function ErrorHandler:safeExecute(func, ...)
+    local success, result = pcall(func, ...)
+    
+    if not success then
+        self.errorCount = self.errorCount + 1
+        self.lastError = result
+        warn("Error #" .. self.errorCount .. ":", result)
+        return nil
+    end
+    
+    return result
+end
+
+function ErrorHandler:getErrorStats()
+    return {
+        count = self.errorCount,
+        lastError = self.lastError
+    }
+end
+
+-- Create error handler
+local errorHandler = ErrorHandler.new()
+
+-- Test functions that might error
+local function mightError(shouldError)
+    if shouldError then
+        error("This is a test error!")
+    end
+    return "Success!"
+end
+
+-- Test the error handler
+print("\\nTesting error handler...")
+local result1 = errorHandler:safeExecute(mightError, false)
+print("Result 1:", result1)
+
+local result2 = errorHandler:safeExecute(mightError, true)
+print("Result 2:", result2)
+
+local stats = errorHandler:getErrorStats()
+print("Error stats:", stats.count, "errors, last error:", stats.lastError)
+
+-- 5. ASSERTION AND VALIDATION
+print("\\n5. DEMONSTRATING ASSERTIONS AND VALIDATION...")
+
+local function validateInput(input)
+    -- Use assertions to validate input
+    assert(input ~= nil, "Input cannot be nil")
+    assert(type(input) == "string", "Input must be a string")
+    assert(#input > 0, "Input cannot be empty")
+    assert(#input <= 50, "Input too long (max 50 characters)")
+    
+    -- Additional validation
+    if string.find(input, "[^%w%s]") then
+        warn("Input contains special characters")
+    end
+    
+    return input:lower():gsub("^%l", string.upper) -- Capitalize first letter
+end
+
+-- Test validation
+print("\\nTesting input validation...")
+local validInputs = {"hello", "world", "test123"}
+local invalidInputs = {nil, 123, "", "a" .. string.rep("b", 100)}
+
+for _, input in ipairs(validInputs) do
+    local success, result = pcall(validateInput, input)
+    if success then
+        print("Valid input processed:", result)
+    else
+        print("Validation failed:", result)
+    end
+end
+
+for _, input in ipairs(invalidInputs) do
+    local success, result = pcall(validateInput, input)
+    if success then
+        print("Invalid input processed:", result)
+    else
+        print("Validation correctly rejected:", result)
+    end
+end
+
+-- 6. RUN ALL DEMONSTRATIONS
+demonstrateNilError()
+demonstrateTypeError()
+demonstrateDivisionError()
+
+print("\\n=== ERROR HANDLING DEMO COMPLETE ===")
+print("You've learned essential error handling and debugging techniques!")`,
+    challenge: {
+      tests: [
+        { description: 'Use pcall to handle potential errors', type: 'code_contains', value: 'pcall' },
+        { description: 'Add debug print statements', type: 'code_contains', value: 'print' },
+        { description: 'Check for nil values before using them', type: 'code_contains', value: 'if.*then' }
+      ],
+      hints: [
+        'Use pcall() to safely execute code that might error',
+        'Add print() statements to debug your code',
+        'Always check if values exist before using them',
+        'Read error messages carefully - they tell you what\'s wrong',
+        'Use the Output window in Roblox Studio to see errors and prints'
+      ],
+      successMessage: 'Excellent! You now understand error handling and debugging. These skills are essential for writing robust Roblox scripts!'
+    }
+  },
+
+  'advanced-data-structures': {
+    title: 'Advanced Data Structures',
+    description: 'Master complex data structures, algorithms, and data organization for Roblox games',
+    sections: [
+      {
+        title: 'Understanding Data Structures',
+        content: `Data structures are ways of organizing and storing data in your programs. Choosing the right data structure makes your code faster and easier to understand.
+
+**Common Data Structures:**
+- **Arrays**: Ordered lists of items (use ipairs to iterate)
+- **Dictionaries**: Key-value pairs (use pairs to iterate)
+- **Stacks**: Last-in, first-out (LIFO) structure
+- **Queues**: First-in, first-out (FIFO) structure
+- **Trees**: Hierarchical data organization
+- **Graphs**: Connected data with relationships
+
+**When to Use Each:**
+- **Arrays**: When order matters and you need fast access by index
+- **Dictionaries**: When you need fast lookup by key
+- **Stacks**: For undo operations, function calls, or depth-first search
+- **Queues**: For processing items in order, breadth-first search`,
+        codeExample: `-- Data structure examples
+
+-- 1. Array (List) - ordered collection
+local players = {"Alice", "Bob", "Charlie"}
+print("Players:", table.concat(players, ", "))
+
+-- 2. Dictionary (Table) - key-value pairs
+local playerScores = {
+    Alice = 100,
+    Bob = 85,
+    Charlie = 92
+}
+
+for name, score in pairs(playerScores) do
+    print(name .. " has " .. score .. " points")
+end
+
+-- 3. Stack implementation
+local Stack = {}
+Stack.__index = Stack
+
+function Stack.new()
+    return setmetatable({items = {}}, Stack)
+end
+
+function Stack:push(item)
+    table.insert(self.items, item)
+end
+
+function Stack:pop()
+    if #self.items == 0 then
+        return nil
+    end
+    return table.remove(self.items)
+end
+
+function Stack:peek()
+    return self.items[#self.items]
+end
+
+-- 4. Queue implementation
+local Queue = {}
+Queue.__index = Queue
+
+function Queue.new()
+    return setmetatable({items = {}}, Queue)
+end
+
+function Queue:enqueue(item)
+    table.insert(self.items, item)
+end
+
+function Queue:dequeue()
+    if #self.items == 0 then
+        return nil
+    end
+    return table.remove(self.items, 1)
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Advanced Table Operations',
+        content: `Lua tables are incredibly powerful and flexible. Mastering table operations is key to writing efficient Roblox scripts.
+
+**Table Functions:**
+- **table.insert()**: Add items to tables
+- **table.remove()**: Remove items from tables
+- **table.concat()**: Join table elements into a string
+- **table.sort()**: Sort table elements
+- **table.find()**: Find the index of a value
+- **table.clear()**: Remove all elements (Roblox extension)
+
+**Performance Tips:**
+- Use table.insert() at the end for O(1) performance
+- Use table.remove() from the end for O(1) performance
+- Avoid table.remove() from the middle - it's O(n)
+- Use table.clear() instead of creating new tables`,
+        codeExample: `-- Advanced table operations
+
+-- 1. Table manipulation
+local items = {"sword", "shield", "potion"}
+
+-- Add items
+table.insert(items, "bow")
+table.insert(items, 2, "armor") -- Insert at specific position
+
+print("Items:", table.concat(items, ", "))
+
+-- Remove items
+local removed = table.remove(items, 3) -- Remove from position 3
+print("Removed:", removed)
+print("Remaining:", table.concat(items, ", "))
+
+-- 2. Sorting
+local scores = {85, 92, 78, 96, 88}
+table.sort(scores) -- Sort ascending
+print("Sorted scores:", table.concat(scores, ", "))
+
+-- Sort descending
+table.sort(scores, function(a, b) return a > b end)
+print("Descending:", table.concat(scores, ", "))
+
+-- 3. Finding elements
+local fruits = {"apple", "banana", "orange", "grape"}
+local index = table.find(fruits, "orange")
+print("Orange is at index:", index)
+
+-- 4. Table copying and merging
+local function copyTable(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = copyTable(value) -- Deep copy
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+local original = {name = "Player", stats = {level = 10, health = 100}}
+local copy = copyTable(original)
+print("Original:", original.name, original.stats.level)
+print("Copy:", copy.name, copy.stats.level)`,
+        color: 'green'
+      },
+      {
+        title: 'Complex Data Organization',
+        content: `Real games need complex data organization. Learn to structure data for player progress, game state, and inventory systems.
+
+**Data Organization Patterns:**
+- **Player Data**: Organize player stats, inventory, and progress
+- **Game State**: Track game-wide information and settings
+- **Inventory Systems**: Manage items with properties and quantities
+- **Quest Systems**: Track objectives and completion status
+- **Configuration Data**: Store game settings and constants
+
+**Best Practices:**
+- Use consistent naming conventions
+- Group related data together
+- Use nested tables for complex relationships
+- Validate data when loading from DataStores
+- Use default values for missing data`,
+        codeExample: `-- Complex data organization example
+
+-- 1. Player data structure
+local PlayerData = {
+    profile = {
+        name = "PlayerName",
+        level = 1,
+        experience = 0,
+        coins = 100
+    },
+    stats = {
+        health = 100,
+        maxHealth = 100,
+        damage = 10,
+        speed = 16
+    },
+    inventory = {
+        items = {},
+        maxSlots = 20
+    },
+    quests = {
+        active = {},
+        completed = {},
+        available = {}
+    },
+    settings = {
+        musicVolume = 0.5,
+        sfxVolume = 0.7,
+        graphics = "medium"
+    }
+}
+
+-- 2. Inventory management
+local InventoryManager = {}
+InventoryManager.__index = InventoryManager
+
+function InventoryManager.new(maxSlots)
+    local self = setmetatable({}, InventoryManager)
+    self.items = {}
+    self.maxSlots = maxSlots or 20
+    return self
+end
+
+function InventoryManager:addItem(itemId, quantity)
+    quantity = quantity or 1
+    
+    -- Check if item already exists
+    for slot, item in pairs(self.items) do
+        if item.id == itemId then
+            item.quantity = item.quantity + quantity
+            return true
+        end
+    end
+    
+    -- Find empty slot
+    for i = 1, self.maxSlots do
+        if not self.items[i] then
+            self.items[i] = {
+                id = itemId,
+                quantity = quantity,
+                addedTime = tick()
+            }
+            return true
+        end
+    end
+    
+    return false -- Inventory full
+end
+
+function InventoryManager:removeItem(itemId, quantity)
+    quantity = quantity or 1
+    
+    for slot, item in pairs(self.items) do
+        if item.id == itemId then
+            if item.quantity > quantity then
+                item.quantity = item.quantity - quantity
+            else
+                self.items[slot] = nil
+            end
+            return true
+        end
+    end
+    
+    return false -- Item not found
+end
+
+-- 3. Quest system
+local QuestSystem = {}
+QuestSystem.__index = QuestSystem
+
+function QuestSystem.new()
+    local self = setmetatable({}, QuestSystem)
+    self.quests = {
+        {
+            id = "tutorial_1",
+            title = "First Steps",
+            description = "Learn the basics",
+            objectives = {
+                {id = "walk_10_steps", description = "Walk 10 steps", completed = false},
+                {id = "jump_5_times", description = "Jump 5 times", completed = false}
+            },
+            rewards = {coins = 50, experience = 100},
+            completed = false
+        }
+    }
+    return self
+end
+
+function QuestSystem:completeObjective(questId, objectiveId)
+    for _, quest in ipairs(self.quests) do
+        if quest.id == questId then
+            for _, objective in ipairs(quest.objectives) do
+                if objective.id == objectiveId then
+                    objective.completed = true
+                    
+                    -- Check if quest is complete
+                    local allComplete = true
+                    for _, obj in ipairs(quest.objectives) do
+                        if not obj.completed then
+                            allComplete = false
+                            break
+                        end
+                    end
+                    
+                    if allComplete then
+                        quest.completed = true
+                        print("Quest completed:", quest.title)
+                    end
+                    
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Data Structures - Comprehensive Learning Example
+-- Master complex data organization for professional Roblox games
+
+print("=== ADVANCED DATA STRUCTURES DEMO ===")
+print("Learning to organize data efficiently...")
+
+-- 1. STACK DATA STRUCTURE
+print("\\n1. DEMONSTRATING STACK (LIFO - Last In, First Out)...")
+
+local Stack = {}
+Stack.__index = Stack
+
+function Stack.new()
+    return setmetatable({items = {}}, Stack)
+end
+
+function Stack:push(item)
+    table.insert(self.items, item)
+    print("Pushed:", item)
+end
+
+function Stack:pop()
+    if #self.items == 0 then
+        print("Stack is empty!")
+        return nil
+    end
+    local item = table.remove(self.items)
+    print("Popped:", item)
+    return item
+end
+
+function Stack:peek()
+    if #self.items == 0 then
+        return nil
+    end
+    return self.items[#self.items]
+end
+
+function Stack:size()
+    return #self.items
+end
+
+-- Demo stack operations
+local undoStack = Stack.new()
+undoStack:push("Create Part")
+undoStack:push("Move Part")
+undoStack:push("Resize Part")
+
+print("Stack size:", undoStack:size())
+print("Top item:", undoStack:peek())
+
+undoStack:pop() -- Undo last action
+undoStack:pop() -- Undo second action
+
+-- 2. QUEUE DATA STRUCTURE
+print("\\n2. DEMONSTRATING QUEUE (FIFO - First In, First Out)...")
+
+local Queue = {}
+Queue.__index = Queue
+
+function Queue.new()
+    return setmetatable({items = {}}, Queue)
+end
+
+function Queue:enqueue(item)
+    table.insert(self.items, item)
+    print("Enqueued:", item)
+end
+
+function Queue:dequeue()
+    if #self.items == 0 then
+        print("Queue is empty!")
+        return nil
+    end
+    local item = table.remove(self.items, 1)
+    print("Dequeued:", item)
+    return item
+end
+
+function Queue:front()
+    if #self.items == 0 then
+        return nil
+    end
+    return self.items[1]
+end
+
+function Queue:size()
+    return #self.items
+end
+
+-- Demo queue operations
+local taskQueue = Queue.new()
+taskQueue:enqueue("Load Player Data")
+taskQueue:enqueue("Initialize UI")
+taskQueue:enqueue("Start Game Loop")
+
+print("Queue size:", taskQueue:size())
+print("Next task:", taskQueue:front())
+
+taskQueue:dequeue() -- Process first task
+taskQueue:dequeue() -- Process second task
+
+-- 3. PRIORITY QUEUE
+print("\\n3. DEMONSTRATING PRIORITY QUEUE...")
+
+local PriorityQueue = {}
+PriorityQueue.__index = PriorityQueue
+
+function PriorityQueue.new()
+    return setmetatable({items = {}}, PriorityQueue)
+end
+
+function PriorityQueue:enqueue(item, priority)
+    priority = priority or 0
+    table.insert(self.items, {item = item, priority = priority})
+    
+    -- Sort by priority (higher priority first)
+    table.sort(self.items, function(a, b)
+        return a.priority > b.priority
+    end)
+    
+    print("Enqueued:", item, "with priority:", priority)
+end
+
+function PriorityQueue:dequeue()
+    if #self.items == 0 then
+        print("Priority queue is empty!")
+        return nil
+    end
+    local item = table.remove(self.items, 1)
+    print("Dequeued:", item.item, "priority:", item.priority)
+    return item.item
+end
+
+-- Demo priority queue
+local eventQueue = PriorityQueue.new()
+eventQueue:enqueue("Player joined", 1)
+eventQueue:enqueue("Critical error", 10)
+eventQueue:enqueue("Player left", 1)
+eventQueue:enqueue("System shutdown", 5)
+
+-- Process events in priority order
+while eventQueue:size() > 0 do
+    eventQueue:dequeue()
+end
+
+-- 4. HASH TABLE / DICTIONARY WITH COLLISION HANDLING
+print("\\n4. DEMONSTRATING ADVANCED HASH TABLE...")
+
+local HashTable = {}
+HashTable.__index = HashTable
+
+function HashTable.new(size)
+    size = size or 10
+    return setmetatable({
+        buckets = {},
+        size = size,
+        count = 0
+    }, HashTable)
+end
+
+function HashTable:hash(key)
+    local hash = 0
+    for i = 1, #key do
+        hash = hash + string.byte(key, i)
+    end
+    return (hash % self.size) + 1
+end
+
+function HashTable:set(key, value)
+    local bucketIndex = self:hash(key)
+    
+    if not self.buckets[bucketIndex] then
+        self.buckets[bucketIndex] = {}
+    end
+    
+    -- Check if key already exists
+    for i, pair in ipairs(self.buckets[bucketIndex]) do
+        if pair.key == key then
+            pair.value = value
+            return
+        end
+    end
+    
+    -- Add new key-value pair
+    table.insert(self.buckets[bucketIndex], {key = key, value = value})
+    self.count = self.count + 1
+    print("Set:", key, "=", value)
+end
+
+function HashTable:get(key)
+    local bucketIndex = self:hash(key)
+    
+    if not self.buckets[bucketIndex] then
+        return nil
+    end
+    
+    for _, pair in ipairs(self.buckets[bucketIndex]) do
+        if pair.key == key then
+            return pair.value
+        end
+    end
+    
+    return nil
+end
+
+-- Demo hash table
+local playerCache = HashTable.new(5)
+playerCache:set("Player1", {level = 10, coins = 100})
+playerCache:set("Player2", {level = 5, coins = 50})
+playerCache:set("Player3", {level = 15, coins = 200})
+
+print("Player1 data:", playerCache:get("Player1"))
+print("Player2 data:", playerCache:get("Player2"))
+
+-- 5. TREE DATA STRUCTURE
+print("\\n5. DEMONSTRATING TREE DATA STRUCTURE...")
+
+local TreeNode = {}
+TreeNode.__index = TreeNode
+
+function TreeNode.new(value)
+    return setmetatable({
+        value = value,
+        children = {},
+        parent = nil
+    }, TreeNode)
+end
+
+function TreeNode:addChild(child)
+    child.parent = self
+    table.insert(self.children, child)
+end
+
+function TreeNode:removeChild(child)
+    for i, c in ipairs(self.children) do
+        if c == child then
+            table.remove(self.children, i)
+            child.parent = nil
+            break
+        end
+    end
+end
+
+function TreeNode:find(value)
+    if self.value == value then
+        return self
+    end
+    
+    for _, child in ipairs(self.children) do
+        local found = child:find(value)
+        if found then
+            return found
+        end
+    end
+    
+    return nil
+end
+
+function TreeNode:printTree(level)
+    level = level or 0
+    local indent = string.rep("  ", level)
+    print(indent .. self.value)
+    
+    for _, child in ipairs(self.children) do
+        child:printTree(level + 1)
+    end
+end
+
+-- Demo tree structure
+local root = TreeNode.new("Game World")
+local level1 = TreeNode.new("Level 1")
+local level2 = TreeNode.new("Level 2")
+local boss1 = TreeNode.new("Boss 1")
+local boss2 = TreeNode.new("Boss 2")
+
+root:addChild(level1)
+root:addChild(level2)
+level1:addChild(boss1)
+level2:addChild(boss2)
+
+print("\\nGame world structure:")
+root:printTree()
+
+-- 6. GRAPH DATA STRUCTURE
+print("\\n6. DEMONSTRATING GRAPH DATA STRUCTURE...")
+
+local Graph = {}
+Graph.__index = Graph
+
+function Graph.new()
+    return setmetatable({
+        vertices = {},
+        edges = {}
+    }, Graph)
+end
+
+function Graph:addVertex(vertex)
+    if not self.vertices[vertex] then
+        self.vertices[vertex] = true
+        self.edges[vertex] = {}
+        print("Added vertex:", vertex)
+    end
+end
+
+function Graph:addEdge(from, to, weight)
+    weight = weight or 1
+    self:addVertex(from)
+    self:addVertex(to)
+    
+    self.edges[from][to] = weight
+    print("Added edge:", from, "->", to, "weight:", weight)
+end
+
+function Graph:getNeighbors(vertex)
+    return self.edges[vertex] or {}
+end
+
+function Graph:printGraph()
+    for vertex, _ in pairs(self.vertices) do
+        local neighbors = self:getNeighbors(vertex)
+        local neighborList = {}
+        for neighbor, weight in pairs(neighbors) do
+            table.insert(neighborList, neighbor .. "(" .. weight .. ")")
+        end
+        print(vertex .. " -> " .. table.concat(neighborList, ", "))
+    end
+end
+
+-- Demo graph
+local gameMap = Graph.new()
+gameMap:addEdge("Spawn", "Town", 1)
+gameMap:addEdge("Town", "Forest", 2)
+gameMap:addEdge("Town", "Cave", 3)
+gameMap:addEdge("Forest", "Boss Area", 5)
+gameMap:addEdge("Cave", "Boss Area", 4)
+
+print("\\nGame map connections:")
+gameMap:printGraph()
+
+-- 7. PERFORMANCE COMPARISON
+print("\\n7. PERFORMANCE COMPARISON...")
+
+local function benchmarkTableOperations()
+    local startTime = tick()
+    
+    -- Test array operations
+    local array = {}
+    for i = 1, 1000 do
+        table.insert(array, i)
+    end
+    
+    for i = 1, 1000 do
+        table.remove(array, 1) -- Slow operation
+    end
+    
+    local arrayTime = tick() - startTime
+    
+    -- Test dictionary operations
+    startTime = tick()
+    local dict = {}
+    for i = 1, 1000 do
+        dict[i] = i
+    end
+    
+    for i = 1, 1000 do
+        dict[i] = nil
+    end
+    
+    local dictTime = tick() - startTime
+    
+    print("Array operations (1000 insert/remove from front):", arrayTime * 1000, "ms")
+    print("Dictionary operations (1000 set/unset):", dictTime * 1000, "ms")
+    print("Dictionary is", math.floor(arrayTime / dictTime), "times faster!")
+end
+
+benchmarkTableOperations()
+
+print("\\n=== ADVANCED DATA STRUCTURES DEMO COMPLETE ===")
+print("You've learned essential data structures for complex Roblox games!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement a stack data structure', type: 'code_contains', value: 'Stack' },
+        { description: 'Use table operations like insert and remove', type: 'code_contains', value: 'table.insert' },
+        { description: 'Create a dictionary with key-value pairs', type: 'code_contains', value: 'pairs' }
+      ],
+      hints: [
+        'Use table.insert() and table.remove() for stack operations',
+        'Use pairs() to iterate through dictionaries',
+        'Consider the performance implications of different operations',
+        'Use nested tables for complex data relationships',
+        'Validate data when loading from external sources'
+      ],
+      successMessage: 'Outstanding! You now understand advanced data structures and can organize complex data efficiently in your Roblox games!'
+    }
+  },
+
+  // === ADVANCED GAME MECHANICS LESSONS ===
+  'ai-and-pathfinding': {
+    title: 'AI & Pathfinding Systems',
+    description: 'Create intelligent NPCs, enemy AI, and pathfinding systems for dynamic gameplay',
+    sections: [
+      {
+        title: 'Basic AI Concepts',
+        content: `Artificial Intelligence (AI) in games makes NPCs behave intelligently. Good AI creates engaging and challenging gameplay.
+
+**AI Components:**
+- **State Machines**: Different behaviors for different situations
+- **Decision Making**: Choosing actions based on game state
+- **Movement**: How NPCs move around the world
+- **Combat**: How NPCs fight and defend themselves
+- **Reaction**: How NPCs respond to player actions
+
+**Common AI Patterns:**
+- **Idle State**: NPC waits and looks around
+- **Patrol State**: NPC moves along a predefined path
+- **Chase State**: NPC follows the player
+- **Attack State**: NPC fights the player
+- **Flee State**: NPC runs away from danger`,
+        codeExample: `-- Basic AI state machine example
+
+local AIState = {
+    IDLE = "idle",
+    PATROL = "patrol", 
+    CHASE = "chase",
+    ATTACK = "attack",
+    FLEE = "flee"
+}
+
+local NPC = {}
+NPC.__index = NPC
+
+function NPC.new(character)
+    local self = setmetatable({}, NPC)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.currentState = AIState.IDLE
+    self.target = nil
+    self.patrolPoints = {}
+    self.currentPatrolIndex = 1
+    self.health = 100
+    self.maxHealth = 100
+    return self
+end
+
+function NPC:update()
+    if self.currentState == AIState.IDLE then
+        self:idleBehavior()
+    elseif self.currentState == AIState.PATROL then
+        self:patrolBehavior()
+    elseif self.currentState == AIState.CHASE then
+        self:chaseBehavior()
+    elseif self.currentState == AIState.ATTACK then
+        self:attackBehavior()
+    elseif self.currentState == AIState.FLEE then
+        self:fleeBehavior()
+    end
+end
+
+function NPC:idleBehavior()
+    -- Look for players nearby
+    local players = game.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (self.character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < 50 then
+                self.target = player
+                self.currentState = AIState.CHASE
+                return
+            end
+        end
+    end
+    
+    -- If no players found, start patrolling
+    if #self.patrolPoints > 0 then
+        self.currentState = AIState.PATROL
+    end
+end
+
+function NPC:patrolBehavior()
+    if #self.patrolPoints == 0 then
+        self.currentState = AIState.IDLE
+        return
+    end
+    
+    local targetPoint = self.patrolPoints[self.currentPatrolIndex]
+    local distance = (self.character.HumanoidRootPart.Position - targetPoint).Magnitude
+    
+    if distance < 5 then
+        -- Reached patrol point, move to next
+        self.currentPatrolIndex = self.currentPatrolIndex + 1
+        if self.currentPatrolIndex > #self.patrolPoints then
+            self.currentPatrolIndex = 1
+        end
+    else
+        -- Move towards patrol point
+        self.humanoid:MoveTo(targetPoint)
+    end
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Pathfinding with PathfindingService',
+        content: `Roblox's PathfindingService helps NPCs navigate around obstacles intelligently. It's essential for creating realistic movement.
+
+**PathfindingService Features:**
+- **FindPathAsync()**: Calculates a path from point A to point B
+- **Waypoint System**: Breaks paths into manageable waypoints
+- **Obstacle Avoidance**: Automatically avoids walls and obstacles
+- **Dynamic Updates**: Can recalculate paths when obstacles change
+
+**Pathfinding Process:**
+1. Call PathfindingService:FindPathAsync() with start and end positions
+2. Get the waypoints from the returned path
+3. Move the NPC through each waypoint in sequence
+4. Handle pathfinding failures gracefully
+
+**Best Practices:**
+- Cache paths when possible to improve performance
+- Set reasonable timeout values for pathfinding
+- Handle cases where no path is found
+- Update paths when the target moves significantly`,
+        codeExample: `-- Advanced pathfinding example
+
+local PathfindingService = game:GetService("PathfindingService")
+local RunService = game:GetService("RunService")
+
+local PathfindingAI = {}
+PathfindingAI.__index = PathfindingAI
+
+function PathfindingAI.new(character)
+    local self = setmetatable({}, PathfindingAI)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.currentPath = nil
+    self.waypoints = {}
+    self.currentWaypointIndex = 1
+    self.targetPosition = nil
+    self.pathfindingTimeout = 5 -- seconds
+    return self
+end
+
+function PathfindingAI:findPathTo(targetPosition)
+    self.targetPosition = targetPosition
+    
+    -- Create pathfinding parameters
+    local pathfindingParams = PathfindingService:CreatePath({
+        AgentRadius = 2,
+        AgentHeight = 5,
+        AgentCanJump = true,
+        WaypointSpacing = 4
+    })
+    
+    -- Calculate path
+    local success, errorMessage = pcall(function()
+        self.currentPath = pathfindingParams:ComputeAsync(
+            self.character.HumanoidRootPart.Position,
+            targetPosition
+        )
+    end)
+    
+    if success and self.currentPath then
+        self.waypoints = self.currentPath:GetWaypoints()
+        self.currentWaypointIndex = 1
+        print("Path found with", #self.waypoints, "waypoints")
+        return true
+    else
+        warn("Pathfinding failed:", errorMessage)
+        return false
+    end
+end
+
+function PathfindingAI:followPath()
+    if #self.waypoints == 0 then
+        return false
+    end
+    
+    local currentWaypoint = self.waypoints[self.currentWaypointIndex]
+    local distance = (self.character.HumanoidRootPart.Position - currentWaypoint.Position).Magnitude
+    
+    if distance < 3 then
+        -- Reached waypoint, move to next
+        self.currentWaypointIndex = self.currentWaypointIndex + 1
+        
+        if self.currentWaypointIndex > #self.waypoints then
+            -- Reached end of path
+            print("Reached destination!")
+            return false
+        end
+    else
+        -- Move towards current waypoint
+        if currentWaypoint.Action == Enum.PathWaypointAction.Jump then
+            self.humanoid.Jump = true
+        end
+        
+        self.humanoid:MoveTo(currentWaypoint.Position)
+    end
+    
+    return true
+end
+
+function PathfindingAI:update()
+    if self.targetPosition then
+        local distanceToTarget = (self.character.HumanoidRootPart.Position - self.targetPosition).Magnitude
+        
+        if distanceToTarget > 10 then
+            -- Target is far, recalculate path
+            self:findPathTo(self.targetPosition)
+        end
+        
+        if #self.waypoints > 0 then
+            local stillFollowing = self:followPath()
+            if not stillFollowing then
+                self.targetPosition = nil
+            end
+        end
+    end
+end
+
+-- Example usage
+local npc = workspace:FindFirstChild("NPC")
+if npc then
+    local pathfindingAI = PathfindingAI.new(npc)
+    
+    -- Find path to a target position
+    local targetPosition = Vector3.new(100, 0, 100)
+    pathfindingAI:findPathTo(targetPosition)
+    
+    -- Update AI every frame
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        pathfindingAI:update()
+    end)
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced AI Behaviors',
+        content: `Professional games use complex AI behaviors that make NPCs feel alive and intelligent.
+
+**Advanced AI Features:**
+- **Group Behavior**: NPCs work together as teams
+- **Dynamic Decision Making**: AI adapts based on game state
+- **Emotional States**: NPCs have moods and personalities
+- **Learning**: AI improves over time
+- **Communication**: NPCs share information with each other
+
+**Behavior Trees:**
+Behavior trees are a powerful way to organize complex AI logic. They use a tree structure where each node represents a behavior or decision.
+
+**AI Communication:**
+- **Shared Knowledge**: NPCs share information about player location
+- **Coordination**: NPCs coordinate attacks and movements
+- **Alerts**: NPCs warn each other about threats
+- **Roles**: Different NPCs have different responsibilities`,
+        codeExample: `-- Advanced AI behavior system
+
+local BehaviorTree = {}
+BehaviorTree.__index = BehaviorTree
+
+-- Behavior tree node types
+local NodeType = {
+    SEQUENCE = "sequence",    -- Run children in order, fail if any child fails
+    SELECTOR = "selector",    -- Run children until one succeeds
+    PARALLEL = "parallel",    -- Run all children simultaneously
+    CONDITION = "condition",  -- Check a condition
+    ACTION = "action"         -- Execute an action
+}
+
+local BehaviorNode = {}
+BehaviorNode.__index = BehaviorNode
+
+function BehaviorNode.new(nodeType, name, func)
+    local self = setmetatable({}, BehaviorNode)
+    self.type = nodeType
+    self.name = name
+    self.func = func
+    self.children = {}
+    self.status = "ready" -- ready, running, success, failure
+    return self
+end
+
+function BehaviorNode:addChild(child)
+    table.insert(self.children, child)
+end
+
+function BehaviorNode:execute(ai)
+    if self.type == NodeType.CONDITION then
+        local result = self.func(ai)
+        self.status = result and "success" or "failure"
+        return self.status
+        
+    elseif self.type == NodeType.ACTION then
+        local result = self.func(ai)
+        self.status = result and "success" or "failure"
+        return self.status
+        
+    elseif self.type == NodeType.SEQUENCE then
+        for _, child in ipairs(self.children) do
+            local childStatus = child:execute(ai)
+            if childStatus == "failure" then
+                self.status = "failure"
+                return "failure"
+            elseif childStatus == "running" then
+                self.status = "running"
+                return "running"
+            end
+        end
+        self.status = "success"
+        return "success"
+        
+    elseif self.type == NodeType.SELECTOR then
+        for _, child in ipairs(self.children) do
+            local childStatus = child:execute(ai)
+            if childStatus == "success" then
+                self.status = "success"
+                return "success"
+            elseif childStatus == "running" then
+                self.status = "running"
+                return "running"
+            end
+        end
+        self.status = "failure"
+        return "failure"
+    end
+    
+    return "failure"
+end
+
+-- AI Communication System
+local AIController = {}
+AIController.__index = AIController
+
+function AIController.new()
+    local self = setmetatable({}, AIController)
+    self.npcs = {}
+    self.sharedKnowledge = {
+        playerLocation = nil,
+        lastPlayerSeen = 0,
+        alertLevel = 0,
+        activeThreats = {}
+    }
+    return self
+end
+
+function AIController:addNPC(npc)
+    table.insert(self.npcs, npc)
+    npc.controller = self
+end
+
+function AIController:updateSharedKnowledge(key, value)
+    self.sharedKnowledge[key] = value
+    self.sharedKnowledge.lastUpdate = tick()
+    
+    -- Notify all NPCs of the update
+    for _, npc in ipairs(self.npcs) do
+        if npc.onKnowledgeUpdate then
+            npc:onKnowledgeUpdate(key, value)
+        end
+    end
+end
+
+function AIController:getSharedKnowledge(key)
+    return self.sharedKnowledge[key]
+end
+
+-- Advanced NPC with behavior tree
+local AdvancedNPC = {}
+AdvancedNPC.__index = AdvancedNPC
+
+function AdvancedNPC.new(character)
+    local self = setmetatable({}, AdvancedNPC)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.health = 100
+    self.maxHealth = 100
+    self.alertLevel = 0
+    self.lastPlayerSeen = 0
+    self.behaviorTree = self:createBehaviorTree()
+    return self
+end
+
+function AdvancedNPC:createBehaviorTree()
+    -- Create behavior tree
+    local root = BehaviorNode.new(NodeType.SELECTOR, "root")
+    
+    -- Combat behavior
+    local combatSequence = BehaviorNode.new(NodeType.SEQUENCE, "combat")
+    local canSeePlayer = BehaviorNode.new(NodeType.CONDITION, "canSeePlayer", function(ai)
+        return ai:canSeePlayer()
+    end)
+    local attackPlayer = BehaviorNode.new(NodeType.ACTION, "attackPlayer", function(ai)
+        return ai:attackPlayer()
+    end)
+    
+    combatSequence:addChild(canSeePlayer)
+    combatSequence:addChild(attackPlayer)
+    
+    -- Patrol behavior
+    local patrolSequence = BehaviorNode.new(NodeType.SEQUENCE, "patrol")
+    local shouldPatrol = BehaviorNode.new(NodeType.CONDITION, "shouldPatrol", function(ai)
+        return ai.alertLevel == 0
+    end)
+    local doPatrol = BehaviorNode.new(NodeType.ACTION, "doPatrol", function(ai)
+        return ai:patrol()
+    end)
+    
+    patrolSequence:addChild(shouldPatrol)
+    patrolSequence:addChild(doPatrol)
+    
+    -- Alert behavior
+    local alertSequence = BehaviorNode.new(NodeType.SEQUENCE, "alert")
+    local isAlerted = BehaviorNode.new(NodeType.CONDITION, "isAlerted", function(ai)
+        return ai.alertLevel > 0
+    end)
+    local searchForPlayer = BehaviorNode.new(NodeType.ACTION, "searchForPlayer", function(ai)
+        return ai:searchForPlayer()
+    end)
+    
+    alertSequence:addChild(isAlerted)
+    alertSequence:addChild(searchForPlayer)
+    
+    -- Add behaviors to root
+    root:addChild(combatSequence)
+    root:addChild(alertSequence)
+    root:addChild(patrolSequence)
+    
+    return root
+end
+
+function AdvancedNPC:canSeePlayer()
+    local players = game.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (self.character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < 30 then
+                self.lastPlayerSeen = tick()
+                if self.controller then
+                    self.controller:updateSharedKnowledge("playerLocation", player.Character.HumanoidRootPart.Position)
+                end
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function AdvancedNPC:attackPlayer()
+    print("NPC is attacking player!")
+    -- Implement attack logic here
+    return true
+end
+
+function AdvancedNPC:patrol()
+    print("NPC is patrolling...")
+    -- Implement patrol logic here
+    return true
+end
+
+function AdvancedNPC:searchForPlayer()
+    print("NPC is searching for player...")
+    -- Implement search logic here
+    return true
+end
+
+function AdvancedNPC:update()
+    self.behaviorTree:execute(self)
+end
+
+function AdvancedNPC:onKnowledgeUpdate(key, value)
+    if key == "playerLocation" then
+        self.alertLevel = 1
+        print("NPC received player location update!")
+    end
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- AI & Pathfinding Systems - Comprehensive Learning Example
+-- Create intelligent NPCs and pathfinding systems for dynamic gameplay
+
+local PathfindingService = game:GetService("PathfindingService")
+local RunService = game:GetService("RunService")
+
+print("=== AI & PATHFINDING SYSTEMS DEMO ===")
+print("Learning to create intelligent NPCs...")
+
+-- 1. BASIC AI STATE MACHINE
+print("\\n1. DEMONSTRATING BASIC AI STATE MACHINE...")
+
+local AIState = {
+    IDLE = "idle",
+    PATROL = "patrol",
+    CHASE = "chase", 
+    ATTACK = "attack",
+    FLEE = "flee"
+}
+
+local BasicAI = {}
+BasicAI.__index = BasicAI
+
+function BasicAI.new(character)
+    local self = setmetatable({}, BasicAI)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.currentState = AIState.IDLE
+    self.target = nil
+    self.patrolPoints = {
+        Vector3.new(0, 0, 0),
+        Vector3.new(20, 0, 0),
+        Vector3.new(20, 0, 20),
+        Vector3.new(0, 0, 20)
+    }
+    self.currentPatrolIndex = 1
+    self.health = 100
+    self.maxHealth = 100
+    self.lastStateChange = tick()
+    return self
+end
+
+function BasicAI:update()
+    local currentTime = tick()
+    
+    -- State timeout (prevent getting stuck)
+    if currentTime - self.lastStateChange > 10 then
+        self:changeState(AIState.IDLE)
+    end
+    
+    if self.currentState == AIState.IDLE then
+        self:idleBehavior()
+    elseif self.currentState == AIState.PATROL then
+        self:patrolBehavior()
+    elseif self.currentState == AIState.CHASE then
+        self:chaseBehavior()
+    elseif self.currentState == AIState.ATTACK then
+        self:attackBehavior()
+    elseif self.currentState == AIState.FLEE then
+        self:fleeBehavior()
+    end
+end
+
+function BasicAI:changeState(newState)
+    if self.currentState ~= newState then
+        print("AI state changed from", self.currentState, "to", newState)
+        self.currentState = newState
+        self.lastStateChange = tick()
+    end
+end
+
+function BasicAI:idleBehavior()
+    -- Look for players nearby
+    local players = game.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (self.character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < 50 then
+                self.target = player
+                self:changeState(AIState.CHASE)
+                return
+            end
+        end
+    end
+    
+    -- If no players found, start patrolling
+    if #self.patrolPoints > 0 then
+        self:changeState(AIState.PATROL)
+    end
+end
+
+function BasicAI:patrolBehavior()
+    if #self.patrolPoints == 0 then
+        self:changeState(AIState.IDLE)
+        return
+    end
+    
+    local targetPoint = self.patrolPoints[self.currentPatrolIndex]
+    local distance = (self.character.HumanoidRootPart.Position - targetPoint).Magnitude
+    
+    if distance < 5 then
+        -- Reached patrol point, move to next
+        self.currentPatrolIndex = self.currentPatrolIndex + 1
+        if self.currentPatrolIndex > #self.patrolPoints then
+            self.currentPatrolIndex = 1
+        end
+    else
+        -- Move towards patrol point
+        self.humanoid:MoveTo(targetPoint)
+    end
+end
+
+function BasicAI:chaseBehavior()
+    if not self.target or not self.target.Character or not self.target.Character:FindFirstChild("HumanoidRootPart") then
+        self.target = nil
+        self:changeState(AIState.IDLE)
+        return
+    end
+    
+    local distance = (self.character.HumanoidRootPart.Position - self.target.Character.HumanoidRootPart.Position).Magnitude
+    
+    if distance > 100 then
+        -- Target too far, stop chasing
+        self.target = nil
+        self:changeState(AIState.IDLE)
+    elseif distance < 10 then
+        -- Close enough to attack
+        self:changeState(AIState.ATTACK)
+    else
+        -- Continue chasing
+        self.humanoid:MoveTo(self.target.Character.HumanoidRootPart.Position)
+    end
+end
+
+function BasicAI:attackBehavior()
+    if not self.target or not self.target.Character then
+        self:changeState(AIState.IDLE)
+        return
+    end
+    
+    local distance = (self.character.HumanoidRootPart.Position - self.target.Character.HumanoidRootPart.Position).Magnitude
+    
+    if distance > 15 then
+        -- Target moved away, chase again
+        self:changeState(AIState.CHASE)
+    else
+        -- Attack the target
+        print("AI is attacking target!")
+        -- Implement attack logic here
+    end
+end
+
+function BasicAI:fleeBehavior()
+    -- Simple flee behavior - move away from target
+    if self.target and self.target.Character and self.target.Character:FindFirstChild("HumanoidRootPart") then
+        local direction = (self.character.HumanoidRootPart.Position - self.target.Character.HumanoidRootPart.Position).Unit
+        local fleePosition = self.character.HumanoidRootPart.Position + direction * 50
+        self.humanoid:MoveTo(fleePosition)
+    end
+    
+    -- Check if we should stop fleeing
+    if self.health > self.maxHealth * 0.5 then
+        self:changeState(AIState.IDLE)
+    end
+end
+
+-- 2. ADVANCED PATHFINDING AI
+print("\\n2. DEMONSTRATING ADVANCED PATHFINDING...")
+
+local PathfindingAI = {}
+PathfindingAI.__index = PathfindingAI
+
+function PathfindingAI.new(character)
+    local self = setmetatable({}, PathfindingAI)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.currentPath = nil
+    self.waypoints = {}
+    self.currentWaypointIndex = 1
+    self.targetPosition = nil
+    self.pathfindingTimeout = 5
+    self.lastPathUpdate = 0
+    return self
+end
+
+function PathfindingAI:findPathTo(targetPosition)
+    self.targetPosition = targetPosition
+    
+    -- Create pathfinding parameters
+    local pathfindingParams = PathfindingService:CreatePath({
+        AgentRadius = 2,
+        AgentHeight = 5,
+        AgentCanJump = true,
+        WaypointSpacing = 4
+    })
+    
+    -- Calculate path
+    local success, errorMessage = pcall(function()
+        self.currentPath = pathfindingParams:ComputeAsync(
+            self.character.HumanoidRootPart.Position,
+            targetPosition
+        )
+    end)
+    
+    if success and self.currentPath then
+        self.waypoints = self.currentPath:GetWaypoints()
+        self.currentWaypointIndex = 1
+        self.lastPathUpdate = tick()
+        print("Path found with", #self.waypoints, "waypoints")
+        return true
+    else
+        warn("Pathfinding failed:", errorMessage)
+        return false
+    end
+end
+
+function PathfindingAI:followPath()
+    if #self.waypoints == 0 then
+        return false
+    end
+    
+    local currentWaypoint = self.waypoints[self.currentWaypointIndex]
+    local distance = (self.character.HumanoidRootPart.Position - currentWaypoint.Position).Magnitude
+    
+    if distance < 3 then
+        -- Reached waypoint, move to next
+        self.currentWaypointIndex = self.currentWaypointIndex + 1
+        
+        if self.currentWaypointIndex > #self.waypoints then
+            -- Reached end of path
+            print("Reached destination!")
+            return false
+        end
+    else
+        -- Move towards current waypoint
+        if currentWaypoint.Action == Enum.PathWaypointAction.Jump then
+            self.humanoid.Jump = true
+        end
+        
+        self.humanoid:MoveTo(currentWaypoint.Position)
+    end
+    
+    return true
+end
+
+function PathfindingAI:update()
+    if self.targetPosition then
+        local distanceToTarget = (self.character.HumanoidRootPart.Position - self.targetPosition).Magnitude
+        
+        -- Recalculate path if target is far or path is old
+        if distanceToTarget > 10 or tick() - self.lastPathUpdate > self.pathfindingTimeout then
+            self:findPathTo(self.targetPosition)
+        end
+        
+        if #self.waypoints > 0 then
+            local stillFollowing = self:followPath()
+            if not stillFollowing then
+                self.targetPosition = nil
+            end
+        end
+    end
+end
+
+-- 3. BEHAVIOR TREE SYSTEM
+print("\\n3. DEMONSTRATING BEHAVIOR TREE SYSTEM...")
+
+local BehaviorTree = {}
+BehaviorTree.__index = BehaviorTree
+
+local NodeType = {
+    SEQUENCE = "sequence",
+    SELECTOR = "selector", 
+    PARALLEL = "parallel",
+    CONDITION = "condition",
+    ACTION = "action"
+}
+
+local BehaviorNode = {}
+BehaviorNode.__index = BehaviorNode
+
+function BehaviorNode.new(nodeType, name, func)
+    local self = setmetatable({}, BehaviorNode)
+    self.type = nodeType
+    self.name = name
+    self.func = func
+    self.children = {}
+    self.status = "ready"
+    return self
+end
+
+function BehaviorNode:addChild(child)
+    table.insert(self.children, child)
+end
+
+function BehaviorNode:execute(ai)
+    if self.type == NodeType.CONDITION then
+        local result = self.func(ai)
+        self.status = result and "success" or "failure"
+        return self.status
+        
+    elseif self.type == NodeType.ACTION then
+        local result = self.func(ai)
+        self.status = result and "success" or "failure"
+        return self.status
+        
+    elseif self.type == NodeType.SEQUENCE then
+        for _, child in ipairs(self.children) do
+            local childStatus = child:execute(ai)
+            if childStatus == "failure" then
+                self.status = "failure"
+                return "failure"
+            elseif childStatus == "running" then
+                self.status = "running"
+                return "running"
+            end
+        end
+        self.status = "success"
+        return "success"
+        
+    elseif self.type == NodeType.SELECTOR then
+        for _, child in ipairs(self.children) do
+            local childStatus = child:execute(ai)
+            if childStatus == "success" then
+                self.status = "success"
+                return "success"
+            elseif childStatus == "running" then
+                self.status = "running"
+                return "running"
+            end
+        end
+        self.status = "failure"
+        return "failure"
+    end
+    
+    return "failure"
+end
+
+-- 4. AI COMMUNICATION SYSTEM
+print("\\n4. DEMONSTRATING AI COMMUNICATION...")
+
+local AIController = {}
+AIController.__index = AIController
+
+function AIController.new()
+    local self = setmetatable({}, AIController)
+    self.npcs = {}
+    self.sharedKnowledge = {
+        playerLocation = nil,
+        lastPlayerSeen = 0,
+        alertLevel = 0,
+        activeThreats = {}
+    }
+    return self
+end
+
+function AIController:addNPC(npc)
+    table.insert(self.npcs, npc)
+    npc.controller = self
+end
+
+function AIController:updateSharedKnowledge(key, value)
+    self.sharedKnowledge[key] = value
+    self.sharedKnowledge.lastUpdate = tick()
+    
+    -- Notify all NPCs of the update
+    for _, npc in ipairs(self.npcs) do
+        if npc.onKnowledgeUpdate then
+            npc:onKnowledgeUpdate(key, value)
+        end
+    end
+end
+
+function AIController:getSharedKnowledge(key)
+    return self.sharedKnowledge[key]
+end
+
+-- 5. ADVANCED NPC WITH BEHAVIOR TREE
+print("\\n5. DEMONSTRATING ADVANCED NPC...")
+
+local AdvancedNPC = {}
+AdvancedNPC.__index = AdvancedNPC
+
+function AdvancedNPC.new(character)
+    local self = setmetatable({}, AdvancedNPC)
+    self.character = character
+    self.humanoid = character:FindFirstChild("Humanoid")
+    self.health = 100
+    self.maxHealth = 100
+    self.alertLevel = 0
+    self.lastPlayerSeen = 0
+    self.behaviorTree = self:createBehaviorTree()
+    return self
+end
+
+function AdvancedNPC:createBehaviorTree()
+    local root = BehaviorNode.new(NodeType.SELECTOR, "root")
+    
+    -- Combat behavior
+    local combatSequence = BehaviorNode.new(NodeType.SEQUENCE, "combat")
+    local canSeePlayer = BehaviorNode.new(NodeType.CONDITION, "canSeePlayer", function(ai)
+        return ai:canSeePlayer()
+    end)
+    local attackPlayer = BehaviorNode.new(NodeType.ACTION, "attackPlayer", function(ai)
+        return ai:attackPlayer()
+    end)
+    
+    combatSequence:addChild(canSeePlayer)
+    combatSequence:addChild(attackPlayer)
+    
+    -- Patrol behavior
+    local patrolSequence = BehaviorNode.new(NodeType.SEQUENCE, "patrol")
+    local shouldPatrol = BehaviorNode.new(NodeType.CONDITION, "shouldPatrol", function(ai)
+        return ai.alertLevel == 0
+    end)
+    local doPatrol = BehaviorNode.new(NodeType.ACTION, "doPatrol", function(ai)
+        return ai:patrol()
+    end)
+    
+    patrolSequence:addChild(shouldPatrol)
+    patrolSequence:addChild(doPatrol)
+    
+    -- Add behaviors to root
+    root:addChild(combatSequence)
+    root:addChild(patrolSequence)
+    
+    return root
+end
+
+function AdvancedNPC:canSeePlayer()
+    local players = game.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (self.character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < 30 then
+                self.lastPlayerSeen = tick()
+                if self.controller then
+                    self.controller:updateSharedKnowledge("playerLocation", player.Character.HumanoidRootPart.Position)
+                end
+                return true
+            end
+        end
+    end
+    return false
+end
+
+function AdvancedNPC:attackPlayer()
+    print("Advanced NPC is attacking player!")
+    return true
+end
+
+function AdvancedNPC:patrol()
+    print("Advanced NPC is patrolling...")
+    return true
+end
+
+function AdvancedNPC:update()
+    self.behaviorTree:execute(self)
+end
+
+function AdvancedNPC:onKnowledgeUpdate(key, value)
+    if key == "playerLocation" then
+        self.alertLevel = 1
+        print("Advanced NPC received player location update!")
+    end
+end
+
+-- 6. DEMO THE AI SYSTEMS
+print("\\n6. RUNNING AI DEMONSTRATIONS...")
+
+-- Create AI controller
+local aiController = AIController.new()
+
+-- Create demo NPCs (if they exist in workspace)
+local npc1 = workspace:FindFirstChild("NPC1")
+local npc2 = workspace:FindFirstChild("NPC2")
+
+if npc1 then
+    local basicAI = BasicAI.new(npc1)
+    local pathfindingAI = PathfindingAI.new(npc1)
+    local advancedNPC = AdvancedNPC.new(npc1)
+    
+    aiController:addNPC(advancedNPC)
+    
+    print("Created AI systems for NPC1")
+    
+    -- Demo pathfinding
+    pathfindingAI:findPathTo(Vector3.new(100, 0, 100))
+    
+    -- Update AI systems
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        basicAI:update()
+        pathfindingAI:update()
+        advancedNPC:update()
+    end)
+end
+
+if npc2 then
+    local advancedNPC2 = AdvancedNPC.new(npc2)
+    aiController:addNPC(advancedNPC2)
+    print("Created AI systems for NPC2")
+end
+
+print("\\n=== AI & PATHFINDING DEMO COMPLETE ===")
+print("You've learned to create intelligent NPCs and pathfinding systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Create an AI state machine', type: 'code_contains', value: 'AIState' },
+        { description: 'Use PathfindingService for navigation', type: 'code_contains', value: 'PathfindingService' },
+        { description: 'Implement behavior tree nodes', type: 'code_contains', value: 'BehaviorNode' }
+      ],
+      hints: [
+        'Use state machines to organize AI behaviors',
+        'Use PathfindingService:CreatePath() for intelligent navigation',
+        'Implement behavior trees for complex AI decision making',
+        'Use shared knowledge systems for AI communication',
+        'Consider performance when updating AI systems'
+      ],
+      successMessage: 'Outstanding! You now understand AI and pathfinding systems. You can create intelligent NPCs that enhance gameplay!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'advanced-tweening-systems': {
     title: 'Advanced Tweening Systems',
