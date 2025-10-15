@@ -206,21 +206,37 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Lesson Content */}
-        <div className="w-[40%] border-r overflow-auto">
-          <div className="p-6 space-y-6">
+        <div className="w-[40%] border-r border-slate-200 overflow-auto bg-white/80 backdrop-blur-sm">
+          <div className="p-8 space-y-8">
             {lessonContent && (
               <>
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{lessonContent.title}</h1>
-                  <p className="text-muted-foreground">
-                    {lessonContent.description}
-                  </p>
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl blur-xl"></div>
+                  <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <span className="text-white font-bold text-lg">📚</span>
+                      </div>
+                      <div>
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          {lessonContent.title}
+                        </h1>
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-slate-600 font-medium">Interactive Lesson</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-slate-700 text-lg leading-relaxed">
+                      {lessonContent.description}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {lessonContent.sections.map((section: any, index: number) => {
                     const colorClasses: Record<string, string> = {
                       blue: 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white',
@@ -243,22 +259,52 @@ export default function LessonPage() {
                     const bgColor = bgColors[sectionColor] || bgColors.blue;
 
                     return (
-                      <Card key={index} className={`border-l-4 ${colorClass}`}>
-                        <CardContent className="p-6">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
-                              <span className="text-white font-bold text-sm">{index + 1}</span>
+                      <div key={index} className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur-xl" 
+                             style={{background: `linear-gradient(135deg, ${sectionColor === 'blue' ? '#3b82f6, #1d4ed8' : sectionColor === 'green' ? '#10b981, #059669' : sectionColor === 'purple' ? '#8b5cf6, #7c3aed' : sectionColor === 'orange' ? '#f97316, #ea580c' : '#ef4444, #dc2626'})`}}></div>
+                        <Card className={`relative bg-gradient-to-br ${colorClass} backdrop-blur-sm border-2 border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}>
+                          <CardContent className="p-8">
+                            <div className="flex items-start gap-4 mb-6">
+                              <div className={`w-14 h-14 bg-gradient-to-br ${bgColor} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                                <span className="text-white font-bold text-xl">{index + 1}</span>
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-slate-900 transition-colors">
+                                  {section.title}
+                                </h3>
+                                <div className="flex items-center gap-2 mb-4">
+                                  <span className="text-2xl">{sectionColor === 'blue' ? '🔵' : sectionColor === 'green' ? '🟢' : sectionColor === 'purple' ? '🟣' : sectionColor === 'orange' ? '🟠' : '🔴'}</span>
+                                  <span className="text-sm font-medium text-slate-600 bg-white/60 px-3 py-1 rounded-full">
+                                    Section {index + 1}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
-                          </div>
-                          <p className="text-gray-700 mb-4 leading-relaxed">
-                            {section.content}
-                          </p>
-                          <div className="bg-gray-900 rounded-lg p-4 border">
-                            <code className="text-green-400 font-mono text-sm whitespace-pre-wrap">{section.codeExample}</code>
-                          </div>
-                        </CardContent>
-                      </Card>
+                            
+                            <div className="prose prose-slate max-w-none">
+                              <div className="text-slate-700 leading-relaxed text-base whitespace-pre-line">
+                                {section.content}
+                              </div>
+                            </div>
+                            
+                            {section.codeExample && (
+                              <div className="mt-6 relative">
+                                <div className="absolute top-3 left-4 flex items-center gap-2">
+                                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                  <span className="text-xs text-slate-500 ml-2 font-mono">Lua</span>
+                                </div>
+                                <div className="bg-slate-900 rounded-xl p-6 pt-12 overflow-x-auto shadow-2xl border border-slate-700">
+                                  <pre className="text-sm text-slate-100 leading-relaxed">
+                                    <code className="font-mono">{section.codeExample}</code>
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
                     );
                   })}
                 </div>
@@ -275,61 +321,89 @@ export default function LessonPage() {
         </div>
 
         {/* Right Panel: Editor + Console + Tests */}
-        <div className="w-[60%] flex flex-col bg-gray-50">
-          <div className="flex-1 overflow-auto p-6 space-y-6">
+        <div className="w-[60%] flex flex-col bg-gradient-to-br from-slate-50 to-gray-100">
+          <div className="flex-1 overflow-auto p-8 space-y-8">
             {/* Code Editor Section */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-4 py-3 border-b bg-gray-50 rounded-t-lg">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Code Editor
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>Lua</span>
-                    <span>•</span>
-                    <span>Monaco</span>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-slate-50 to-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <span className="text-2xl">💻</span>
+                        Code Editor
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-600 bg-white/60 px-4 py-2 rounded-full border border-slate-200">
+                      <span className="font-mono font-semibold">Lua</span>
+                      <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+                      <span>Monaco</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="p-4">
-                <CodeEditor value={code} onChange={setCode} height="350px" />
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-xs text-gray-500">
-                    Press <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Cmd/Ctrl + Enter</kbd> to run your code
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>Auto-save enabled</span>
+                <div className="p-6">
+                  <div className="relative">
+                    <CodeEditor value={code} onChange={setCode} height="400px" />
+                    <div className="absolute top-2 right-2 flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <span className="font-medium">💡</span>
+                      <span>Press</span>
+                      <kbd className="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-mono shadow-sm">Cmd/Ctrl + Enter</kbd>
+                      <span>to run your code</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium">Auto-save enabled</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Console Section */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <ConsolePanel output={output} errors={errors} />
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-600/5 to-emerald-600/5 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+                <ConsolePanel output={output} errors={errors} />
+              </div>
             </div>
 
             {/* Tests Section */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              {challenge && (
-                <TestRunnerPanel
-                  tests={tests}
-                  hints={challenge.hints}
-                  failedAttempts={attempts}
-                  onRun={handleRun}
-                  isRunning={isRunning}
-                  successMessage={tests.every((t) => t.passed) ? challenge.successMessage : undefined}
-                />
-              )}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+                {challenge && (
+                  <TestRunnerPanel
+                    tests={tests}
+                    hints={challenge.hints}
+                    failedAttempts={attempts}
+                    onRun={handleRun}
+                    isRunning={isRunning}
+                    successMessage={tests.every((t) => t.passed) ? challenge.successMessage : undefined}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="border-t p-6">
-            <LessonNav
-              prevLesson={navigation.prevLesson}
-              nextLesson={navigation.nextLesson}
-            />
+          <div className="border-t border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur-sm p-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-2xl blur-xl"></div>
+              <div className="relative">
+                <LessonNav
+                  prevLesson={navigation.prevLesson}
+                  nextLesson={navigation.nextLesson}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
