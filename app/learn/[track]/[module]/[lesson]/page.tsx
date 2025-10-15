@@ -12,15 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { runAllTests, executeCode } from '@/lib/challengeEngine';
 import { Challenge, TestResult } from '@/types/database';
+import { getLessonContent } from '@/lib/lessonContent';
 
 // This would normally fetch from DB + read MDX
 // For now, using placeholder
 export default function LessonPage() {
   const params = useParams();
-  const [code, setCode] = useState(`-- Write your Roblox script here
-local playerName = "Alex"
-print("Hello, " .. playerName .. "!")
-print("Welcome to Roblox scripting!")`);
+  const [lessonContent, setLessonContent] = useState<any>(null);
+  const [code, setCode] = useState('');
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [tests, setTests] = useState<TestResult[]>([]);
   const [output, setOutput] = useState<string[]>([]);
@@ -32,37 +31,30 @@ print("Welcome to Roblox scripting!")`);
   const [hasAccess, setHasAccess] = useState(true);
 
   useEffect(() => {
-    // Fetch lesson data and challenge
+    // Load lesson content based on the lesson slug
     async function loadLesson() {
       try {
-        // In production, this would fetch from API
-        // For now, load a sample challenge
+        const lessonSlug = params.lesson as string;
+        const content = getLessonContent(lessonSlug);
+        
+        setLessonContent(content);
+        setCode(content.defaultCode);
+        
+        // Create challenge from lesson content
         const sampleChallenge: Challenge = {
-          starterCode: '-- Write your code here\nlocal message = "Hello, Roblox!"\nprint(message)',
-          tests: [
-            {
-              id: 'has-variable',
-              type: 'static',
-              assert: 'identifier_exists',
-              value: 'message',
-              description: 'Define a variable called "message"',
-            },
-            {
-              id: 'has-print',
-              type: 'runtime',
-              assert: 'no_errors',
-              description: 'Code runs without errors',
-            },
-          ],
-          hints: [
-            'Use the "local" keyword to create a variable',
-            'Use print() to output text to the console',
-          ],
-          successMessage: 'Great job! You created your first Lua variable and printed it!',
+          starterCode: content.defaultCode,
+          tests: content.challenge.tests.map((test: any, index: number) => ({
+            id: index.toString(),
+            type: 'static',
+            assert: test.type,
+            value: test.value,
+            description: test.description,
+          })),
+          hints: content.challenge.hints,
+          successMessage: content.challenge.successMessage,
         };
 
         setChallenge(sampleChallenge);
-        setCode(sampleChallenge.starterCode);
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to load lesson:', error);
@@ -162,70 +154,55 @@ print("Welcome to Roblox scripting!")`);
         {/* Left Panel: Lesson Content */}
         <div className="w-[40%] border-r overflow-auto">
           <div className="p-6 space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Variables & Roblox Output</h1>
-              <p className="text-muted-foreground">
-                Learn how to create variables and use Roblox Studio&apos;s Output window for debugging
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {/* Introduction Section */}
-              <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">1</span>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900">Variables in Roblox Scripts</h2>
-                  </div>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
-                    In Roblox scripting with Luau, you create variables using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-blue-600">local</code> keyword. 
-                    Variables store data like player names, scores, and game states that you can use throughout your Roblox scripts.
+            {lessonContent && (
+              <>
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">{lessonContent.title}</h1>
+                  <p className="text-muted-foreground">
+                    {lessonContent.description}
                   </p>
-                  <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">local playerName = &quot;Alex&quot;</code>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Printing Section */}
-              <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">2</span>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900">Roblox Studio Output Window</h2>
-                  </div>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
-                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in Roblox Studio&apos;s Output window.
-                    This is essential for debugging your Roblox scripts and understanding what your code is doing.
-                  </p>
-                  <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">print(&quot;Hello, Roblox!&quot;)</code>
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="space-y-6">
+                  {lessonContent.sections.map((section: any, index: number) => {
+                    const colorClasses = {
+                      blue: 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white',
+                      green: 'border-l-green-500 bg-gradient-to-r from-green-50 to-white',
+                      purple: 'border-l-purple-500 bg-gradient-to-r from-purple-50 to-white',
+                      orange: 'border-l-orange-500 bg-gradient-to-r from-orange-50 to-white',
+                      red: 'border-l-red-500 bg-gradient-to-r from-red-50 to-white',
+                    };
+                    
+                    const bgColors = {
+                      blue: 'bg-blue-500',
+                      green: 'bg-green-500',
+                      purple: 'bg-purple-500',
+                      orange: 'bg-orange-500',
+                      red: 'bg-red-500',
+                    };
 
-              {/* String Concatenation Section */}
-              <Card className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">3</span>
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900">String Concatenation for Game Messages</h2>
-                  </div>
-                  <p className="text-gray-700 mb-4 leading-relaxed">
-                    Combine strings using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-purple-600">..</code> operator to create dynamic messages for your Roblox game:
-                  </p>
-                  <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">print(&quot;Welcome to the game, &quot; .. playerName .. &quot;!&quot;)</code>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    return (
+                      <Card key={index} className={`border-l-4 ${colorClasses[section.color]}`}>
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className={`w-8 h-8 ${bgColors[section.color]} rounded-full flex items-center justify-center`}>
+                              <span className="text-white font-bold text-sm">{index + 1}</span>
+                            </div>
+                            <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
+                          </div>
+                          <p className="text-gray-700 mb-4 leading-relaxed">
+                            {section.content}
+                          </p>
+                          <div className="bg-gray-900 rounded-lg p-4 border">
+                            <code className="text-green-400 font-mono text-sm whitespace-pre-wrap">{section.codeExample}</code>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            )}
 
             <div className="pt-6">
               <Button onClick={handleExport} variant="outline" className="gap-2">
