@@ -286,6 +286,88 @@ export async function runRuntimeChecks(
 }
 
 /**
+ * Executes code and returns the output (without running tests)
+ */
+export async function executeCode(source: string): Promise<{ output: string[]; errors: string[] }> {
+  return new Promise((resolve) => {
+    const workerCode = `
+      importScripts('https://cdn.jsdelivr.net/npm/fengari-web@0.1.4/dist/fengari-web.min.js');
+      
+      self.onmessage = function(e) {
+        const { source } = e.data;
+        const output = [];
+        const errors = [];
+        
+        try {
+          const L = fengari.lauxlib.luaL_newstate();
+          fengari.lualib.luaL_openlibs(L);
+          
+          // Capture print output
+          const printFunction = \`
+            _G.__output = {}
+            local original_print = print
+            function print(...)
+              local args = {...}
+              local str = ""
+              for i, v in ipairs(args) do
+                str = str .. tostring(v)
+                if i < #args then str = str .. "\\t" end
+              end
+              table.insert(_G.__output, str)
+              original_print(...)
+            end
+          \`;
+          
+          fengari.load(printFunction)(L);
+          
+          // Execute user code with timeout
+          const startTime = Date.now();
+          const result = fengari.load(source, 'user_code')(L);
+          
+          if (Date.now() - startTime > 2000) {
+            throw new Error('Execution timeout (2s limit)');
+          }
+          
+          // Get captured output
+          fengari.lua.lua_getglobal(L, '__output');
+          const outputTable = fengari.interop.tojs(L, -1);
+          if (outputTable) {
+            output.push(...outputTable);
+          }
+          
+          if (output.length === 0) {
+            output.push('(No output - try using print() to display something)');
+          }
+          
+        } catch (error) {
+          errors.push(error.message);
+        }
+        
+        self.postMessage({ output, errors });
+      };
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+    
+    worker.postMessage({ source });
+    
+    worker.onmessage = (e) => {
+      const { output, errors } = e.data;
+      worker.terminate();
+      URL.revokeObjectURL(blob);
+      resolve({ output, errors });
+    };
+    
+    worker.onerror = (error) => {
+      worker.terminate();
+      URL.revokeObjectURL(blob);
+      resolve({ output: [], errors: [error.message] });
+    };
+  });
+}
+
+/**
  * Runs all tests (static + runtime) and returns combined results
  */
 export async function runAllTests(

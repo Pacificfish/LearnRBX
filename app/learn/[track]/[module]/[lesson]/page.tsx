@@ -10,14 +10,17 @@ import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
-import { runAllTests } from '@/lib/challengeEngine';
+import { runAllTests, executeCode } from '@/lib/challengeEngine';
 import { Challenge, TestResult } from '@/types/database';
 
 // This would normally fetch from DB + read MDX
 // For now, using placeholder
 export default function LessonPage() {
   const params = useParams();
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(`-- Write your Roblox script here
+local playerName = "Alex"
+print("Hello, " .. playerName .. "!")
+print("Welcome to Roblox scripting!")`);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [tests, setTests] = useState<TestResult[]>([]);
   const [output, setOutput] = useState<string[]>([]);
@@ -90,14 +93,14 @@ export default function LessonPage() {
     setErrors([]);
 
     try {
+      // First execute the code to show actual output
+      const codeExecution = await executeCode(code);
+      setOutput(codeExecution.output);
+      setErrors(codeExecution.errors);
+
+      // Then run tests for validation
       const results = await runAllTests(code, challenge);
       setTests(results.results);
-      
-      if (results.allPassed) {
-        setOutput(['✅ All tests passed!', results.output]);
-      } else {
-        setErrors(['Some tests failed. Check the test panel for details.']);
-      }
 
       if (!results.allPassed) {
         setAttempts((prev) => prev + 1);
@@ -178,7 +181,7 @@ export default function LessonPage() {
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">
                     In Roblox scripting with Luau, you create variables using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-blue-600">local</code> keyword. 
-                    Variables store data like player names, scores, and game states that you can use throughout your Roblox game.
+                    Variables store data like player names, scores, and game states that you can use throughout your Roblox scripts.
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
                     <code className="text-green-400 font-mono text-sm">local playerName = &quot;Alex&quot;</code>
@@ -200,7 +203,7 @@ export default function LessonPage() {
                     This is essential for debugging your Roblox scripts and understanding what your code is doing.
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">print(&quot;Player joined the game!&quot;)</code>
+                    <code className="text-green-400 font-mono text-sm">print(&quot;Hello, Roblox!&quot;)</code>
                   </div>
                 </CardContent>
               </Card>
