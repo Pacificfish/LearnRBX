@@ -26,8 +26,7 @@ BEGIN
   -- Insert modules for Core Luau track
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_core_id, 'Language Basics', 1),
-    (track_core_id, 'Roblox Concepts', 2)
-  RETURNING id INTO module_basics_id;
+    (track_core_id, 'Roblox Concepts', 2);
 
   SELECT id INTO module_basics_id FROM public.modules WHERE track_id = track_core_id AND title = 'Language Basics';
   SELECT id INTO module_roblox_id FROM public.modules WHERE track_id = track_core_id AND title = 'Roblox Concepts';
@@ -47,8 +46,7 @@ BEGIN
   -- Insert modules for premium tracks
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_gameplay_id, 'Part Manipulation', 1),
-    (track_gameplay_id, 'Game Mechanics', 2)
-  RETURNING id INTO module_parts_id;
+    (track_gameplay_id, 'Game Mechanics', 2);
 
   SELECT id INTO module_parts_id FROM public.modules WHERE track_id = track_gameplay_id AND title = 'Part Manipulation';
 
@@ -58,8 +56,7 @@ BEGIN
 
   -- UI Scripting track
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
-    (track_ui_id, 'UI Basics', 1)
-  RETURNING id INTO module_ui_basics_id;
+    (track_ui_id, 'UI Basics', 1);
 
   SELECT id INTO module_ui_basics_id FROM public.modules WHERE track_id = track_ui_id AND title = 'UI Basics';
 
