@@ -28,54 +28,62 @@ export function TestRunnerPanel({
   const showHintsButton = failedAttempts >= 2 && hints.length > 0;
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">Tests</CardTitle>
-        <Button onClick={onRun} disabled={isRunning} size="sm" className="gap-2">
-          {isRunning ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              Run Code
-            </>
-          )}
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="h-full">
+      <div className="px-4 py-3 border-b bg-gray-50 rounded-t-lg">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            Tests
+          </CardTitle>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{tests.filter(t => t.passed).length}/{tests.length} passed</span>
+          </div>
+        </div>
+      </div>
+      <div className="p-4 space-y-4">
         {tests.length === 0 ? (
-          <div className="text-sm text-muted-foreground italic">No tests yet. Run your code to check!</div>
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Play className="w-6 h-6 text-gray-400" />
+            </div>
+            <div className="text-gray-500 text-sm">
+              No tests yet. Run your code to check!
+            </div>
+          </div>
         ) : (
           <>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {tests.map((test) => (
                 <div
                   key={test.id}
-                  className={`flex items-start gap-2 p-2 rounded text-sm ${
-                    test.passed ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900'
+                  className={`flex items-start gap-3 p-4 rounded-lg border transition-all duration-200 ${
+                    test.passed ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
                   }`}
                 >
-                  {test.passed ? (
-                    <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-600" />
-                  ) : (
-                    <XCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-600" />
-                  )}
-                  <span className="flex-1">{test.message}</span>
+                  <div className="mt-0.5">
+                    {test.passed ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    )}
+                  </div>
+                  <span className="flex-1 text-sm font-medium">{test.message}</span>
                 </div>
               ))}
             </div>
 
             {allPassed && successMessage && (
-              <div className="bg-green-100 border border-green-300 rounded p-3 text-sm text-green-900">
-                🎉 {successMessage}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-green-800 mb-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-medium">Success!</span>
+                </div>
+                <p className="text-green-700 text-sm">🎉 {successMessage}</p>
               </div>
             )}
 
             {!allPassed && showHintsButton && (
-              <div className="pt-2">
+              <div className="space-y-3">
                 <Button
                   variant="outline"
                   size="sm"
@@ -86,9 +94,9 @@ export function TestRunnerPanel({
                   {showHints ? 'Hide Hints' : 'Show Hints'}
                 </Button>
                 {showHints && (
-                  <div className="mt-3 space-y-2">
+                  <div className="space-y-2">
                     {hints.map((hint, idx) => (
-                      <div key={idx} className="bg-yellow-50 border border-yellow-200 rounded p-2 text-sm">
+                      <div key={idx} className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700 border-l-4 border-l-amber-300">
                         💡 {hint}
                       </div>
                     ))}
@@ -98,8 +106,27 @@ export function TestRunnerPanel({
             )}
           </>
         )}
-      </CardContent>
-    </Card>
+
+        <Button
+          onClick={onRun}
+          disabled={isRunning}
+          className="w-full h-12 text-base font-medium"
+          size="lg"
+        >
+          {isRunning ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Running Tests...
+            </>
+          ) : (
+            <>
+              <Play className="w-5 h-5 mr-2" />
+              Run Code
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }
 

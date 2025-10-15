@@ -166,35 +166,63 @@ export default function LessonPage() {
               </p>
             </div>
 
-            <Card>
-              <CardContent className="p-6 prose prose-sm max-w-none">
-                <h2>Introduction to Variables</h2>
-                <p>
-                  In Lua, you create variables using the <code>local</code> keyword. Variables store
-                  data that you can use later in your scripts.
-                </p>
-                <pre>
-                  <code>local playerName = &quot;Alex&quot;</code>
-                </pre>
+            <div className="space-y-6">
+              {/* Introduction Section */}
+              <Card className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">1</span>
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">Introduction to Variables</h2>
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    In Lua, you create variables using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-blue-600">local</code> keyword. Variables store
+                    data that you can use later in your scripts.
+                  </p>
+                  <div className="bg-gray-900 rounded-lg p-4 border">
+                    <code className="text-green-400 font-mono text-sm">local playerName = &quot;Alex&quot;</code>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <h2>Printing Output</h2>
-                <p>
-                  Use the <code>print()</code> function to display information in the output console.
-                  This is helpful for debugging and seeing what your code is doing.
-                </p>
-                <pre>
-                  <code>print(&quot;Hello, world!&quot;)</code>
-                </pre>
+              {/* Printing Section */}
+              <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">2</span>
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">Printing Output</h2>
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in the output console.
+                    This is helpful for debugging and seeing what your code is doing.
+                  </p>
+                  <div className="bg-gray-900 rounded-lg p-4 border">
+                    <code className="text-green-400 font-mono text-sm">print(&quot;Hello, world!&quot;)</code>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <h2>String Concatenation</h2>
-                <p>
-                  Combine strings using the <code>..</code> operator:
-                </p>
-                <pre>
-                  <code>print(&quot;Welcome, &quot; .. playerName)</code>
-                </pre>
-              </CardContent>
-            </Card>
+              {/* String Concatenation Section */}
+              <Card className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">3</span>
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">String Concatenation</h2>
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    Combine strings using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-purple-600">..</code> operator:
+                  </p>
+                  <div className="bg-gray-900 rounded-lg p-4 border">
+                    <code className="text-green-400 font-mono text-sm">print(&quot;Welcome, &quot; .. playerName)</code>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             <div className="pt-6">
               <Button onClick={handleExport} variant="outline" className="gap-2">
@@ -206,21 +234,43 @@ export default function LessonPage() {
         </div>
 
         {/* Right Panel: Editor + Console + Tests */}
-        <div className="w-[60%] flex flex-col">
-          <div className="flex-1 overflow-auto p-6 space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold mb-2">Code Editor</h3>
-              <CodeEditor value={code} onChange={setCode} height="400px" />
-              <p className="text-xs text-muted-foreground mt-2">
-                Press Cmd/Ctrl + Enter to run your code
-              </p>
+        <div className="w-[60%] flex flex-col bg-gray-50">
+          <div className="flex-1 overflow-auto p-6 space-y-6">
+            {/* Code Editor Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
+              <div className="px-4 py-3 border-b bg-gray-50 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    Code Editor
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>Lua</span>
+                    <span>•</span>
+                    <span>Monaco</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                <CodeEditor value={code} onChange={setCode} height="350px" />
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    Press <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">Cmd/Ctrl + Enter</kbd> to run your code
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>Auto-save enabled</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
+            {/* Console Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
               <ConsolePanel output={output} errors={errors} />
             </div>
 
-            <div>
+            {/* Tests Section */}
+            <div className="bg-white rounded-lg shadow-sm border">
               {challenge && (
                 <TestRunnerPanel
                   tests={tests}
