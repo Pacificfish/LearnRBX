@@ -13,6 +13,7 @@ import { Download, Loader2 } from 'lucide-react';
 import { runAllTests, executeCode } from '@/lib/challengeEngine';
 import { Challenge, TestResult } from '@/types/database';
 import { getLessonContent } from '@/lib/lessonContent';
+import { createClientSupabaseClient } from '@/lib/supabase/client';
 
 // This would normally fetch from DB + read MDX
 // For now, using placeholder
@@ -29,6 +30,58 @@ export default function LessonPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const [hasAccess, setHasAccess] = useState(true);
+  const [navigation, setNavigation] = useState<{
+    prevLesson?: { url: string; title: string };
+    nextLesson?: { url: string; title: string };
+  }>({});
+
+  // Function to fetch navigation data
+  const fetchNavigation = useCallback(async () => {
+    try {
+      const supabase = createClientSupabaseClient();
+      const trackSlug = params.track as string;
+      const moduleId = params.module as string;
+      const lessonSlug = params.lesson as string;
+
+      // Get all lessons in the same module, sorted by index
+      const { data: moduleLessons } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('module_id', moduleId)
+        .order('index_in_module');
+
+      if (!moduleLessons) return;
+
+      const currentIndex = moduleLessons.findIndex(lesson => lesson.slug === lessonSlug);
+      
+      const nav: {
+        prevLesson?: { url: string; title: string };
+        nextLesson?: { url: string; title: string };
+      } = {};
+
+      // Previous lesson
+      if (currentIndex > 0) {
+        const prevLesson = moduleLessons[currentIndex - 1];
+        nav.prevLesson = {
+          url: `/learn/${trackSlug}/${moduleId}/${prevLesson.slug}`,
+          title: prevLesson.title
+        };
+      }
+
+      // Next lesson
+      if (currentIndex < moduleLessons.length - 1) {
+        const nextLesson = moduleLessons[currentIndex + 1];
+        nav.nextLesson = {
+          url: `/learn/${trackSlug}/${moduleId}/${nextLesson.slug}`,
+          title: nextLesson.title
+        };
+      }
+
+      setNavigation(nav);
+    } catch (error) {
+      console.error('Error fetching navigation:', error);
+    }
+  }, [params.track, params.module, params.lesson]);
 
   useEffect(() => {
     // Load lesson content based on the lesson slug
@@ -55,6 +108,10 @@ export default function LessonPage() {
         };
 
         setChallenge(sampleChallenge);
+        
+        // Fetch navigation data
+        await fetchNavigation();
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to load lesson:', error);
@@ -63,7 +120,7 @@ export default function LessonPage() {
     }
 
     loadLesson();
-  }, [params]);
+  }, [params, fetchNavigation]);
 
   // Auto-save code
   useEffect(() => {
@@ -270,10 +327,8 @@ export default function LessonPage() {
 
           <div className="border-t p-6">
             <LessonNav
-              nextLesson={{
-                url: '/learn/core-luau/basics/tables-and-loops',
-                title: 'Tables & Loops',
-              }}
+              prevLesson={navigation.prevLesson}
+              nextLesson={navigation.nextLesson}
             />
           </div>
         </div>
