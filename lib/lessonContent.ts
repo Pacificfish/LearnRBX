@@ -26,81 +26,117 @@ export const lessonContentMap: Record<string, LessonContent> = {
     description: 'Learn how to create variables and use Roblox Studio\'s Output window for debugging',
     sections: [
       {
-        title: 'Variables in Roblox Scripts',
-        content: 'In Roblox scripting with Luau, you create variables using the `local` keyword. Variables store data like player names, scores, and game states that you can use throughout your Roblox scripts.',
-        codeExample: 'local playerName = "Alex"',
+        title: 'Local Variables in Luau',
+        content: 'In Luau (Roblox\'s scripting language), always use `local` to declare variables. This creates variables with local scope, which is more efficient and follows Roblox best practices. Local variables are faster to access and help prevent naming conflicts.',
+        codeExample: 'local playerName = "Alex"\nlocal playerLevel = 5\nlocal isAlive = true',
         color: 'blue'
       },
       {
         title: 'Roblox Studio Output Window',
-        content: 'Use the `print()` function to display information in Roblox Studio\'s Output window. This is essential for debugging your Roblox scripts and understanding what your code is doing.',
-        codeExample: 'print("Hello, Roblox!")',
+        content: 'The `print()` function displays information in Roblox Studio\'s Output window. This is crucial for debugging scripts, monitoring game state, and understanding code execution flow. Always use print statements during development.',
+        codeExample: 'print("Player spawned: " .. playerName)\nprint("Current level:", playerLevel)',
         color: 'green'
       },
       {
-        title: 'String Concatenation for Game Messages',
-        content: 'Combine strings using the `..` operator to create dynamic messages for your Roblox game:',
-        codeExample: 'print("Welcome to the game, " .. playerName .. "!")',
+        title: 'String Concatenation & Data Types',
+        content: 'Use `..` to concatenate strings. Luau automatically converts numbers to strings when concatenating. You can also use commas in print() to display multiple values with automatic spacing.',
+        codeExample: 'print("Player: " .. playerName .. " | Level: " .. playerLevel)\nprint("Health:", 100, "Coins:", 250)',
         color: 'purple'
       }
     ],
-    defaultCode: `-- Write your Roblox script here
+    defaultCode: `-- Roblox Scripting: Variables and Output
+-- Always use 'local' for variable declarations in Luau
+
 local playerName = "Alex"
-print("Hello, " .. playerName .. "!")
-print("Welcome to Roblox scripting!")`,
+local playerLevel = 5
+local playerHealth = 100
+local playerCoins = 250
+
+-- Print individual values
+print("Player Name:", playerName)
+print("Player Level:", playerLevel)
+
+-- String concatenation
+print("Welcome, " .. playerName .. "!")
+print("Level " .. playerLevel .. " player with " .. playerHealth .. " health")
+
+-- Multiple values in one print
+print("Status:", playerName, "Level:", playerLevel, "Health:", playerHealth)`,
     challenge: {
       tests: [
-        { description: 'Create a variable called playerName', type: 'variable_exists', value: 'playerName' },
-        { description: 'Print a welcome message', type: 'output_contains', value: 'Hello' }
+        { description: 'Create a local variable called playerName', type: 'variable_exists', value: 'playerName' },
+        { description: 'Print a welcome message using string concatenation', type: 'output_contains', value: 'Welcome' }
       ],
-      hints: ['Use the local keyword to create variables', 'Use print() to display text in Roblox Studio Output window'],
-      successMessage: 'Great! You can now create variables and use Roblox Studio Output for debugging.'
+      hints: ['Always use `local` to declare variables in Luau', 'Use `..` to concatenate strings together', 'You can print multiple values with commas: print("Name:", name, "Level:", level)'],
+      successMessage: 'Perfect! You understand Luau variables and output debugging.'
     }
   },
 
   'tables-and-loops': {
     title: 'Tables & Loops for Game Data',
-    description: 'Learn about Lua tables and loops for managing game data like player inventories and object lists',
+    description: 'Learn about Luau tables and loops for managing game data like player inventories and object lists',
     sections: [
       {
-        title: 'Tables in Roblox Games',
-        content: 'Tables in Luau are like arrays or objects that can store multiple values. In Roblox, you use tables for player inventories, leaderboards, and managing game objects.',
-        codeExample: 'local inventory = {"Sword", "Shield", "Potion"}',
+        title: 'Tables in Luau',
+        content: 'Tables in Luau are the only data structure that can hold multiple values. They can act as arrays (indexed by numbers) or dictionaries (indexed by keys). In Roblox, tables are used for player inventories, leaderboards, and managing game objects.',
+        codeExample: 'local inventory = {"Sword", "Shield", "Potion"}\nlocal playerData = {name = "Alex", level = 5, coins = 100}',
         color: 'blue'
       },
       {
         title: 'Accessing Table Elements',
-        content: 'You can access table elements by their index (starting from 1 in Lua) or by key. This is how you manage player data in Roblox.',
-        codeExample: 'print(inventory[1]) -- Prints "Sword"',
+        content: 'Access array elements by index (starting from 1 in Luau) or dictionary elements by key. Use `#tableName` to get the length of an array table.',
+        codeExample: 'print(inventory[1]) -- Prints "Sword"\nprint(playerData.name) -- Prints "Alex"\nprint("Inventory size:", #inventory)',
         color: 'green'
       },
       {
-        title: 'For Loops for Game Logic',
-        content: 'Use for loops to iterate through tables and perform actions on each element. Perfect for updating all players or processing inventory items.',
-        codeExample: `for i = 1, #inventory do
-    print("Item " .. i .. ": " .. inventory[i])
-end`,
-        color: 'purple'
-      }
-    ],
-    defaultCode: `-- Create a player inventory table
-local inventory = {"Sword", "Shield", "Potion"}
-
--- Print each item in the inventory
+        title: 'For Loops and Iteration',
+        content: 'Use numeric for loops for arrays and generic for loops for dictionaries. The `ipairs()` function is preferred for arrays as it\'s more efficient and handles nil values better.',
+        codeExample: `-- Numeric for loop (arrays)
 for i = 1, #inventory do
     print("Item " .. i .. ": " .. inventory[i])
 end
 
--- Add a new item
+-- Generic for loop (dictionaries)
+for key, value in pairs(playerData) do
+    print(key .. ": " .. tostring(value))
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Luau Tables and Loops
+-- Create an inventory array
+local inventory = {"Sword", "Shield", "Potion"}
+
+-- Create player data dictionary
+local playerData = {
+    name = "Alex",
+    level = 5,
+    coins = 100,
+    isAlive = true
+}
+
+-- Print inventory using numeric for loop
+print("=== INVENTORY ===")
+for i = 1, #inventory do
+    print("Item " .. i .. ": " .. inventory[i])
+end
+
+-- Print player data using generic for loop
+print("\\n=== PLAYER DATA ===")
+for key, value in pairs(playerData) do
+    print(key .. ": " .. tostring(value))
+end
+
+-- Add new item to inventory
 table.insert(inventory, "Bow")
-print("Added Bow to inventory!")`,
+print("\\nAdded Bow! New inventory size:", #inventory)`,
     challenge: {
       tests: [
-        { description: 'Create a table with 3 items', type: 'table_length', value: 3 },
+        { description: 'Create a table with at least 3 items', type: 'table_length', value: 3 },
         { description: 'Use a for loop to iterate through the table', type: 'code_contains', value: 'for' }
       ],
-      hints: ['Tables use curly braces {}', 'Use for loops to iterate through game objects', 'Use #tableName to get table length'],
-      successMessage: 'Excellent! Tables and loops are essential for managing game data in Roblox.'
+      hints: ['Use {} to create tables', 'Use #tableName to get array length', 'Use for i = 1, #table do for arrays', 'Use for key, value in pairs(table) do for dictionaries'],
+      successMessage: 'Excellent! You can now work with Luau tables and loops effectively.'
     }
   },
 
@@ -109,56 +145,74 @@ print("Added Bow to inventory!")`,
     description: 'Learn how to create functions for organizing your Roblox game scripts and reusable code',
     sections: [
       {
-        title: 'Creating Functions in Roblox',
-        content: 'Functions help organize your Roblox scripts into reusable blocks of code. They\'re perfect for game mechanics like spawning players, calculating damage, or handling events.',
-        codeExample: `function spawnPlayer(playerName)
+        title: 'Creating Functions in Luau',
+        content: 'Functions in Luau help organize code into reusable blocks. Always use `local` when declaring functions to follow Roblox best practices. Functions are essential for game mechanics like spawning, damage calculation, and event handling.',
+        codeExample: `local function spawnPlayer(playerName)
     print("Spawning player: " .. playerName)
 end`,
         color: 'blue'
       },
       {
-        title: 'Function Parameters',
-        content: 'Functions can accept parameters to make them flexible. In Roblox, you might pass player objects, positions, or game data to your functions.',
-        codeExample: `function calculateDamage(weapon, playerLevel)
-    local damage = weapon.power * playerLevel
+        title: 'Function Parameters and Scope',
+        content: 'Functions can accept parameters and have their own local scope. Parameters are local to the function. Use descriptive parameter names and consider default values for optional parameters.',
+        codeExample: `local function calculateDamage(weaponPower, playerLevel, multiplier)
+    multiplier = multiplier or 1  -- Default value
+    local damage = weaponPower * playerLevel * multiplier
     return damage
 end`,
         color: 'green'
       },
       {
-        title: 'Return Values',
-        content: 'Functions can return values back to the code that called them. This is useful for calculations, checks, or getting data from your game logic.',
-        codeExample: `function getPlayerHealth(player)
-    return player.health
+        title: 'Return Values and Multiple Returns',
+        content: 'Functions can return single or multiple values. Luau supports multiple return values, which is useful for returning both success status and data. Always handle return values properly.',
+        codeExample: `local function getPlayerStats(player)
+    local health = 100
+    local level = 5
+    local coins = 250
+    return health, level, coins  -- Multiple returns
 end`,
         color: 'purple'
       }
     ],
-    defaultCode: `-- Create a function to spawn a player
-function spawnPlayer(playerName)
+    defaultCode: `-- Luau Functions and Scope
+-- Local function declaration (recommended)
+local function spawnPlayer(playerName)
     print("Spawning player: " .. playerName)
     return "Player spawned successfully!"
 end
 
--- Create a function to calculate damage
-function calculateDamage(weapon, playerLevel)
-    local damage = weapon * playerLevel
+-- Function with multiple parameters and default values
+local function calculateDamage(weaponPower, playerLevel, multiplier)
+    multiplier = multiplier or 1  -- Default multiplier is 1
+    local damage = weaponPower * playerLevel * multiplier
     return damage
+end
+
+-- Function with multiple return values
+local function getPlayerStats(playerName)
+    local health = 100
+    local level = 5
+    local coins = 250
+    return health, level, coins
 end
 
 -- Use the functions
 local result = spawnPlayer("Alex")
 print(result)
 
-local damage = calculateDamage(10, 5)
-print("Damage dealt: " .. damage)`,
+local damage = calculateDamage(10, 5, 1.5)  -- 10 * 5 * 1.5 = 75
+print("Damage dealt: " .. damage)
+
+-- Handle multiple return values
+local health, level, coins = getPlayerStats("Alex")
+print("Health:", health, "Level:", level, "Coins:", coins)`,
     challenge: {
       tests: [
-        { description: 'Create a function called spawnPlayer', type: 'function_exists', value: 'spawnPlayer' },
-        { description: 'Function should accept a parameter', type: 'code_contains', value: 'function' }
+        { description: 'Create a local function with parameters', type: 'code_contains', value: 'local function' },
+        { description: 'Use return statement in function', type: 'code_contains', value: 'return' }
       ],
-      hints: ['Use function keyword', 'Functions help organize game logic', 'Add parameters in parentheses'],
-      successMessage: 'Perfect! Functions help organize your Roblox game scripts.'
+      hints: ['Use `local function` for better performance', 'Functions can accept multiple parameters', 'Use `return` to send values back', 'Handle multiple return values with multiple variables'],
+      successMessage: 'Excellent! You understand Luau functions and scope management.'
     }
   },
 
@@ -334,58 +388,73 @@ print("Sending updated data to server...")`,
     sections: [
       {
         title: 'Understanding CFrames',
-        content: 'CFrame (Coordinate Frame) is how Roblox represents position and rotation in 3D space. It\'s essential for moving parts, creating animations, and building complex structures.',
-        codeExample: 'local part = Instance.new("Part")\npart.CFrame = CFrame.new(0, 10, 0)',
+        content: 'CFrame (Coordinate Frame) is Roblox\'s data type for representing position and rotation in 3D space. Unlike Position (Vector3), CFrame includes both position and rotation information. It\'s essential for precise part placement, animations, and building complex structures.',
+        codeExample: 'local part = Instance.new("Part")\npart.CFrame = CFrame.new(0, 10, 0)  -- Position only\npart.CFrame = CFrame.new(0, 10, 0) * CFrame.Angles(0, math.rad(45), 0)  -- Position + Rotation',
         color: 'blue'
       },
       {
-        title: 'Positioning Parts',
-        content: 'Use CFrame.new() to set exact positions. The three numbers represent X, Y, and Z coordinates in the world space.',
+        title: 'CFrame.new() for Positioning',
+        content: 'Use CFrame.new(x, y, z) to create a CFrame with only position. The coordinates are in studs (Roblox\'s unit of measurement). Always set the Parent after setting the CFrame for better performance.',
         codeExample: `-- Position a part at coordinates (5, 10, -3)
 local part = Instance.new("Part")
-part.CFrame = CFrame.new(5, 10, -3)
-part.Parent = workspace`,
+part.Size = Vector3.new(4, 4, 4)  -- Set size first
+part.CFrame = CFrame.new(5, 10, -3)  -- Then position
+part.Parent = workspace  -- Parent last for performance`,
         color: 'green'
       },
       {
-        title: 'Rotating Parts',
-        content: 'CFrames can also handle rotation. Use CFrame.Angles() to rotate parts around different axes for building structures and creating dynamic objects.',
-        codeExample: `-- Create a rotated part
+        title: 'CFrame.Angles() for Rotation',
+        content: 'Use CFrame.Angles(rx, ry, rz) to create rotation CFrames. Angles are in radians, so use math.rad() to convert degrees. Multiply position and rotation CFrames to combine them.',
+        codeExample: `-- Create a rotated part (45 degrees around Y-axis)
 local part = Instance.new("Part")
-part.CFrame = CFrame.new(0, 5, 0) * CFrame.Angles(0, math.rad(45), 0)
+local position = CFrame.new(0, 5, 0)
+local rotation = CFrame.Angles(0, math.rad(45), 0)
+part.CFrame = position * rotation  -- Combine position and rotation
 part.Parent = workspace`,
         color: 'purple'
       }
     ],
-    defaultCode: `-- Create and position parts using CFrames
-local part1 = Instance.new("Part")
-part1.Name = "GroundPart"
-part1.Size = Vector3.new(10, 1, 10)
-part1.CFrame = CFrame.new(0, 0, 0)
-part1.Parent = workspace
+    defaultCode: `-- Roblox CFrame Positioning and Rotation
+-- Best practice: Set properties before parenting for performance
 
--- Create a floating part
-local part2 = Instance.new("Part")
-part2.Name = "FloatingPart"
-part2.Size = Vector3.new(2, 2, 2)
-part2.CFrame = CFrame.new(0, 10, 0)
-part2.Parent = workspace
+-- Create a ground part (position only)
+local groundPart = Instance.new("Part")
+groundPart.Name = "GroundPart"
+groundPart.Size = Vector3.new(10, 1, 10)
+groundPart.CFrame = CFrame.new(0, 0, 0)  -- Position at origin
+groundPart.Parent = workspace
 
--- Create a rotated part
-local part3 = Instance.new("Part")
-part3.Name = "RotatedPart"
-part3.Size = Vector3.new(4, 1, 1)
-part3.CFrame = CFrame.new(5, 5, 0) * CFrame.Angles(0, math.rad(45), 0)
-part3.Parent = workspace
+-- Create a floating part (position only)
+local floatingPart = Instance.new("Part")
+floatingPart.Name = "FloatingPart"
+floatingPart.Size = Vector3.new(2, 2, 2)
+floatingPart.CFrame = CFrame.new(0, 10, 0)  -- 10 studs up
+floatingPart.Parent = workspace
 
-print("Created 3 parts with different CFrame positions and rotations!")`,
+-- Create a rotated part (position + rotation)
+local rotatedPart = Instance.new("Part")
+rotatedPart.Name = "RotatedPart"
+rotatedPart.Size = Vector3.new(4, 1, 1)
+-- Combine position and rotation using multiplication
+rotatedPart.CFrame = CFrame.new(5, 5, 0) * CFrame.Angles(0, math.rad(45), 0)
+rotatedPart.Parent = workspace
+
+-- Create a complex rotated part (multiple rotations)
+local complexPart = Instance.new("Part")
+complexPart.Name = "ComplexPart"
+complexPart.Size = Vector3.new(2, 2, 2)
+-- Rotate 30 degrees on X-axis and 60 degrees on Y-axis
+complexPart.CFrame = CFrame.new(-5, 5, 0) * CFrame.Angles(math.rad(30), math.rad(60), 0)
+complexPart.Parent = workspace
+
+print("Created 4 parts demonstrating CFrame positioning and rotation!")`,
     challenge: {
       tests: [
         { description: 'Create a part with CFrame positioning', type: 'code_contains', value: 'CFrame.new' },
         { description: 'Use CFrame.Angles for rotation', type: 'code_contains', value: 'CFrame.Angles' }
       ],
-      hints: ['Use CFrame.new(x, y, z) for positioning', 'Use CFrame.Angles() for rotation', 'CFrames are essential for 3D positioning in Roblox'],
-      successMessage: 'Excellent! You can now position and rotate parts using CFrames.'
+      hints: ['Use CFrame.new(x, y, z) for positioning', 'Use CFrame.Angles(rx, ry, rz) for rotation', 'Multiply CFrames to combine position and rotation', 'Use math.rad() to convert degrees to radians'],
+      successMessage: 'Excellent! You can now position and rotate parts using CFrames effectively.'
     }
   },
 
