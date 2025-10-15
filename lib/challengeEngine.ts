@@ -297,12 +297,23 @@ export async function executeCode(source: string): Promise<{ output: string[]; e
       const errors: string[] = [];
       
       try {
+        // Extract all variable assignments first
+        const variableMap: { [key: string]: string } = {};
+        const varRegex = /local\s+(\w+)\s*=\s*"([^"]+)"/g;
+        let varMatch;
+        
+        while ((varMatch = varRegex.exec(source)) !== null) {
+          const varName = varMatch[1];
+          const varValue = varMatch[2];
+          variableMap[varName] = varValue;
+        }
+        
         // Simple parser to extract print statements
         const printRegex = /print\s*\(\s*([^)]+)\s*\)/g;
         let match;
         
         while ((match = printRegex.exec(source)) !== null) {
-          const printContent = match[1];
+          const printContent = match[1].trim();
           
           // Handle string literals
           if (printContent.startsWith('"') && printContent.endsWith('"')) {
@@ -317,21 +328,13 @@ export async function executeCode(source: string): Promise<{ output: string[]; e
             for (const part of parts) {
               if (part.startsWith('"') && part.endsWith('"')) {
                 result += part.slice(1, -1);
-              } else if (part.includes('playerName')) {
-                // Look for playerName variable
-                const nameMatch = source.match(/local\s+playerName\s*=\s*"([^"]+)"/);
-                if (nameMatch) {
-                  result += nameMatch[1];
+              } else {
+                // Look up variable in our map
+                const cleanPart = part.replace(/[^a-zA-Z0-9_]/g, '');
+                if (variableMap[cleanPart]) {
+                  result += variableMap[cleanPart];
                 } else {
-                  result += 'Alex'; // default
-                }
-              } else if (part.includes('message')) {
-                // Look for message variable
-                const messageMatch = source.match(/local\s+message\s*=\s*"([^"]+)"/);
-                if (messageMatch) {
-                  result += messageMatch[1];
-                } else {
-                  result += 'Hello, Roblox!'; // default
+                  result += cleanPart; // fallback to variable name
                 }
               }
             }
@@ -341,20 +344,12 @@ export async function executeCode(source: string): Promise<{ output: string[]; e
             }
           }
           // Handle variable references
-          else if (printContent.includes('message')) {
-            const messageMatch = source.match(/local\s+message\s*=\s*"([^"]+)"/);
-            if (messageMatch) {
-              output.push(messageMatch[1]);
+          else {
+            const cleanVar = printContent.replace(/[^a-zA-Z0-9_]/g, '');
+            if (variableMap[cleanVar]) {
+              output.push(variableMap[cleanVar]);
             } else {
-              output.push('Hello, Roblox!');
-            }
-          }
-          else if (printContent.includes('playerName')) {
-            const nameMatch = source.match(/local\s+playerName\s*=\s*"([^"]+)"/);
-            if (nameMatch) {
-              output.push(nameMatch[1]);
-            } else {
-              output.push('Alex');
+              output.push(cleanVar); // fallback to variable name
             }
           }
         }
