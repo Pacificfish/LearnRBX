@@ -2354,231 +2354,660 @@ print("\\nNetworking architecture demo complete!")`,
   // === ADVANCED GAME MECHANICS LESSONS ===
   'advanced-tweening-systems': {
     title: 'Advanced Tweening Systems',
-    description: 'Master complex animation systems, tween chaining, and advanced TweenService techniques',
+    description: 'Master complex animation systems, tween chaining, and advanced TweenService techniques for professional Roblox games',
     sections: [
       {
-        title: 'Tween Chaining and Sequences',
-        content: 'Create complex animation sequences by chaining multiple tweens together. Use TweenInfo.Completed events to trigger subsequent animations, creating smooth, professional transitions.',
-        codeExample: `local tween1 = TweenService:Create(part, tweenInfo, {Position = Vector3.new(10, 0, 0)})
-tween1.Completed:Connect(function()
-    local tween2 = TweenService:Create(part, tweenInfo, {Size = Vector3.new(5, 5, 5)})
-    tween2:Play()
+        title: 'Understanding Tween Chaining and Sequences',
+        content: `Tween chaining is a powerful technique that allows you to create complex, multi-step animations by connecting multiple tweens together. Instead of running animations simultaneously, chaining ensures that each animation waits for the previous one to complete before starting.
+
+**Why Use Tween Chaining?**
+- **Sequential Control**: Ensures animations happen in the exact order you want
+- **Smooth Transitions**: No jarring overlaps or conflicts between animations
+- **Professional Feel**: Creates polished, cinematic effects
+- **Complex Behaviors**: Enables sophisticated animation sequences
+
+**How It Works:**
+The TweenInfo.Completed event fires when a tween finishes, allowing you to trigger the next animation in your sequence. This creates a chain reaction where each animation leads to the next.`,
+        codeExample: `-- Basic tween chaining example
+local TweenService = game:GetService("TweenService")
+
+-- Create a part to animate
+local part = Instance.new("Part")
+part.Size = Vector3.new(2, 2, 2)
+part.Position = Vector3.new(0, 5, 0)
+part.Parent = workspace
+
+-- Define tween information
+local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+-- Step 1: Move the part to a new position
+local moveTween = TweenService:Create(part, tweenInfo, {
+    Position = Vector3.new(10, 5, 0)
+})
+
+-- Step 2: When movement completes, scale up the part
+moveTween.Completed:Connect(function()
+    local scaleTween = TweenService:Create(part, tweenInfo, {
+        Size = Vector3.new(4, 4, 4)
+    })
+    scaleTween:Play()
+    
+    -- Step 3: When scaling completes, change color
+    scaleTween.Completed:Connect(function()
+        local colorTween = TweenService:Create(part, tweenInfo, {
+            Color = Color3.fromRGB(255, 0, 0)
+        })
+        colorTween:Play()
+    end)
 end)
-tween1:Play()`,
+
+-- Start the animation chain
+moveTween:Play()`,
         color: 'blue'
       },
       {
-        title: 'Custom Easing Functions',
-        content: 'Create custom easing curves using TweenInfo with different EasingStyle and EasingDirection combinations. Master bounce, elastic, and back easing for dynamic animations.',
-        codeExample: `local bounceInfo = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
-local elasticInfo = TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)`,
+        title: 'Mastering Custom Easing Functions',
+        content: `Easing functions control how animations accelerate and decelerate, creating different visual effects and feelings. Roblox provides many built-in easing styles, each with unique characteristics.
+
+**Understanding Easing Parameters:**
+- **Duration**: How long the animation takes (in seconds)
+- **EasingStyle**: The mathematical curve of the animation
+- **EasingDirection**: How the easing is applied (In, Out, InOut)
+
+**Popular Easing Styles:**
+- **Linear**: Constant speed, no acceleration
+- **Quad/Cubic/Quart/Quint**: Increasingly dramatic acceleration curves
+- **Bounce**: Creates a bouncing effect at the end
+- **Elastic**: Creates a rubber band-like effect
+- **Back**: Overshoots the target then settles back
+
+**When to Use Each:**
+- **Quad/Out**: Natural feeling for UI elements
+- **Bounce**: Playful, game-like interactions
+- **Elastic**: Attention-grabbing effects
+- **Back**: Smooth, polished transitions`,
+        codeExample: `-- Comprehensive easing demonstration
+local TweenService = game:GetService("TweenService")
+
+-- Create multiple parts to demonstrate different easing styles
+local easingStyles = {
+    {Enum.EasingStyle.Linear, "Linear - Constant Speed"},
+    {Enum.EasingStyle.Quad, "Quad - Smooth Acceleration"},
+    {Enum.EasingStyle.Bounce, "Bounce - Playful Bounce Effect"},
+    {Enum.EasingStyle.Elastic, "Elastic - Rubber Band Effect"},
+    {Enum.EasingStyle.Back, "Back - Overshoot and Settle"}
+}
+
+for i, styleData in ipairs(easingStyles) do
+    local style, description = styleData[1], styleData[2]
+    
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(1, 1, 1)
+    part.Position = Vector3.new(i * 3, 5, 0)
+    part.Color = Color3.fromRGB(100 + i * 30, 100, 255)
+    part.Parent = workspace
+    
+    -- Create tween with specific easing style
+    local tweenInfo = TweenInfo.new(2, style, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(part, tweenInfo, {
+        Position = Vector3.new(i * 3, 15, 0),
+        Size = Vector3.new(2, 2, 2)
+    })
+    
+    -- Add a label to show the easing type
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.Parent = part
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = description
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextScaled = true
+    label.Parent = billboardGui
+    
+    -- Start the animation with a delay
+    wait(i * 0.2)
+    tween:Play()
+end`,
         color: 'green'
       },
       {
-        title: 'Animation State Management',
-        content: 'Implement proper animation state management to prevent conflicts, handle interruptions, and create smooth transitions between different animation states.',
-        codeExample: `local animationStates = {
-    idle = true,
-    walking = false,
-    jumping = false
-}
+        title: 'Professional Animation State Management',
+        content: `Animation state management is crucial for creating smooth, conflict-free animations in complex games. Without proper state management, animations can overlap, conflict, or create jarring transitions.
 
-local function setAnimationState(newState)
-    -- Stop all current animations
-    for state, _ in pairs(animationStates) do
-        animationStates[state] = false
+**Why State Management Matters:**
+- **Prevents Conflicts**: Ensures only one animation plays at a time
+- **Smooth Transitions**: Allows for seamless switching between animation states
+- **Performance**: Avoids unnecessary animation calculations
+- **User Experience**: Creates predictable, polished interactions
+
+**State Management Patterns:**
+1. **Boolean States**: Simple on/off states for basic animations
+2. **State Machines**: Complex systems with multiple states and transitions
+3. **Animation Queues**: Systems that queue animations for sequential playback
+4. **Priority Systems**: Animations with different priority levels
+
+**Best Practices:**
+- Always stop previous animations before starting new ones
+- Use consistent naming conventions for states
+- Implement cleanup functions to prevent memory leaks
+- Consider animation priorities for complex systems`,
+        codeExample: `-- Advanced animation state management system
+local TweenService = game:GetService("TweenService")
+
+-- Create a comprehensive state management system
+local AnimationManager = {}
+AnimationManager.__index = AnimationManager
+
+function AnimationManager.new(object)
+    local self = setmetatable({}, AnimationManager)
+    self.object = object
+    self.currentState = "idle"
+    self.activeTweens = {}
+    self.stateTransitions = {
+        idle = {"walking", "jumping", "spinning"},
+        walking = {"idle", "jumping", "spinning"},
+        jumping = {"idle", "walking"},
+        spinning = {"idle", "walking"}
+    }
+    return self
+end
+
+function AnimationManager:setState(newState)
+    -- Validate state transition
+    local validTransitions = self.stateTransitions[self.currentState]
+    local isValidTransition = false
+    
+    for _, validState in ipairs(validTransitions) do
+        if validState == newState then
+            isValidTransition = true
+            break
+        end
     end
-    animationStates[newState] = true
-end`,
+    
+    if not isValidTransition then
+        warn("Invalid state transition from " .. self.currentState .. " to " .. newState)
+        return false
+    end
+    
+    -- Stop all current animations
+    self:stopAllAnimations()
+    
+    -- Set new state
+    self.currentState = newState
+    print("Animation state changed to: " .. newState)
+    
+    -- Start new animation based on state
+    self:playStateAnimation(newState)
+    return true
+end
+
+function AnimationManager:stopAllAnimations()
+    for _, tween in pairs(self.activeTweens) do
+        tween:Cancel()
+    end
+    self.activeTweens = {}
+end
+
+function AnimationManager:playStateAnimation(state)
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    if state == "idle" then
+        -- Gentle breathing animation
+        local breatheTween = TweenService:Create(self.object, tweenInfo, {
+            Size = self.object.Size * 1.1
+        })
+        breatheTween.Completed:Connect(function()
+            local breatheBack = TweenService:Create(self.object, tweenInfo, {
+                Size = self.object.Size / 1.1
+            })
+            breatheBack.Completed:Connect(function()
+                if self.currentState == "idle" then
+                    self:playStateAnimation("idle") -- Loop idle animation
+                end
+            end)
+            breatheBack:Play()
+        end)
+        breatheTween:Play()
+        self.activeTweens.breathe = breatheTween
+        
+    elseif state == "walking" then
+        -- Walking animation with position and rotation
+        local walkTween = TweenService:Create(self.object, tweenInfo, {
+            Position = self.object.Position + Vector3.new(5, 0, 0),
+            CFrame = self.object.CFrame * CFrame.Angles(0, math.rad(45), 0)
+        })
+        walkTween:Play()
+        self.activeTweens.walk = walkTween
+        
+    elseif state == "jumping" then
+        -- Jumping animation with arc
+        local jumpUp = TweenService:Create(self.object, tweenInfo, {
+            Position = self.object.Position + Vector3.new(0, 10, 0)
+        })
+        jumpUp.Completed:Connect(function()
+            local jumpDown = TweenService:Create(self.object, tweenInfo, {
+                Position = self.object.Position - Vector3.new(0, 10, 0)
+            })
+            jumpDown.Completed:Connect(function()
+                self:setState("idle") -- Return to idle after jump
+            end)
+            jumpDown:Play()
+        end)
+        jumpUp:Play()
+        self.activeTweens.jump = jumpUp
+        
+    elseif state == "spinning" then
+        -- Continuous spinning animation
+        local spinTween = TweenService:Create(self.object, tweenInfo, {
+            CFrame = self.object.CFrame * CFrame.Angles(0, math.rad(360), 0)
+        })
+        spinTween.Completed:Connect(function()
+            if self.currentState == "spinning" then
+                self:playStateAnimation("spinning") -- Continue spinning
+            end
+        end)
+        spinTween:Play()
+        self.activeTweens.spin = spinTween
+    end
+end
+
+-- Demo the animation state management system
+local demoPart = Instance.new("Part")
+demoPart.Size = Vector3.new(2, 2, 2)
+demoPart.Position = Vector3.new(0, 5, 0)
+demoPart.Color = Color3.fromRGB(0, 255, 0)
+demoPart.Parent = workspace
+
+local animManager = AnimationManager.new(demoPart)
+
+-- Start with idle state
+animManager:setState("idle")
+
+-- Demo state transitions after delays
+wait(3)
+animManager:setState("walking")
+
+wait(3)
+animManager:setState("jumping")
+
+wait(3)
+animManager:setState("spinning")
+
+wait(3)
+animManager:setState("idle")`,
         color: 'purple'
       }
     ],
-    defaultCode: `-- Advanced Tweening Systems
--- Complex animation sequences and state management
+    defaultCode: `-- Advanced Tweening Systems - Comprehensive Learning Example
+-- This code demonstrates professional animation techniques used in real Roblox games
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
--- Create animated parts
-local part1 = Instance.new("Part")
-part1.Name = "AnimatedPart1"
-part1.Size = Vector3.new(2, 2, 2)
-part1.Position = Vector3.new(0, 5, 0)
-part1.Color = Color3.fromRGB(255, 100, 100)
-part1.Parent = workspace
+print("=== ADVANCED TWEENING SYSTEMS DEMO ===")
+print("Learning professional animation techniques...")
 
-local part2 = Instance.new("Part")
-part2.Name = "AnimatedPart2"
-part2.Size = Vector3.new(2, 2, 2)
-part2.Position = Vector3.new(0, 5, 5)
-part2.Color = Color3.fromRGB(100, 255, 100)
-part2.Parent = workspace
-
-print("=== ADVANCED TWEENING DEMO ===")
-
--- 1. Tween Chaining System
-local function createChainedAnimation(part, startPos, endPos)
-    local tweenInfo1 = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local tweenInfo2 = TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+-- Create a demonstration environment
+local function createDemoPart(name, position, color, size)
+    local part = Instance.new("Part")
+    part.Name = name
+    part.Size = size or Vector3.new(2, 2, 2)
+    part.Position = position
+    part.Color = color
+    part.Material = Enum.Material.Neon
+    part.Parent = workspace
     
-    -- First tween: move to position
-    local moveTween = TweenService:Create(part, tweenInfo1, {
+    -- Add a label to identify the part
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.Parent = part
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboardGui
+    
+    return part
+end
+
+-- Create demonstration parts
+local chainingPart = createDemoPart("Chaining Demo", Vector3.new(0, 5, 0), Color3.fromRGB(255, 100, 100))
+local easingPart = createDemoPart("Easing Demo", Vector3.new(0, 5, 5), Color3.fromRGB(100, 255, 100))
+local statePart = createDemoPart("State Demo", Vector3.new(0, 5, 10), Color3.fromRGB(100, 100, 255))
+
+-- 1. ADVANCED TWEEN CHAINING SYSTEM
+print("\\n1. DEMONSTRATING TWEEN CHAINING...")
+print("Chaining allows animations to happen in sequence, creating complex behaviors.")
+
+local function createAdvancedChainedAnimation(part, startPos, endPos)
+    print("Creating chained animation sequence...")
+    
+    -- Define different tween info for each step
+    local moveInfo = TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local scaleInfo = TweenInfo.new(0.8, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+    local colorInfo = TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)
+    local rotateInfo = TweenInfo.new(2, Enum.EasingStyle.Back, Enum.EasingDirection.InOut)
+    
+    -- Step 1: Move to target position
+    local moveTween = TweenService:Create(part, moveInfo, {
         Position = endPos
     })
     
-    -- Second tween: scale up (chained)
+    -- Step 2: Scale up when movement completes
     moveTween.Completed:Connect(function()
-        local scaleTween = TweenService:Create(part, tweenInfo2, {
+        print("Movement completed, starting scale animation...")
+        local scaleTween = TweenService:Create(part, scaleInfo, {
             Size = Vector3.new(4, 4, 4)
         })
         scaleTween:Play()
         
-        -- Third tween: scale back down
+        -- Step 3: Change color when scaling completes
         scaleTween.Completed:Connect(function()
-            local scaleBackTween = TweenService:Create(part, tweenInfo2, {
-                Size = Vector3.new(2, 2, 2)
+            print("Scaling completed, starting color animation...")
+            local colorTween = TweenService:Create(part, colorInfo, {
+                Color = Color3.fromRGB(255, 255, 0)
             })
-            scaleBackTween:Play()
+            colorTween:Play()
+            
+            -- Step 4: Rotate when color change completes
+            colorTween.Completed:Connect(function()
+                print("Color change completed, starting rotation...")
+                local rotateTween = TweenService:Create(part, rotateInfo, {
+                    CFrame = part.CFrame * CFrame.Angles(0, math.rad(360), 0)
+                })
+                rotateTween:Play()
+                
+                -- Step 5: Final scale back when rotation completes
+                rotateTween.Completed:Connect(function()
+                    print("Rotation completed, finalizing animation...")
+                    local finalScale = TweenService:Create(part, scaleInfo, {
+                        Size = Vector3.new(2, 2, 2)
+                    })
+                    finalScale:Play()
+                    
+                    finalScale.Completed:Connect(function()
+                        print("Chained animation sequence completed!")
+                    end)
+                end)
+            end)
         end)
     end)
     
     moveTween:Play()
 end
 
--- 2. Custom Easing Functions
-local function createCustomEasing(part, targetPos)
+-- 2. COMPREHENSIVE EASING DEMONSTRATION
+print("\\n2. DEMONSTRATING EASING FUNCTIONS...")
+print("Different easing styles create different visual effects and feelings.")
+
+local function demonstrateEasingStyles(part)
     local easingStyles = {
-        Enum.EasingStyle.Linear,
-        Enum.EasingStyle.Quad,
-        Enum.EasingStyle.Cubic,
-        Enum.EasingStyle.Quart,
-        Enum.EasingStyle.Quint,
-        Enum.EasingStyle.Bounce,
-        Enum.EasingStyle.Elastic,
-        Enum.EasingStyle.Back
+        {Enum.EasingStyle.Linear, "Linear", "Constant speed, mechanical feel"},
+        {Enum.EasingStyle.Quad, "Quad", "Smooth acceleration, natural feel"},
+        {Enum.EasingStyle.Cubic, "Cubic", "More dramatic acceleration"},
+        {Enum.EasingStyle.Quart, "Quart", "Strong acceleration curve"},
+        {Enum.EasingStyle.Quint, "Quint", "Very strong acceleration"},
+        {Enum.EasingStyle.Bounce, "Bounce", "Playful bouncing effect"},
+        {Enum.EasingStyle.Elastic, "Elastic", "Rubber band-like overshoot"},
+        {Enum.EasingStyle.Back, "Back", "Overshoots then settles back"}
     }
     
-    local randomStyle = easingStyles[math.random(1, #easingStyles)]
-    local tweenInfo = TweenInfo.new(2, randomStyle, Enum.EasingDirection.InOut)
+    local currentStyle = 1
     
-    local tween = TweenService:Create(part, tweenInfo, {
-        Position = targetPos,
-        Color = Color3.fromRGB(math.random(255), math.random(255), math.random(255))
-    })
-    
-    tween:Play()
-    return tween
-end
-
--- 3. Animation State Management
-local animationStates = {
-    idle = true,
-    moving = false,
-    scaling = false,
-    rotating = false
-}
-
-local activeTweens = {}
-
-local function setAnimationState(newState)
-    -- Stop all current animations
-    for _, tween in pairs(activeTweens) do
-        tween:Cancel()
-    end
-    activeTweens = {}
-    
-    -- Reset state
-    for state, _ in pairs(animationStates) do
-        animationStates[state] = false
-    end
-    animationStates[newState] = true
-    
-    print("Animation state changed to:", newState)
-end
-
--- 4. Complex Animation Sequence
-local function runComplexSequence(part)
-    setAnimationState("moving")
-    
-    -- Phase 1: Move to random position
-    local targetPos = Vector3.new(
-        math.random(-20, 20),
-        math.random(5, 15),
-        math.random(-20, 20)
-    )
-    
-    local moveTween = TweenService:Create(part, 
-        TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), 
-        {Position = targetPos}
-    )
-    
-    moveTween.Completed:Connect(function()
-        setAnimationState("scaling")
+    local function animateWithCurrentStyle()
+        if currentStyle > #easingStyles then
+            print("Easing demonstration complete!")
+            return
+        end
         
-        -- Phase 2: Scale animation
-        local scaleUp = TweenService:Create(part,
-            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Size = Vector3.new(5, 5, 5)}
-        )
+        local style, name, description = easingStyles[currentStyle][1], easingStyles[currentStyle][2], easingStyles[currentStyle][3]
+        print("Animating with " .. name .. " easing: " .. description)
         
-        scaleUp.Completed:Connect(function()
-            local scaleDown = TweenService:Create(part,
-                TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
-                {Size = Vector3.new(2, 2, 2)}
-            )
+        -- Create tween with current easing style
+        local tweenInfo = TweenInfo.new(2, style, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(part, tweenInfo, {
+            Position = Vector3.new(10, 5, 5),
+            Size = Vector3.new(3, 3, 3),
+            Color = Color3.fromRGB(math.random(100, 255), math.random(100, 255), math.random(100, 255))
+        })
+        
+        tween.Completed:Connect(function()
+            -- Move back to start position
+            local returnTween = TweenService:Create(part, tweenInfo, {
+                Position = Vector3.new(0, 5, 5),
+                Size = Vector3.new(2, 2, 2)
+            })
+            returnTween:Play()
             
-            scaleDown.Completed:Connect(function()
-                setAnimationState("rotating")
-                
-                -- Phase 3: Rotation
-                local rotateTween = TweenService:Create(part,
-                    TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut),
-                    {CFrame = part.CFrame * CFrame.Angles(0, math.rad(360), 0)}
-                )
-                
-                rotateTween.Completed:Connect(function()
-                    setAnimationState("idle")
-                    print("Complex animation sequence completed!")
-                end)
-                
-                activeTweens.rotate = rotateTween
-                rotateTween:Play()
+            returnTween.Completed:Connect(function()
+                currentStyle = currentStyle + 1
+                wait(0.5) -- Brief pause between animations
+                animateWithCurrentStyle()
             end)
-            
-            activeTweens.scaleDown = scaleDown
-            scaleDown:Play()
         end)
         
-        activeTweens.scaleUp = scaleUp
-        scaleUp:Play()
-    end)
+        tween:Play()
+    end
     
-    activeTweens.move = moveTween
-    moveTween:Play()
+    animateWithCurrentStyle()
 end
 
--- 5. Demo the animations
-print("\\nStarting chained animation for part1...")
-createChainedAnimation(part1, part1.Position, Vector3.new(10, 5, 0))
+-- 3. PROFESSIONAL ANIMATION STATE MANAGEMENT
+print("\\n3. DEMONSTRATING STATE MANAGEMENT...")
+print("State management prevents animation conflicts and creates smooth transitions.")
 
-wait(1)
+-- Create a professional animation state manager
+local AnimationStateManager = {}
+AnimationStateManager.__index = AnimationStateManager
 
-print("\\nStarting custom easing for part2...")
-createCustomEasing(part2, Vector3.new(-10, 5, 5))
+function AnimationStateManager.new(object)
+    local self = setmetatable({}, AnimationStateManager)
+    self.object = object
+    self.currentState = "idle"
+    self.activeTweens = {}
+    self.stateHistory = {}
+    
+    -- Define valid state transitions
+    self.validTransitions = {
+        idle = {"walking", "jumping", "spinning", "pulsing"},
+        walking = {"idle", "jumping", "spinning"},
+        jumping = {"idle", "walking"},
+        spinning = {"idle", "walking"},
+        pulsing = {"idle", "walking"}
+    }
+    
+    return self
+end
+
+function AnimationStateManager:setState(newState)
+    -- Validate state transition
+    local validStates = self.validTransitions[self.currentState]
+    local isValid = false
+    
+    for _, validState in ipairs(validStates) do
+        if validState == newState then
+            isValid = true
+            break
+        end
+    end
+    
+    if not isValid then
+        warn("Invalid transition from " .. self.currentState .. " to " .. newState)
+        return false
+    end
+    
+    -- Record state change
+    table.insert(self.stateHistory, {
+        from = self.currentState,
+        to = newState,
+        time = tick()
+    })
+    
+    -- Stop all current animations
+    self:stopAllAnimations()
+    
+    -- Update state
+    self.currentState = newState
+    print("State changed to: " .. newState)
+    
+    -- Start new animation
+    self:playStateAnimation(newState)
+    return true
+end
+
+function AnimationStateManager:stopAllAnimations()
+    for name, tween in pairs(self.activeTweens) do
+        tween:Cancel()
+        print("Stopped animation: " .. name)
+    end
+    self.activeTweens = {}
+end
+
+function AnimationStateManager:playStateAnimation(state)
+    local baseInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    if state == "idle" then
+        print("Playing idle animation...")
+        -- Gentle breathing effect
+        local breatheTween = TweenService:Create(self.object, baseInfo, {
+            Size = self.object.Size * 1.05
+        })
+        breatheTween.Completed:Connect(function()
+            local breatheBack = TweenService:Create(self.object, baseInfo, {
+                Size = self.object.Size / 1.05
+            })
+            breatheBack.Completed:Connect(function()
+                if self.currentState == "idle" then
+                    self:playStateAnimation("idle") -- Loop
+                end
+            end)
+            breatheBack:Play()
+        end)
+        breatheTween:Play()
+        self.activeTweens.breathe = breatheTween
+        
+    elseif state == "walking" then
+        print("Playing walking animation...")
+        local walkTween = TweenService:Create(self.object, baseInfo, {
+            Position = self.object.Position + Vector3.new(5, 0, 0),
+            CFrame = self.object.CFrame * CFrame.Angles(0, math.rad(30), 0)
+        })
+        walkTween:Play()
+        self.activeTweens.walk = walkTween
+        
+    elseif state == "jumping" then
+        print("Playing jumping animation...")
+        local jumpUp = TweenService:Create(self.object, baseInfo, {
+            Position = self.object.Position + Vector3.new(0, 8, 0)
+        })
+        jumpUp.Completed:Connect(function()
+            local jumpDown = TweenService:Create(self.object, baseInfo, {
+                Position = self.object.Position - Vector3.new(0, 8, 0)
+            })
+            jumpDown.Completed:Connect(function()
+                self:setState("idle") -- Return to idle
+            end)
+            jumpDown:Play()
+        end)
+        jumpUp:Play()
+        self.activeTweens.jump = jumpUp
+        
+    elseif state == "spinning" then
+        print("Playing spinning animation...")
+        local spinTween = TweenService:Create(self.object, baseInfo, {
+            CFrame = self.object.CFrame * CFrame.Angles(0, math.rad(360), 0)
+        })
+        spinTween.Completed:Connect(function()
+            if self.currentState == "spinning" then
+                self:playStateAnimation("spinning") -- Continue spinning
+            end
+        end)
+        spinTween:Play()
+        self.activeTweens.spin = spinTween
+        
+    elseif state == "pulsing" then
+        print("Playing pulsing animation...")
+        local pulseTween = TweenService:Create(self.object, baseInfo, {
+            Size = self.object.Size * 1.5,
+            Color = Color3.fromRGB(255, 255, 0)
+        })
+        pulseTween.Completed:Connect(function()
+            local pulseBack = TweenService:Create(self.object, baseInfo, {
+                Size = self.object.Size / 1.5,
+                Color = Color3.fromRGB(100, 100, 255)
+            })
+            pulseBack.Completed:Connect(function()
+                if self.currentState == "pulsing" then
+                    self:playStateAnimation("pulsing") -- Continue pulsing
+                end
+            end)
+            pulseBack:Play()
+        end)
+        pulseTween:Play()
+        self.activeTweens.pulse = pulseTween
+    end
+end
+
+-- Create state manager for the state demo part
+local stateManager = AnimationStateManager.new(statePart)
+
+-- 4. RUN THE DEMONSTRATIONS
+print("\\n=== STARTING DEMONSTRATIONS ===")
+
+-- Start chaining demonstration
+createAdvancedChainedAnimation(chainingPart, chainingPart.Position, Vector3.new(10, 5, 0))
 
 wait(2)
 
-print("\\nStarting complex sequence for part1...")
-runComplexSequence(part1)
+-- Start easing demonstration
+demonstrateEasingStyles(easingPart)
 
-print("\\nAdvanced tweening demo complete!")`,
+wait(1)
+
+-- Start state management demonstration
+stateManager:setState("idle")
+
+-- Demo state transitions
+wait(3)
+stateManager:setState("walking")
+
+wait(3)
+stateManager:setState("jumping")
+
+wait(3)
+stateManager:setState("spinning")
+
+wait(3)
+stateManager:setState("pulsing")
+
+wait(3)
+stateManager:setState("idle")
+
+print("\\n=== ALL DEMONSTRATIONS COMPLETE ===")
+print("You've learned advanced tweening techniques used in professional Roblox games!")`,
     challenge: {
       tests: [
         { description: 'Create a tween with custom easing style', type: 'code_contains', value: 'EasingStyle' },
-        { description: 'Use TweenInfo.Completed to chain animations', type: 'code_contains', value: 'Completed' }
+        { description: 'Use TweenInfo.Completed to chain animations', type: 'code_contains', value: 'Completed' },
+        { description: 'Implement animation state management', type: 'code_contains', value: 'setState' },
+        { description: 'Use TweenService:Create() for animations', type: 'code_contains', value: 'TweenService:Create' }
       ],
-      hints: ['Use TweenInfo.Completed:Connect() to chain tweens', 'Experiment with different EasingStyle values', 'Manage animation states to prevent conflicts'],
-      successMessage: 'Outstanding! You can now create complex, professional animation systems.'
+      hints: [
+        'Use TweenInfo.Completed:Connect() to chain tweens together',
+        'Experiment with different EasingStyle values (Bounce, Elastic, Back)',
+        'Manage animation states to prevent conflicts between animations',
+        'Use TweenInfo.new(duration, easingStyle, easingDirection) for custom timing',
+        'Always stop previous animations before starting new ones',
+        'Consider using object-oriented patterns for complex animation systems'
+      ],
+      successMessage: 'Outstanding! You now understand advanced tweening systems and can create complex, professional animation sequences used in real Roblox games. You\'ve mastered tween chaining, custom easing functions, and animation state management!'
     }
   },
 
