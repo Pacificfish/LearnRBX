@@ -162,7 +162,7 @@ export default function LessonPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Variables & Roblox Output</h1>
               <p className="text-muted-foreground">
-                Learn how to create variables and use Roblox Studio's Output window for debugging
+                Learn how to create variables and use Roblox Studio&apos;s Output window for debugging
               </p>
             </div>
 
@@ -196,7 +196,7 @@ export default function LessonPage() {
                     <h2 className="text-xl font-semibold text-gray-900">Roblox Studio Output Window</h2>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in Roblox Studio's Output window.
+                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in Roblox Studio&apos;s Output window.
                     This is essential for debugging your Roblox scripts and understanding what your code is doing.
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
