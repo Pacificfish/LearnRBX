@@ -21,6 +21,7 @@ DECLARE
   track_networking_id uuid;
   module_basics_id uuid;
   module_roblox_id uuid;
+  module_advanced_id uuid;
   module_parts_id uuid;
   module_ui_basics_id uuid;
   module_networking_id uuid;
@@ -34,12 +35,14 @@ BEGIN
   -- Insert modules for Core Luau track
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_core_id, 'Luau Scripting Basics', 1),
-    (track_core_id, 'Roblox Studio Fundamentals', 2)
+    (track_core_id, 'Roblox Studio Fundamentals', 2),
+    (track_core_id, 'Advanced Luau Concepts', 3)
   ON CONFLICT (track_id, index_in_track) DO UPDATE SET
     title = EXCLUDED.title;
 
   SELECT id INTO module_basics_id FROM public.modules WHERE track_id = track_core_id AND title = 'Luau Scripting Basics';
   SELECT id INTO module_roblox_id FROM public.modules WHERE track_id = track_core_id AND title = 'Roblox Studio Fundamentals';
+  SELECT id INTO module_advanced_id FROM public.modules WHERE track_id = track_core_id AND title = 'Advanced Luau Concepts';
 
   -- Insert lessons for Luau Scripting Basics module
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
@@ -60,6 +63,17 @@ BEGIN
     (module_roblox_id, 'explorer-and-instances', 'Roblox Explorer & Instances', '/content/lessons/explorer-and-instances.mdx', '/content/challenges/explorer-and-instances.json', 1),
     (module_roblox_id, 'events-touched-click', 'Roblox Events: Touched & Clicked', '/content/lessons/events-touched-click.mdx', '/content/challenges/events-touched-click.json', 2),
     (module_roblox_id, 'client-server-remotes', 'Client vs Server Scripts & RemoteEvents', '/content/lessons/client-server-remotes.mdx', '/content/challenges/client-server-remotes.json', 3)
+  ON CONFLICT (module_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    mdx_path = EXCLUDED.mdx_path,
+    challenge_json_path = EXCLUDED.challenge_json_path,
+    index_in_module = EXCLUDED.index_in_module;
+
+  -- Insert lessons for Advanced Luau Concepts module
+  INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
+    (module_advanced_id, 'roblox-services-deep-dive', 'Roblox Services Deep Dive', '/content/lessons/roblox-services-deep-dive.mdx', '/content/challenges/roblox-services-deep-dive.json', 1),
+    (module_advanced_id, 'advanced-events-and-signals', 'Advanced Events & Signals', '/content/lessons/advanced-events-and-signals.mdx', '/content/challenges/advanced-events-and-signals.json', 2),
+    (module_advanced_id, 'memory-management-optimization', 'Memory Management & Optimization', '/content/lessons/memory-management-optimization.mdx', '/content/challenges/memory-management-optimization.json', 3)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,
@@ -117,7 +131,9 @@ BEGIN
 
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
     (module_networking_id, 'client-server-remotes', 'Client vs Server Scripts & RemoteEvents', '/content/lessons/client-server-remotes.mdx', '/content/challenges/client-server-remotes.json', 1),
-    (module_networking_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 2)
+    (module_networking_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 2),
+    (module_networking_id, 'advanced-datastores-persistence', 'Advanced DataStores & Persistence', '/content/lessons/advanced-datastores-persistence.mdx', '/content/challenges/advanced-datastores-persistence.json', 3),
+    (module_networking_id, 'networking-architecture-patterns', 'Networking Architecture & Patterns', '/content/lessons/networking-architecture-patterns.mdx', '/content/challenges/networking-architecture-patterns.json', 4)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

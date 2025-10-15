@@ -1386,6 +1386,969 @@ print("Created animated GUI with hover effects and rotation!")`,
       hints: ['Use TweenService:Create() to animate GUI properties', 'Use MouseEnter/MouseLeave for hover effects', 'Use TweenInfo.new() to control animation timing'],
       successMessage: 'Fantastic! You can now create smooth GUI animations and effects.'
     }
+  },
+
+  // === COMPREHENSIVE ADVANCED LESSONS ===
+  'roblox-services-deep-dive': {
+    title: 'Roblox Services Deep Dive',
+    description: 'Master Roblox\'s built-in services and understand their roles in game development',
+    sections: [
+      {
+        title: 'Understanding Roblox Services',
+        content: 'Services are singleton objects that provide core functionality to your game. They\'re accessed via game:GetService() and are essential for most game features. Each service has a specific purpose and API.',
+        codeExample: `local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")`,
+        color: 'blue'
+      },
+      {
+        title: 'Core Services Explained',
+        content: 'Players manages player connections, ReplicatedStorage shares data between client/server, RunService handles game loops, and TweenService creates animations. Understanding these is crucial for any Roblox developer.',
+        codeExample: `-- Players service for player management
+local Players = game:GetService("Players")
+Players.PlayerAdded:Connect(function(player)
+    print(player.Name .. " joined the game!")
+end)
+
+-- RunService for game loops
+local RunService = game:GetService("RunService")
+RunService.Heartbeat:Connect(function(deltaTime)
+    -- Code that runs every frame
+end)`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced Service Usage',
+        content: 'Services can be used together to create complex systems. For example, combining RunService with TweenService for smooth animations, or using Players with ReplicatedStorage for data synchronization.',
+        codeExample: `-- Advanced service combination
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local function smoothRotate(part, targetRotation)
+    local tween = TweenService:Create(part, TweenInfo.new(1), {
+        CFrame = part.CFrame * CFrame.Angles(0, targetRotation, 0)
+    })
+    tween:Play()
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Roblox Services Deep Dive
+-- Understanding and using core Roblox services
+
+-- Get essential services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+
+print("=== ROBLOX SERVICES DEMO ===")
+
+-- Players service - manage player connections
+Players.PlayerAdded:Connect(function(player)
+    print("Player joined: " .. player.Name)
+    print("Player ID: " .. player.UserId)
+end)
+
+-- ReplicatedStorage - share data between client and server
+local sharedData = Instance.new("Folder")
+sharedData.Name = "SharedData"
+sharedData.Parent = ReplicatedStorage
+
+-- Create a shared value
+local playerCount = Instance.new("IntValue")
+playerCount.Name = "PlayerCount"
+playerCount.Value = #Players:GetPlayers()
+playerCount.Parent = sharedData
+
+-- RunService - game loops and timing
+local connection
+connection = RunService.Heartbeat:Connect(function(deltaTime)
+    -- Update player count every frame
+    playerCount.Value = #Players:GetPlayers()
+    
+    -- Disconnect after 5 seconds
+    if tick() > 5 then
+        connection:Disconnect()
+        print("Heartbeat connection disconnected")
+    end
+end)
+
+-- TweenService - smooth animations
+local part = Instance.new("Part")
+part.Size = Vector3.new(2, 2, 2)
+part.Position = Vector3.new(0, 10, 0)
+part.Parent = workspace
+
+local tween = TweenService:Create(part, TweenInfo.new(2, Enum.EasingStyle.Bounce), {
+    Position = Vector3.new(10, 10, 0),
+    Color = Color3.fromRGB(255, 0, 0)
+})
+tween:Play()
+
+-- Debris service - automatic cleanup
+local tempPart = Instance.new("Part")
+tempPart.Size = Vector3.new(1, 1, 1)
+tempPart.Position = Vector3.new(0, 20, 0)
+tempPart.Parent = workspace
+
+-- Auto-destroy after 3 seconds
+Debris:AddItem(tempPart, 3)
+
+print("Services demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Use game:GetService() to get a service', type: 'code_contains', value: 'game:GetService' },
+        { description: 'Connect to a service event', type: 'code_contains', value: 'Connect' }
+      ],
+      hints: ['Use game:GetService("ServiceName") to get services', 'Services provide events you can connect to', 'Each service has specific functionality for your game'],
+      successMessage: 'Excellent! You understand Roblox services and their importance.'
+    }
+  },
+
+  'advanced-events-and-signals': {
+    title: 'Advanced Events & Signals',
+    description: 'Master Roblox\'s event system, custom signals, and advanced event handling patterns',
+    sections: [
+      {
+        title: 'Understanding Roblox Events',
+        content: 'Events in Roblox are signals that fire when something happens. They use the observer pattern - objects can connect to events to be notified when they fire. Events are the backbone of interactive games.',
+        codeExample: `-- Built-in events
+part.Touched:Connect(function(hit)
+    print("Part was touched by: " .. hit.Name)
+end)
+
+-- Custom events
+local customEvent = Instance.new("BindableEvent")
+customEvent.Event:Connect(function(data)
+    print("Custom event fired with data: " .. tostring(data))
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'Event Connection Management',
+        content: 'Always store event connections and disconnect them when no longer needed to prevent memory leaks. Use RBXScriptConnection objects to manage connections properly.',
+        codeExample: `-- Proper connection management
+local connection = part.Touched:Connect(function(hit)
+    print("Touched: " .. hit.Name)
+end)
+
+-- Later, disconnect when done
+connection:Disconnect()
+
+-- Or use a table to manage multiple connections
+local connections = {}
+connections[1] = part.Touched:Connect(function() end)
+connections[2] = anotherEvent:Connect(function() end)
+
+-- Disconnect all at once
+for _, connection in pairs(connections) do
+    connection:Disconnect()
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Custom Signals and BindableEvents',
+        content: 'Create your own events using BindableEvents and BindableFunctions. BindableEvents are one-way (fire and forget), while BindableFunctions are two-way (request and response).',
+        codeExample: `-- Custom signal system
+local signal = Instance.new("BindableEvent")
+signal.Name = "PlayerLevelUp"
+
+-- Connect to the signal
+signal.Event:Connect(function(player, newLevel)
+    print(player.Name .. " leveled up to " .. newLevel)
+end)
+
+-- Fire the signal
+signal:Fire(game.Players.LocalPlayer, 10)
+
+-- BindableFunction for request/response
+local function = Instance.new("BindableFunction")
+function.OnInvoke = function(input)
+    return "Response: " .. input
+end
+
+local result = function:Invoke("Hello")
+print(result)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Events and Signals
+-- Comprehensive event handling in Roblox
+
+-- Create test parts for events
+local part1 = Instance.new("Part")
+part1.Name = "EventPart1"
+part1.Size = Vector3.new(4, 4, 4)
+part1.Position = Vector3.new(0, 5, 0)
+part1.Parent = workspace
+
+local part2 = Instance.new("Part")
+part2.Name = "EventPart2"
+part2.Size = Vector3.new(2, 2, 2)
+part2.Position = Vector3.new(0, 10, 0)
+part2.Parent = workspace
+
+print("=== ADVANCED EVENTS DEMO ===")
+
+-- 1. Built-in Events with proper connection management
+local connections = {}
+
+-- Touched event
+connections.touched = part1.Touched:Connect(function(hit)
+    local humanoid = hit.Parent:FindFirstChild("Humanoid")
+    if humanoid then
+        print("Player touched part1: " .. hit.Parent.Name)
+    end
+end)
+
+-- Changed event (monitors property changes)
+connections.changed = part2:GetPropertyChangedSignal("Position"):Connect(function()
+    print("Part2 position changed to: " .. tostring(part2.Position))
+end)
+
+-- 2. Custom BindableEvent
+local levelUpEvent = Instance.new("BindableEvent")
+levelUpEvent.Name = "PlayerLevelUp"
+levelUpEvent.Parent = workspace
+
+-- Connect to custom event
+levelUpEvent.Event:Connect(function(playerName, oldLevel, newLevel)
+    print("🎉 " .. playerName .. " leveled up from " .. oldLevel .. " to " .. newLevel)
+end)
+
+-- Fire custom event
+levelUpEvent:Fire("Alex", 5, 6)
+
+-- 3. BindableFunction for request/response
+local dataService = Instance.new("BindableFunction")
+dataService.Name = "DataService"
+dataService.Parent = workspace
+
+-- Handle function calls
+dataService.OnInvoke = function(requestType, data)
+    if requestType == "getPlayerData" then
+        return {
+            name = data,
+            level = 10,
+            coins = 500
+        }
+    elseif requestType == "calculateDamage" then
+        return data * 2  -- Double damage
+    else
+        return "Unknown request"
+    end
+end
+
+-- Use the function
+local playerData = dataService:Invoke("getPlayerData", "Alex")
+print("Player data:", playerData.name, "Level:", playerData.level)
+
+local damage = dataService:Invoke("calculateDamage", 50)
+print("Calculated damage:", damage)
+
+-- 4. Event cleanup demonstration
+print("\\nCleaning up connections...")
+for name, connection in pairs(connections) do
+    connection:Disconnect()
+    print("Disconnected: " .. name)
+end
+
+print("Events demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Create a custom BindableEvent', type: 'code_contains', value: 'BindableEvent' },
+        { description: 'Use proper connection management', type: 'code_contains', value: 'Disconnect' }
+      ],
+      hints: ['Use BindableEvent for custom signals', 'Always store connections and disconnect them', 'Use BindableFunction for request/response patterns'],
+      successMessage: 'Outstanding! You understand advanced event handling in Roblox.'
+    }
+  },
+
+  'memory-management-optimization': {
+    title: 'Memory Management & Optimization',
+    description: 'Learn advanced memory management, garbage collection, and performance optimization techniques',
+    sections: [
+      {
+        title: 'Understanding Memory in Roblox',
+        content: 'Roblox uses automatic garbage collection, but you can optimize memory usage. Avoid creating objects unnecessarily, use object pooling for frequently created/destroyed objects, and be mindful of memory leaks.',
+        codeExample: `-- Bad: Creating objects in loops
+for i = 1, 1000 do
+    local part = Instance.new("Part")  -- Creates 1000 parts!
+    part.Parent = workspace
+end
+
+-- Good: Object pooling
+local partPool = {}
+local function getPart()
+    local part = table.remove(partPool) or Instance.new("Part")
+    return part
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Garbage Collection and Cleanup',
+        content: 'Roblox automatically cleans up unused objects, but you can help by setting references to nil, disconnecting events, and using Debris service for temporary objects. Monitor memory usage with game:GetService("Stats").',
+        codeExample: `-- Proper cleanup
+local part = Instance.new("Part")
+local connection = part.Touched:Connect(function() end)
+
+-- When done with the part
+connection:Disconnect()
+part:Destroy()
+part = nil  -- Remove reference
+
+-- Using Debris for automatic cleanup
+local Debris = game:GetService("Debris")
+local tempPart = Instance.new("Part")
+Debris:AddItem(tempPart, 5)  -- Auto-destroy after 5 seconds`,
+        color: 'green'
+      },
+      {
+        title: 'Performance Optimization Techniques',
+        content: 'Optimize your code by avoiding expensive operations in loops, using local variables, caching frequently accessed objects, and minimizing property changes. Profile your code to find bottlenecks.',
+        codeExample: `-- Performance optimization examples
+local Players = game:GetService("Players")
+local players = Players:GetPlayers()  -- Cache the result
+
+-- Avoid repeated service calls
+local RunService = game:GetService("RunService")
+local connection = RunService.Heartbeat:Connect(function()
+    -- Use cached players instead of Players:GetPlayers() every frame
+    for _, player in ipairs(players) do
+        -- Process player
+    end
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Memory Management and Optimization
+-- Advanced techniques for efficient Roblox scripting
+
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local Stats = game:GetService("Stats")
+
+print("=== MEMORY MANAGEMENT DEMO ===")
+
+-- 1. Object Pooling System
+local partPool = {}
+local activeParts = {}
+
+local function createPart()
+    local part = table.remove(partPool)
+    if not part then
+        part = Instance.new("Part")
+        part.Size = Vector3.new(2, 2, 2)
+    end
+    part.Parent = workspace
+    table.insert(activeParts, part)
+    return part
+end
+
+local function destroyPart(part)
+    part.Parent = nil
+    table.insert(partPool, part)
+    for i, activePart in ipairs(activeParts) do
+        if activePart == part then
+            table.remove(activeParts, i)
+            break
+        end
+    end
+end
+
+-- 2. Memory Monitoring
+local function printMemoryStats()
+    local memoryStats = Stats:GetTotalMemoryUsageMb()
+    print("Total Memory Usage: " .. memoryStats .. " MB")
+    print("Active Parts: " .. #activeParts)
+    print("Pooled Parts: " .. #partPool)
+end
+
+-- 3. Efficient Event Management
+local connections = {}
+local function addConnection(connection)
+    table.insert(connections, connection)
+end
+
+local function cleanupConnections()
+    for _, connection in ipairs(connections) do
+        connection:Disconnect()
+    end
+    connections = {}
+end
+
+-- 4. Performance Test
+print("\\nCreating 10 parts using object pooling...")
+for i = 1, 10 do
+    local part = createPart()
+    part.Position = Vector3.new(i * 3, 5, 0)
+    part.Color = Color3.fromRGB(math.random(255), math.random(255), math.random(255))
+end
+
+printMemoryStats()
+
+-- 5. Automatic Cleanup with Debris
+print("\\nCreating temporary parts with Debris...")
+for i = 1, 5 do
+    local tempPart = Instance.new("Part")
+    tempPart.Size = Vector3.new(1, 1, 1)
+    tempPart.Position = Vector3.new(i * 2, 15, 0)
+    tempPart.Parent = workspace
+    Debris:AddItem(tempPart, 3)  -- Auto-destroy after 3 seconds
+end
+
+-- 6. Memory-efficient loop
+local frameCount = 0
+local connection = RunService.Heartbeat:Connect(function()
+    frameCount = frameCount + 1
+    
+    -- Only print every 60 frames (about 1 second)
+    if frameCount % 60 == 0 then
+        print("Frame: " .. frameCount)
+        printMemoryStats()
+    end
+    
+    -- Stop after 5 seconds
+    if frameCount > 300 then
+        connection:Disconnect()
+        print("\\nDemo complete - cleaning up...")
+        cleanupConnections()
+        
+        -- Return parts to pool
+        for _, part in ipairs(activeParts) do
+            destroyPart(part)
+        end
+        
+        print("Final memory stats:")
+        printMemoryStats()
+    end
+end)
+
+print("Memory management demo started!")`,
+    challenge: {
+      tests: [
+        { description: 'Use object pooling for efficient memory usage', type: 'code_contains', value: 'table.remove' },
+        { description: 'Implement proper cleanup with Disconnect', type: 'code_contains', value: 'Disconnect' }
+      ],
+      hints: ['Use object pooling to reuse objects instead of creating new ones', 'Always disconnect events to prevent memory leaks', 'Use Debris service for automatic cleanup', 'Monitor memory usage with Stats service'],
+      successMessage: 'Excellent! You understand memory management and optimization in Roblox.'
+    }
+  },
+
+  'advanced-datastores-persistence': {
+    title: 'Advanced DataStores & Persistence',
+    description: 'Master DataStores, data validation, error handling, and advanced persistence patterns',
+    sections: [
+      {
+        title: 'DataStore Fundamentals',
+        content: 'DataStores allow you to save data between game sessions. They have strict limitations: 4MB per key, rate limits, and eventual consistency. Always use pcall() for error handling and implement retry logic.',
+        codeExample: `local DataStoreService = game:GetService("DataStoreService")
+local playerDataStore = DataStoreService:GetDataStore("PlayerData")
+
+-- Always use pcall for DataStore operations
+local success, result = pcall(function()
+    return playerDataStore:GetAsync(player.UserId)
+end)
+
+if success then
+    -- Handle successful data retrieval
+else
+    -- Handle error
+    warn("DataStore error: " .. tostring(result))
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Data Validation and Security',
+        content: 'Always validate data from DataStores before using it. Players can modify client-side data, so server-side validation is crucial. Use data templates and validate all incoming data.',
+        codeExample: `-- Data validation template
+local DEFAULT_PLAYER_DATA = {
+    level = 1,
+    coins = 0,
+    experience = 0,
+    lastPlayed = 0
+}
+
+local function validatePlayerData(data)
+    if type(data) ~= "table" then return DEFAULT_PLAYER_DATA end
+    
+    return {
+        level = math.max(1, math.min(100, tonumber(data.level) or 1)),
+        coins = math.max(0, tonumber(data.coins) or 0),
+        experience = math.max(0, tonumber(data.experience) or 0),
+        lastPlayed = tonumber(data.lastPlayed) or 0
+    }
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced Persistence Patterns',
+        content: 'Implement data versioning, backup systems, and conflict resolution. Use OrderedDataStores for leaderboards, and consider data compression for large datasets. Always have fallback data.',
+        codeExample: `-- Advanced persistence with versioning
+local function savePlayerData(player, data)
+    local saveData = {
+        version = 1,
+        data = data,
+        timestamp = os.time(),
+        playerId = player.UserId
+    }
+    
+    local success, error = pcall(function()
+        playerDataStore:SetAsync(player.UserId, saveData)
+    end)
+    
+    if not success then
+        -- Retry logic
+        wait(1)
+        pcall(function()
+            playerDataStore:SetAsync(player.UserId, saveData)
+        end)
+    end
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced DataStores and Persistence
+-- Comprehensive data management system
+
+-- Note: This is a simulation since we can't use real DataStores in this environment
+print("=== ADVANCED DATASTORES DEMO ===")
+
+-- 1. Data Validation System
+local DEFAULT_PLAYER_DATA = {
+    version = 1,
+    level = 1,
+    coins = 0,
+    experience = 0,
+    achievements = {},
+    lastPlayed = 0,
+    playTime = 0
+}
+
+local function validatePlayerData(data)
+    if type(data) ~= "table" then 
+        print("Invalid data type, using defaults")
+        return DEFAULT_PLAYER_DATA 
+    end
+    
+    -- Validate and sanitize each field
+    local validatedData = {
+        version = math.max(1, tonumber(data.version) or 1),
+        level = math.max(1, math.min(100, tonumber(data.level) or 1)),
+        coins = math.max(0, tonumber(data.coins) or 0),
+        experience = math.max(0, tonumber(data.experience) or 0),
+        achievements = type(data.achievements) == "table" and data.achievements or {},
+        lastPlayed = tonumber(data.lastPlayed) or 0,
+        playTime = math.max(0, tonumber(data.playTime) or 0)
+    }
+    
+    print("Data validated successfully")
+    return validatedData
+end
+
+-- 2. Simulated DataStore Operations
+local function simulateDataStoreGet(playerId)
+    -- Simulate network delay and potential failure
+    local success = math.random() > 0.1  -- 90% success rate
+    
+    if success then
+        -- Simulate existing player data
+        local existingData = {
+            version = 1,
+            level = 5,
+            coins = 250,
+            experience = 1200,
+            achievements = {"First Steps", "Coin Collector"},
+            lastPlayed = os.time() - 86400, -- 1 day ago
+            playTime = 3600 -- 1 hour
+        }
+        return true, existingData
+    else
+        return false, "DataStore service unavailable"
+    end
+end
+
+local function simulateDataStoreSet(playerId, data)
+    local success = math.random() > 0.05  -- 95% success rate
+    
+    if success then
+        print("Data saved successfully for player " .. playerId)
+        return true, nil
+    else
+        return false, "Save failed - rate limit exceeded"
+    end
+end
+
+-- 3. Advanced Save System with Retry Logic
+local function savePlayerData(playerId, data)
+    local maxRetries = 3
+    local retryDelay = 1
+    
+    for attempt = 1, maxRetries do
+        local success, error = simulateDataStoreSet(playerId, data)
+        
+        if success then
+            return true
+        else
+            print("Save attempt " .. attempt .. " failed: " .. tostring(error))
+            if attempt < maxRetries then
+                wait(retryDelay)
+                retryDelay = retryDelay * 2  -- Exponential backoff
+            end
+        end
+    end
+    
+    print("Failed to save after " .. maxRetries .. " attempts")
+    return false
+end
+
+-- 4. Data Versioning and Migration
+local function migratePlayerData(data)
+    if data.version < 1 then
+        -- Migrate from version 0 to 1
+        data.version = 1
+        data.playTime = data.playTime or 0
+        print("Migrated data from version 0 to 1")
+    end
+    
+    return data
+end
+
+-- 5. Complete Data Management Demo
+local playerId = 12345
+
+print("\\nLoading player data...")
+local success, rawData = simulateDataStoreGet(playerId)
+
+if success then
+    print("Raw data loaded:", rawData.level, "level,", rawData.coins, "coins")
+    
+    -- Validate and migrate data
+    local validatedData = validatePlayerData(rawData)
+    validatedData = migratePlayerData(validatedData)
+    
+    -- Update data
+    validatedData.level = validatedData.level + 1
+    validatedData.coins = validatedData.coins + 100
+    validatedData.lastPlayed = os.time()
+    
+    print("Updated data:", validatedData.level, "level,", validatedData.coins, "coins")
+    
+    -- Save updated data
+    local saveSuccess = savePlayerData(playerId, validatedData)
+    if saveSuccess then
+        print("Player data saved successfully!")
+    end
+else
+    print("Failed to load data:", rawData)
+    print("Using default data for new player")
+    local newPlayerData = DEFAULT_PLAYER_DATA
+    newPlayerData.lastPlayed = os.time()
+    savePlayerData(playerId, newPlayerData)
+end
+
+-- 6. Data Compression Example (for large datasets)
+local function compressData(data)
+    -- Simple compression simulation
+    local compressed = {
+        l = data.level,
+        c = data.coins,
+        e = data.experience,
+        a = data.achievements,
+        lp = data.lastPlayed,
+        pt = data.playTime
+    }
+    return compressed
+end
+
+local function decompressData(compressed)
+    return {
+        level = compressed.l,
+        coins = compressed.c,
+        experience = compressed.e,
+        achievements = compressed.a,
+        lastPlayed = compressed.lp,
+        playTime = compressed.pt
+    }
+end
+
+print("\\nDataStores demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement data validation for DataStore data', type: 'code_contains', value: 'validatePlayerData' },
+        { description: 'Use pcall for error handling with DataStores', type: 'code_contains', value: 'pcall' }
+      ],
+      hints: ['Always validate data from DataStores before using it', 'Use pcall() to handle DataStore errors gracefully', 'Implement retry logic for failed operations', 'Use data versioning for future compatibility'],
+      successMessage: 'Outstanding! You understand advanced DataStore management and persistence.'
+    }
+  },
+
+  'networking-architecture-patterns': {
+    title: 'Networking Architecture & Patterns',
+    description: 'Master client-server architecture, networking patterns, and advanced communication systems',
+    sections: [
+      {
+        title: 'Client-Server Architecture Fundamentals',
+        content: 'Roblox uses a client-server model where the server is authoritative. Clients send requests to the server, which validates and processes them. Understanding this architecture is crucial for secure, multiplayer games.',
+        codeExample: `-- Server Script (authoritative)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Create RemoteEvent for client communication
+local remoteEvent = Instance.new("RemoteEvent")
+remoteEvent.Name = "PlayerAction"
+remoteEvent.Parent = ReplicatedStorage
+
+-- Server handles the request
+remoteEvent.OnServerEvent:Connect(function(player, action, data)
+    -- Validate the request
+    if validatePlayerAction(player, action, data) then
+        processPlayerAction(player, action, data)
+    end
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'RemoteEvents vs RemoteFunctions',
+        content: 'Use RemoteEvents for one-way communication (fire and forget) and RemoteFunctions for request-response patterns. RemoteEvents are more efficient for frequent updates, while RemoteFunctions are better for data requests.',
+        codeExample: `-- RemoteEvent for frequent updates
+local updateEvent = Instance.new("RemoteEvent")
+updateEvent.Name = "PlayerUpdate"
+updateEvent.Parent = ReplicatedStorage
+
+-- Fire to all clients
+updateEvent:FireAllClients(playerData)
+
+-- RemoteFunction for data requests
+local dataFunction = Instance.new("RemoteFunction")
+dataFunction.Name = "GetPlayerData"
+dataFunction.Parent = ReplicatedStorage
+
+-- Handle requests
+dataFunction.OnServerInvoke = function(player, requestType)
+    return getPlayerData(player, requestType)
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced Networking Patterns',
+        content: 'Implement request queuing, rate limiting, and anti-cheat measures. Use replication filtering, validate all client inputs, and implement proper error handling for network operations.',
+        codeExample: `-- Advanced networking with rate limiting
+local requestCounts = {}
+local RATE_LIMIT = 10  -- Max 10 requests per second
+
+local function checkRateLimit(player)
+    local currentTime = tick()
+    local playerId = player.UserId
+    
+    if not requestCounts[playerId] then
+        requestCounts[playerId] = {count = 0, resetTime = currentTime + 1}
+    end
+    
+    local data = requestCounts[playerId]
+    if currentTime > data.resetTime then
+        data.count = 0
+        data.resetTime = currentTime + 1
+    end
+    
+    data.count = data.count + 1
+    return data.count <= RATE_LIMIT
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Networking Architecture and Patterns
+-- Comprehensive client-server communication system
+
+print("=== NETWORKING ARCHITECTURE DEMO ===")
+
+-- 1. Simulated RemoteEvent System
+local function createRemoteEvent(name)
+    local event = {
+        name = name,
+        connections = {},
+        fire = function(self, ...)
+            local args = {...}
+            for _, connection in ipairs(self.connections) do
+                connection(args)
+            end
+        end,
+        connect = function(self, callback)
+            table.insert(self.connections, callback)
+            return {
+                Disconnect = function()
+                    for i, conn in ipairs(self.connections) do
+                        if conn == callback then
+                            table.remove(self.connections, i)
+                            break
+                        end
+                    end
+                end
+            }
+        end
+    }
+    return event
+end
+
+-- 2. Simulated RemoteFunction System
+local function createRemoteFunction(name)
+    local func = {
+        name = name,
+        handler = nil,
+        invoke = function(self, ...)
+            if self.handler then
+                return self.handler(...)
+            else
+                return nil, "No handler set"
+            end
+        end,
+        setHandler = function(self, handler)
+            self.handler = handler
+        end
+    }
+    return func
+end
+
+-- 3. Rate Limiting System
+local requestCounts = {}
+local RATE_LIMIT = 5  -- Max 5 requests per second
+
+local function checkRateLimit(playerId)
+    local currentTime = tick()
+    
+    if not requestCounts[playerId] then
+        requestCounts[playerId] = {count = 0, resetTime = currentTime + 1}
+    end
+    
+    local data = requestCounts[playerId]
+    if currentTime > data.resetTime then
+        data.count = 0
+        data.resetTime = currentTime + 1
+    end
+    
+    data.count = data.count + 1
+    return data.count <= RATE_LIMIT
+end
+
+-- 4. Server-Side Event Handling
+local playerActionEvent = createRemoteEvent("PlayerAction")
+local getDataFunction = createRemoteFunction("GetPlayerData")
+
+-- Simulate player data
+local playerData = {
+    [1] = {name = "Player1", level = 10, coins = 500},
+    [2] = {name = "Player2", level = 5, coins = 250}
+}
+
+-- Handle player actions with validation
+playerActionEvent:connect(function(args)
+    local playerId, action, data = args[1], args[2], args[3]
+    
+    print("\\nReceived action from player " .. playerId .. ": " .. action)
+    
+    -- Rate limiting check
+    if not checkRateLimit(playerId) then
+        print("Rate limit exceeded for player " .. playerId)
+        return
+    end
+    
+    -- Validate action
+    if action == "spendCoins" then
+        local amount = tonumber(data.amount)
+        if amount and amount > 0 and playerData[playerId] and playerData[playerId].coins >= amount then
+            playerData[playerId].coins = playerData[playerId].coins - amount
+            print("Player " .. playerId .. " spent " .. amount .. " coins")
+            
+            -- Notify all clients of the update
+            playerActionEvent:fire("coinUpdate", {playerId = playerId, newAmount = playerData[playerId].coins})
+        else
+            print("Invalid coin spending request from player " .. playerId)
+        end
+    elseif action == "levelUp" then
+        if playerData[playerId] then
+            playerData[playerId].level = playerData[playerId].level + 1
+            print("Player " .. playerId .. " leveled up to " .. playerData[playerId].level)
+            
+            -- Notify all clients
+            playerActionEvent:fire("levelUpdate", {playerId = playerId, newLevel = playerData[playerId].level})
+        end
+    end
+end)
+
+-- Handle data requests
+getDataFunction:setHandler(function(playerId, requestType)
+    print("\\nData request from player " .. playerId .. ": " .. requestType)
+    
+    if not checkRateLimit(playerId) then
+        return nil, "Rate limit exceeded"
+    end
+    
+    if requestType == "playerStats" then
+        return playerData[playerId] or {name = "Unknown", level = 1, coins = 0}
+    elseif requestType == "leaderboard" then
+        local leaderboard = {}
+        for id, data in pairs(playerData) do
+            table.insert(leaderboard, {id = id, name = data.name, level = data.level})
+        end
+        table.sort(leaderboard, function(a, b) return a.level > b.level end)
+        return leaderboard
+    else
+        return nil, "Unknown request type"
+    end
+end)
+
+-- 5. Simulate Client Requests
+print("\\nSimulating client requests...")
+
+-- Player 1 actions
+playerActionEvent:fire(1, "spendCoins", {amount = 100})
+playerActionEvent:fire(1, "levelUp", {})
+
+-- Player 2 actions
+playerActionEvent:fire(2, "spendCoins", {amount = 50})
+
+-- Data requests
+local stats = getDataFunction:invoke(1, "playerStats")
+print("Player 1 stats:", stats.name, "Level:", stats.level, "Coins:", stats.coins)
+
+local leaderboard = getDataFunction:invoke(2, "leaderboard")
+print("\\nLeaderboard:")
+for i, player in ipairs(leaderboard) do
+    print(i .. ". " .. player.name .. " - Level " .. player.level)
+end
+
+-- 6. Anti-Cheat Simulation
+local function validatePlayerAction(playerId, action, data)
+    -- Basic validation
+    if not playerData[playerId] then
+        return false, "Player not found"
+    end
+    
+    if action == "spendCoins" then
+        local amount = tonumber(data.amount)
+        if not amount or amount <= 0 then
+            return false, "Invalid amount"
+        end
+        if amount > playerData[playerId].coins then
+            return false, "Insufficient coins"
+        end
+    end
+    
+    return true
+end
+
+print("\\nNetworking architecture demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement rate limiting for network requests', type: 'code_contains', value: 'checkRateLimit' },
+        { description: 'Use RemoteEvents for client-server communication', type: 'code_contains', value: 'RemoteEvent' }
+      ],
+      hints: ['Always validate client requests on the server', 'Implement rate limiting to prevent spam', 'Use RemoteEvents for one-way communication', 'Use RemoteFunctions for request-response patterns'],
+      successMessage: 'Excellent! You understand advanced networking architecture in Roblox.'
+    }
   }
 };
 
