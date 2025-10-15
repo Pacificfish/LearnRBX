@@ -31,8 +31,8 @@ BEGIN
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_core_id, 'Luau Scripting Basics', 1),
     (track_core_id, 'Roblox Studio Fundamentals', 2)
-  ON CONFLICT (track_id, title) DO UPDATE SET
-    index_in_track = EXCLUDED.index_in_track;
+  ON CONFLICT (track_id, index_in_track) DO UPDATE SET
+    title = EXCLUDED.title;
 
   SELECT id INTO module_basics_id FROM public.modules WHERE track_id = track_core_id AND title = 'Luau Scripting Basics';
   SELECT id INTO module_roblox_id FROM public.modules WHERE track_id = track_core_id AND title = 'Roblox Studio Fundamentals';
@@ -63,8 +63,8 @@ BEGIN
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_gameplay_id, 'Roblox Part Manipulation', 1),
     (track_gameplay_id, 'Advanced Game Mechanics', 2)
-  ON CONFLICT (track_id, title) DO UPDATE SET
-    index_in_track = EXCLUDED.index_in_track;
+  ON CONFLICT (track_id, index_in_track) DO UPDATE SET
+    title = EXCLUDED.title;
 
   SELECT id INTO module_parts_id FROM public.modules WHERE track_id = track_gameplay_id AND title = 'Roblox Part Manipulation';
 
@@ -80,8 +80,8 @@ BEGIN
   -- UI Scripting track
   INSERT INTO public.modules (track_id, title, index_in_track) VALUES
     (track_ui_id, 'Roblox UI Basics', 1)
-  ON CONFLICT (track_id, title) DO UPDATE SET
-    index_in_track = EXCLUDED.index_in_track;
+  ON CONFLICT (track_id, index_in_track) DO UPDATE SET
+    title = EXCLUDED.title;
 
   SELECT id INTO module_ui_basics_id FROM public.modules WHERE track_id = track_ui_id AND title = 'Roblox UI Basics';
 
