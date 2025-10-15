@@ -326,6 +326,278 @@ print("Sending updated data to server...")`,
       hints: ['ServerScripts run on the server', 'LocalScripts run on each client', 'Use RemoteEvents to communicate between them'],
       successMessage: 'Perfect! You understand client-server architecture in Roblox.'
     }
+  },
+
+  'cframe-basics': {
+    title: 'Roblox CFrame Positioning',
+    description: 'Learn how to position and rotate parts using CFrames in Roblox Studio',
+    sections: [
+      {
+        title: 'Understanding CFrames',
+        content: 'CFrame (Coordinate Frame) is how Roblox represents position and rotation in 3D space. It\'s essential for moving parts, creating animations, and building complex structures.',
+        codeExample: 'local part = Instance.new("Part")\npart.CFrame = CFrame.new(0, 10, 0)',
+        color: 'blue'
+      },
+      {
+        title: 'Positioning Parts',
+        content: 'Use CFrame.new() to set exact positions. The three numbers represent X, Y, and Z coordinates in the world space.',
+        codeExample: `-- Position a part at coordinates (5, 10, -3)
+local part = Instance.new("Part")
+part.CFrame = CFrame.new(5, 10, -3)
+part.Parent = workspace`,
+        color: 'green'
+      },
+      {
+        title: 'Rotating Parts',
+        content: 'CFrames can also handle rotation. Use CFrame.Angles() to rotate parts around different axes for building structures and creating dynamic objects.',
+        codeExample: `-- Create a rotated part
+local part = Instance.new("Part")
+part.CFrame = CFrame.new(0, 5, 0) * CFrame.Angles(0, math.rad(45), 0)
+part.Parent = workspace`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Create and position parts using CFrames
+local part1 = Instance.new("Part")
+part1.Name = "GroundPart"
+part1.Size = Vector3.new(10, 1, 10)
+part1.CFrame = CFrame.new(0, 0, 0)
+part1.Parent = workspace
+
+-- Create a floating part
+local part2 = Instance.new("Part")
+part2.Name = "FloatingPart"
+part2.Size = Vector3.new(2, 2, 2)
+part2.CFrame = CFrame.new(0, 10, 0)
+part2.Parent = workspace
+
+-- Create a rotated part
+local part3 = Instance.new("Part")
+part3.Name = "RotatedPart"
+part3.Size = Vector3.new(4, 1, 1)
+part3.CFrame = CFrame.new(5, 5, 0) * CFrame.Angles(0, math.rad(45), 0)
+part3.Parent = workspace
+
+print("Created 3 parts with different CFrame positions and rotations!")`,
+    challenge: {
+      tests: [
+        { description: 'Create a part with CFrame positioning', type: 'code_contains', value: 'CFrame.new' },
+        { description: 'Use CFrame.Angles for rotation', type: 'code_contains', value: 'CFrame.Angles' }
+      ],
+      hints: ['Use CFrame.new(x, y, z) for positioning', 'Use CFrame.Angles() for rotation', 'CFrames are essential for 3D positioning in Roblox'],
+      successMessage: 'Excellent! You can now position and rotate parts using CFrames.'
+    }
+  },
+
+  'color-and-material': {
+    title: 'Roblox Part Colors & Materials',
+    description: 'Learn how to customize the appearance of parts with colors and materials',
+    sections: [
+      {
+        title: 'Setting Part Colors',
+        content: 'Use the Color property to change how parts look. You can use Color3.fromRGB() to create specific colors or use predefined colors for your game objects.',
+        codeExample: 'part.Color = Color3.fromRGB(255, 0, 0) -- Red\npart.Color = Color3.fromRGB(0, 255, 0) -- Green',
+        color: 'blue'
+      },
+      {
+        title: 'Part Materials',
+        content: 'Materials change how light interacts with parts. Use different materials like Metal, Neon, or Glass to create various visual effects in your game.',
+        codeExample: `part.Material = Enum.Material.Metal
+part.Material = Enum.Material.Neon
+part.Material = Enum.Material.Glass`,
+        color: 'green'
+      },
+      {
+        title: 'Combining Colors and Materials',
+        content: 'Combine colors and materials to create stunning visual effects. Neon materials glow, metal reflects light, and glass is transparent - perfect for different game elements.',
+        codeExample: `-- Create a glowing red part
+part.Color = Color3.fromRGB(255, 0, 0)
+part.Material = Enum.Material.Neon
+
+-- Create a metallic blue part
+part.Color = Color3.fromRGB(0, 100, 255)
+part.Material = Enum.Material.Metal`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Create parts with different colors and materials
+local redPart = Instance.new("Part")
+redPart.Name = "RedNeonPart"
+redPart.Size = Vector3.new(2, 2, 2)
+redPart.Position = Vector3.new(0, 5, 0)
+redPart.Color = Color3.fromRGB(255, 0, 0)
+redPart.Material = Enum.Material.Neon
+redPart.Parent = workspace
+
+local bluePart = Instance.new("Part")
+bluePart.Name = "BlueMetalPart"
+bluePart.Size = Vector3.new(2, 2, 2)
+bluePart.Position = Vector3.new(5, 5, 0)
+bluePart.Color = Color3.fromRGB(0, 100, 255)
+bluePart.Material = Enum.Material.Metal
+bluePart.Parent = workspace
+
+local greenPart = Instance.new("Part")
+greenPart.Name = "GreenGlassPart"
+greenPart.Size = Vector3.new(2, 2, 2)
+greenPart.Position = Vector3.new(-5, 5, 0)
+greenPart.Color = Color3.fromRGB(0, 255, 0)
+greenPart.Material = Enum.Material.Glass
+greenPart.Parent = workspace
+
+print("Created colorful parts with different materials!")`,
+    challenge: {
+      tests: [
+        { description: 'Set part color using Color3.fromRGB', type: 'code_contains', value: 'Color3.fromRGB' },
+        { description: 'Set part material using Enum.Material', type: 'code_contains', value: 'Enum.Material' }
+      ],
+      hints: ['Use Color3.fromRGB(red, green, blue) for colors', 'Use Enum.Material.MaterialName for materials', 'Combine colors and materials for visual effects'],
+      successMessage: 'Great! You can now customize part appearance with colors and materials.'
+    }
+  },
+
+  'buttons-and-labels': {
+    title: 'Roblox GUI Buttons & Labels',
+    description: 'Learn how to create interactive user interface elements for your Roblox games',
+    sections: [
+      {
+        title: 'Creating GUI Elements',
+        content: 'GUI (Graphical User Interface) elements like buttons and labels are created using ScreenGui and placed in the StarterGui. They appear on the player\'s screen.',
+        codeExample: `local screenGui = Instance.new("ScreenGui")
+local button = Instance.new("TextButton")
+button.Parent = screenGui`,
+        color: 'blue'
+      },
+      {
+        title: 'Button Properties',
+        content: 'TextButtons can display text, have different sizes, and respond to clicks. They\'re perfect for menus, settings, and interactive elements in your game.',
+        codeExample: `button.Text = "Click Me!"
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)`,
+        color: 'green'
+      },
+      {
+        title: 'Button Click Events',
+        content: 'Use MouseButton1Click to make buttons interactive. This is how you create menus, teleporters, and other clickable elements in your game.',
+        codeExample: `button.MouseButton1Click:Connect(function()
+    print("Button was clicked!")
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Create a simple GUI with button and label
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MyGUI"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create a label
+local label = Instance.new("TextLabel")
+label.Name = "TitleLabel"
+label.Text = "Welcome to My Game!"
+label.Size = UDim2.new(0, 300, 0, 50)
+label.Position = UDim2.new(0.5, -150, 0.2, 0)
+label.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.Parent = screenGui
+
+-- Create a button
+local button = Instance.new("TextButton")
+button.Name = "ClickButton"
+button.Text = "Click Me!"
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Parent = screenGui
+
+-- Handle button click
+button.MouseButton1Click:Connect(function()
+    print("Button was clicked!")
+    label.Text = "Button clicked! Great job!"
+end)
+
+print("GUI created! Click the button to see it work.")`,
+    challenge: {
+      tests: [
+        { description: 'Create a ScreenGui', type: 'code_contains', value: 'ScreenGui' },
+        { description: 'Handle button click events', type: 'code_contains', value: 'MouseButton1Click' }
+      ],
+      hints: ['Use ScreenGui for the main GUI container', 'Use TextButton for clickable elements', 'Use MouseButton1Click:Connect() for click events'],
+      successMessage: 'Excellent! You can now create interactive GUI elements.'
+    }
+  },
+
+  'tweenservice-intro': {
+    title: 'Roblox TweenService Animations',
+    description: 'Learn how to create smooth animations using TweenService in Roblox',
+    sections: [
+      {
+        title: 'Understanding TweenService',
+        content: 'TweenService creates smooth animations by interpolating between values over time. It\'s perfect for moving parts, changing colors, and creating polished UI animations.',
+        codeExample: 'local TweenService = game:GetService("TweenService")',
+        color: 'blue'
+      },
+      {
+        title: 'Creating TweenInfo',
+        content: 'TweenInfo defines how the animation behaves - duration, easing style, and how many times it repeats. This controls the feel and timing of your animations.',
+        codeExample: `local tweenInfo = TweenInfo.new(
+    2, -- Duration in seconds
+    Enum.EasingStyle.Quad,
+    Enum.EasingDirection.Out
+)`,
+        color: 'green'
+      },
+      {
+        title: 'Animating Properties',
+        content: 'Use TweenService:Create() to animate any property like Position, Size, Color, or Transparency. This brings your game objects to life with smooth motion.',
+        codeExample: `local tween = TweenService:Create(part, tweenInfo, {
+    Position = Vector3.new(10, 5, 0),
+    Color = Color3.fromRGB(255, 0, 0)
+})
+tween:Play()`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Create an animated part using TweenService
+local TweenService = game:GetService("TweenService")
+
+-- Create a part to animate
+local part = Instance.new("Part")
+part.Name = "AnimatedPart"
+part.Size = Vector3.new(2, 2, 2)
+part.Position = Vector3.new(0, 5, 0)
+part.Color = Color3.fromRGB(0, 255, 0)
+part.Parent = workspace
+
+-- Create tween info for smooth animation
+local tweenInfo = TweenInfo.new(
+    3, -- Duration: 3 seconds
+    Enum.EasingStyle.Quad,
+    Enum.EasingDirection.InOut,
+    0, -- Repeat count (0 = play once)
+    false, -- Reverse
+    0 -- Delay
+)
+
+-- Create the tween
+local tween = TweenService:Create(part, tweenInfo, {
+    Position = Vector3.new(20, 10, 0),
+    Color = Color3.fromRGB(255, 0, 0),
+    Size = Vector3.new(4, 4, 4)
+})
+
+-- Play the animation
+tween:Play()
+
+print("Animation started! Watch the part move and change color.")`,
+    challenge: {
+      tests: [
+        { description: 'Use TweenService for animations', type: 'code_contains', value: 'TweenService' },
+        { description: 'Create TweenInfo for animation properties', type: 'code_contains', value: 'TweenInfo.new' }
+      ],
+      hints: ['Get TweenService with game:GetService("TweenService")', 'Use TweenInfo.new() to define animation properties', 'Use TweenService:Create() to make the tween'],
+      successMessage: 'Amazing! You can now create smooth animations with TweenService.'
+    }
   }
 };
 
