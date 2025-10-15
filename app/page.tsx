@@ -50,7 +50,7 @@ export default function HomePage() {
                 <Zap className="w-10 h-10 text-primary mb-2" />
                 <CardTitle>Interactive Lessons</CardTitle>
                 <CardDescription>
-                  Write real Lua code in our browser editor. Run it, test it, and get instant feedback.
+                  Write real Luau code in our browser editor. Run it, test it, and get instant feedback for your Roblox scripts.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -86,7 +86,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <Card>
               <CardHeader>
-                <CardTitle>Core Luau & Roblox Basics</CardTitle>
+                <CardTitle>Roblox Scripting Fundamentals</CardTitle>
                 <CardDescription className="flex items-center gap-2">
                   <span className="text-green-600 font-semibold">FREE</span>
                 </CardDescription>
@@ -94,7 +94,7 @@ export default function HomePage() {
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
-                  <span>Variables, functions, tables & loops</span>
+                  <span>Luau variables, functions, tables & loops for Roblox</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
@@ -102,11 +102,11 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
-                  <span>Events: Touched, MouseButton1Click</span>
+                  <span>Roblox Events: Touched, MouseButton1Click</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5" />
-                  <span>Client vs Server & RemoteEvents</span>
+                  <span>Roblox Client vs Server Scripts & RemoteEvents</span>
                 </div>
               </CardContent>
             </Card>
@@ -120,11 +120,11 @@ export default function HomePage() {
               <CardContent className="space-y-2 text-sm">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
-                  <span>Gameplay Scripting (Parts, CFrame, Collectibles)</span>
+                  <span>Advanced Roblox Gameplay (Parts, CFrame, Collectibles)</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
-                  <span>UI Scripting (ScreenGuis, TweenService)</span>
+                  <span>Roblox UI Scripting (ScreenGuis, TweenService)</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
@@ -132,7 +132,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary mt-0.5" />
-                  <span>Build: Coin Collector, Leaderboard, Menu System</span>
+                  <span>Build: Roblox Coin Collector, Leaderboard, Menu System</span>
                 </div>
               </CardContent>
             </Card>

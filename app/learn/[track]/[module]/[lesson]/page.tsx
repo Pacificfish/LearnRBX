@@ -160,9 +160,9 @@ export default function LessonPage() {
         <div className="w-[40%] border-r overflow-auto">
           <div className="p-6 space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Variables & Printing</h1>
+              <h1 className="text-3xl font-bold mb-2">Variables & Roblox Output</h1>
               <p className="text-muted-foreground">
-                Learn how to create variables and output text in Lua
+                Learn how to create variables and use Roblox Studio's Output window for debugging
               </p>
             </div>
 
@@ -174,11 +174,11 @@ export default function LessonPage() {
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">1</span>
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900">Introduction to Variables</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Variables in Roblox Scripts</h2>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    In Lua, you create variables using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-blue-600">local</code> keyword. Variables store
-                    data that you can use later in your scripts.
+                    In Roblox scripting with Luau, you create variables using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-blue-600">local</code> keyword. 
+                    Variables store data like player names, scores, and game states that you can use throughout your Roblox game.
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
                     <code className="text-green-400 font-mono text-sm">local playerName = &quot;Alex&quot;</code>
@@ -193,14 +193,14 @@ export default function LessonPage() {
                     <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">2</span>
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900">Printing Output</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Roblox Studio Output Window</h2>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in the output console.
-                    This is helpful for debugging and seeing what your code is doing.
+                    Use the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-green-600">print()</code> function to display information in Roblox Studio's Output window.
+                    This is essential for debugging your Roblox scripts and understanding what your code is doing.
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">print(&quot;Hello, world!&quot;)</code>
+                    <code className="text-green-400 font-mono text-sm">print(&quot;Player joined the game!&quot;)</code>
                   </div>
                 </CardContent>
               </Card>
@@ -212,13 +212,13 @@ export default function LessonPage() {
                     <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">3</span>
                     </div>
-                    <h2 className="text-xl font-semibold text-gray-900">String Concatenation</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">String Concatenation for Game Messages</h2>
                   </div>
                   <p className="text-gray-700 mb-4 leading-relaxed">
-                    Combine strings using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-purple-600">..</code> operator:
+                    Combine strings using the <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-purple-600">..</code> operator to create dynamic messages for your Roblox game:
                   </p>
                   <div className="bg-gray-900 rounded-lg p-4 border">
-                    <code className="text-green-400 font-mono text-sm">print(&quot;Welcome, &quot; .. playerName)</code>
+                    <code className="text-green-400 font-mono text-sm">print(&quot;Welcome to the game, &quot; .. playerName .. &quot;!&quot;)</code>
                   </div>
                 </CardContent>
               </Card>
