@@ -165,7 +165,7 @@ export default function LessonPage() {
 
                 <div className="space-y-6">
                   {lessonContent.sections.map((section: any, index: number) => {
-                    const colorClasses = {
+                    const colorClasses: Record<string, string> = {
                       blue: 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white',
                       green: 'border-l-green-500 bg-gradient-to-r from-green-50 to-white',
                       purple: 'border-l-purple-500 bg-gradient-to-r from-purple-50 to-white',
@@ -173,7 +173,7 @@ export default function LessonPage() {
                       red: 'border-l-red-500 bg-gradient-to-r from-red-50 to-white',
                     };
                     
-                    const bgColors = {
+                    const bgColors: Record<string, string> = {
                       blue: 'bg-blue-500',
                       green: 'bg-green-500',
                       purple: 'bg-purple-500',
@@ -181,11 +181,15 @@ export default function LessonPage() {
                       red: 'bg-red-500',
                     };
 
+                    const sectionColor = section.color || 'blue';
+                    const colorClass = colorClasses[sectionColor] || colorClasses.blue;
+                    const bgColor = bgColors[sectionColor] || bgColors.blue;
+
                     return (
-                      <Card key={index} className={`border-l-4 ${colorClasses[section.color]}`}>
+                      <Card key={index} className={`border-l-4 ${colorClass}`}>
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className={`w-8 h-8 ${bgColors[section.color]} rounded-full flex items-center justify-center`}>
+                            <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
                               <span className="text-white font-bold text-sm">{index + 1}</span>
                             </div>
                             <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
