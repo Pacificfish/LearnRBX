@@ -23,8 +23,10 @@ DECLARE
   module_roblox_id uuid;
   module_advanced_id uuid;
   module_parts_id uuid;
+  module_advanced_mechanics_id uuid;
   module_ui_basics_id uuid;
   module_networking_id uuid;
+  module_data_security_id uuid;
 BEGIN
   -- Get track IDs
   SELECT id INTO track_core_id FROM public.tracks WHERE slug = 'core-luau';
@@ -88,13 +90,16 @@ BEGIN
     title = EXCLUDED.title;
 
   SELECT id INTO module_parts_id FROM public.modules WHERE track_id = track_gameplay_id AND title = 'Roblox Part Manipulation';
+  SELECT id INTO module_advanced_mechanics_id FROM public.modules WHERE track_id = track_gameplay_id AND title = 'Advanced Game Mechanics';
 
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
     (module_parts_id, 'cframe-basics', 'Roblox CFrame Positioning', '/content/lessons/cframe-basics.mdx', '/content/challenges/cframe-basics.json', 1),
     (module_parts_id, 'color-and-material', 'Roblox Part Colors & Materials', '/content/lessons/color-and-material.mdx', '/content/challenges/color-and-material.json', 2),
     (module_parts_id, 'advanced-cframes', 'Advanced CFrame Techniques', '/content/lessons/advanced-cframes.mdx', '/content/challenges/advanced-cframes.json', 3),
     (module_parts_id, 'physics-and-constraints', 'Physics & Constraints', '/content/lessons/physics-and-constraints.mdx', '/content/challenges/physics-and-constraints.json', 4),
-    (module_parts_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 5)
+    (module_parts_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 5),
+    (module_advanced_mechanics_id, 'advanced-tweening-systems', 'Advanced Tweening Systems', '/content/lessons/advanced-tweening-systems.mdx', '/content/challenges/advanced-tweening-systems.json', 1),
+    (module_advanced_mechanics_id, 'physics-simulation-advanced', 'Advanced Physics Simulation', '/content/lessons/physics-simulation-advanced.mdx', '/content/challenges/physics-simulation-advanced.json', 2)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,
@@ -128,12 +133,15 @@ BEGIN
     title = EXCLUDED.title;
 
   SELECT id INTO module_networking_id FROM public.modules WHERE track_id = track_networking_id AND title = 'Client-Server Communication';
+  SELECT id INTO module_data_security_id FROM public.modules WHERE track_id = track_networking_id AND title = 'Data Management & Security';
 
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
     (module_networking_id, 'client-server-remotes', 'Client vs Server Scripts & RemoteEvents', '/content/lessons/client-server-remotes.mdx', '/content/challenges/client-server-remotes.json', 1),
     (module_networking_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 2),
     (module_networking_id, 'advanced-datastores-persistence', 'Advanced DataStores & Persistence', '/content/lessons/advanced-datastores-persistence.mdx', '/content/challenges/advanced-datastores-persistence.json', 3),
-    (module_networking_id, 'networking-architecture-patterns', 'Networking Architecture & Patterns', '/content/lessons/networking-architecture-patterns.mdx', '/content/challenges/networking-architecture-patterns.json', 4)
+    (module_networking_id, 'networking-architecture-patterns', 'Networking Architecture & Patterns', '/content/lessons/networking-architecture-patterns.mdx', '/content/challenges/networking-architecture-patterns.json', 4),
+    (module_data_security_id, 'data-encryption-security', 'Data Encryption & Security', '/content/lessons/data-encryption-security.mdx', '/content/challenges/data-encryption-security.json', 1),
+    (module_data_security_id, 'performance-optimization-advanced', 'Advanced Performance Optimization', '/content/lessons/performance-optimization-advanced.mdx', '/content/challenges/performance-optimization-advanced.json', 2)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

@@ -2349,6 +2349,1031 @@ print("\\nNetworking architecture demo complete!")`,
       hints: ['Always validate client requests on the server', 'Implement rate limiting to prevent spam', 'Use RemoteEvents for one-way communication', 'Use RemoteFunctions for request-response patterns'],
       successMessage: 'Excellent! You understand advanced networking architecture in Roblox.'
     }
+  },
+
+  // === ADVANCED GAME MECHANICS LESSONS ===
+  'advanced-tweening-systems': {
+    title: 'Advanced Tweening Systems',
+    description: 'Master complex animation systems, tween chaining, and advanced TweenService techniques',
+    sections: [
+      {
+        title: 'Tween Chaining and Sequences',
+        content: 'Create complex animation sequences by chaining multiple tweens together. Use TweenInfo.Completed events to trigger subsequent animations, creating smooth, professional transitions.',
+        codeExample: `local tween1 = TweenService:Create(part, tweenInfo, {Position = Vector3.new(10, 0, 0)})
+tween1.Completed:Connect(function()
+    local tween2 = TweenService:Create(part, tweenInfo, {Size = Vector3.new(5, 5, 5)})
+    tween2:Play()
+end)
+tween1:Play()`,
+        color: 'blue'
+      },
+      {
+        title: 'Custom Easing Functions',
+        content: 'Create custom easing curves using TweenInfo with different EasingStyle and EasingDirection combinations. Master bounce, elastic, and back easing for dynamic animations.',
+        codeExample: `local bounceInfo = TweenInfo.new(1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+local elasticInfo = TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut)`,
+        color: 'green'
+      },
+      {
+        title: 'Animation State Management',
+        content: 'Implement proper animation state management to prevent conflicts, handle interruptions, and create smooth transitions between different animation states.',
+        codeExample: `local animationStates = {
+    idle = true,
+    walking = false,
+    jumping = false
+}
+
+local function setAnimationState(newState)
+    -- Stop all current animations
+    for state, _ in pairs(animationStates) do
+        animationStates[state] = false
+    end
+    animationStates[newState] = true
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Tweening Systems
+-- Complex animation sequences and state management
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- Create animated parts
+local part1 = Instance.new("Part")
+part1.Name = "AnimatedPart1"
+part1.Size = Vector3.new(2, 2, 2)
+part1.Position = Vector3.new(0, 5, 0)
+part1.Color = Color3.fromRGB(255, 100, 100)
+part1.Parent = workspace
+
+local part2 = Instance.new("Part")
+part2.Name = "AnimatedPart2"
+part2.Size = Vector3.new(2, 2, 2)
+part2.Position = Vector3.new(0, 5, 5)
+part2.Color = Color3.fromRGB(100, 255, 100)
+part2.Parent = workspace
+
+print("=== ADVANCED TWEENING DEMO ===")
+
+-- 1. Tween Chaining System
+local function createChainedAnimation(part, startPos, endPos)
+    local tweenInfo1 = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tweenInfo2 = TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)
+    
+    -- First tween: move to position
+    local moveTween = TweenService:Create(part, tweenInfo1, {
+        Position = endPos
+    })
+    
+    -- Second tween: scale up (chained)
+    moveTween.Completed:Connect(function()
+        local scaleTween = TweenService:Create(part, tweenInfo2, {
+            Size = Vector3.new(4, 4, 4)
+        })
+        scaleTween:Play()
+        
+        -- Third tween: scale back down
+        scaleTween.Completed:Connect(function()
+            local scaleBackTween = TweenService:Create(part, tweenInfo2, {
+                Size = Vector3.new(2, 2, 2)
+            })
+            scaleBackTween:Play()
+        end)
+    end)
+    
+    moveTween:Play()
+end
+
+-- 2. Custom Easing Functions
+local function createCustomEasing(part, targetPos)
+    local easingStyles = {
+        Enum.EasingStyle.Linear,
+        Enum.EasingStyle.Quad,
+        Enum.EasingStyle.Cubic,
+        Enum.EasingStyle.Quart,
+        Enum.EasingStyle.Quint,
+        Enum.EasingStyle.Bounce,
+        Enum.EasingStyle.Elastic,
+        Enum.EasingStyle.Back
+    }
+    
+    local randomStyle = easingStyles[math.random(1, #easingStyles)]
+    local tweenInfo = TweenInfo.new(2, randomStyle, Enum.EasingDirection.InOut)
+    
+    local tween = TweenService:Create(part, tweenInfo, {
+        Position = targetPos,
+        Color = Color3.fromRGB(math.random(255), math.random(255), math.random(255))
+    })
+    
+    tween:Play()
+    return tween
+end
+
+-- 3. Animation State Management
+local animationStates = {
+    idle = true,
+    moving = false,
+    scaling = false,
+    rotating = false
+}
+
+local activeTweens = {}
+
+local function setAnimationState(newState)
+    -- Stop all current animations
+    for _, tween in pairs(activeTweens) do
+        tween:Cancel()
+    end
+    activeTweens = {}
+    
+    -- Reset state
+    for state, _ in pairs(animationStates) do
+        animationStates[state] = false
+    end
+    animationStates[newState] = true
+    
+    print("Animation state changed to:", newState)
+end
+
+-- 4. Complex Animation Sequence
+local function runComplexSequence(part)
+    setAnimationState("moving")
+    
+    -- Phase 1: Move to random position
+    local targetPos = Vector3.new(
+        math.random(-20, 20),
+        math.random(5, 15),
+        math.random(-20, 20)
+    )
+    
+    local moveTween = TweenService:Create(part, 
+        TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), 
+        {Position = targetPos}
+    )
+    
+    moveTween.Completed:Connect(function()
+        setAnimationState("scaling")
+        
+        -- Phase 2: Scale animation
+        local scaleUp = TweenService:Create(part,
+            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+            {Size = Vector3.new(5, 5, 5)}
+        )
+        
+        scaleUp.Completed:Connect(function()
+            local scaleDown = TweenService:Create(part,
+                TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
+                {Size = Vector3.new(2, 2, 2)}
+            )
+            
+            scaleDown.Completed:Connect(function()
+                setAnimationState("rotating")
+                
+                -- Phase 3: Rotation
+                local rotateTween = TweenService:Create(part,
+                    TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.InOut),
+                    {CFrame = part.CFrame * CFrame.Angles(0, math.rad(360), 0)}
+                )
+                
+                rotateTween.Completed:Connect(function()
+                    setAnimationState("idle")
+                    print("Complex animation sequence completed!")
+                end)
+                
+                activeTweens.rotate = rotateTween
+                rotateTween:Play()
+            end)
+            
+            activeTweens.scaleDown = scaleDown
+            scaleDown:Play()
+        end)
+        
+        activeTweens.scaleUp = scaleUp
+        scaleUp:Play()
+    end)
+    
+    activeTweens.move = moveTween
+    moveTween:Play()
+end
+
+-- 5. Demo the animations
+print("\\nStarting chained animation for part1...")
+createChainedAnimation(part1, part1.Position, Vector3.new(10, 5, 0))
+
+wait(1)
+
+print("\\nStarting custom easing for part2...")
+createCustomEasing(part2, Vector3.new(-10, 5, 5))
+
+wait(2)
+
+print("\\nStarting complex sequence for part1...")
+runComplexSequence(part1)
+
+print("\\nAdvanced tweening demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Create a tween with custom easing style', type: 'code_contains', value: 'EasingStyle' },
+        { description: 'Use TweenInfo.Completed to chain animations', type: 'code_contains', value: 'Completed' }
+      ],
+      hints: ['Use TweenInfo.Completed:Connect() to chain tweens', 'Experiment with different EasingStyle values', 'Manage animation states to prevent conflicts'],
+      successMessage: 'Outstanding! You can now create complex, professional animation systems.'
+    }
+  },
+
+  'physics-simulation-advanced': {
+    title: 'Advanced Physics Simulation',
+    description: 'Master Roblox physics, constraints, and realistic game mechanics',
+    sections: [
+      {
+        title: 'Physics Properties and Materials',
+        content: 'Control object physics using Material, Density, Friction, and Elasticity properties. Different materials behave differently in Roblox physics simulation.',
+        codeExample: `part.Material = Enum.Material.Wood
+part.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5, 1, 1)  -- Density, Friction, Elasticity, FrictionWeight, ElasticityWeight`,
+        color: 'blue'
+      },
+      {
+        title: 'Advanced Constraints',
+        content: 'Use HingeConstraints, BallSocketConstraints, and other constraint types to create realistic mechanical systems, joints, and connected objects.',
+        codeExample: `local hinge = Instance.new("HingeConstraint")
+hinge.Attachment0 = part1.HingeAttachment
+hinge.Attachment1 = part2.HingeAttachment
+hinge.Parent = part1`,
+        color: 'green'
+      },
+      {
+        title: 'Force and Impulse Systems',
+        content: 'Apply forces using BodyVelocity, BodyAngularVelocity, and other body movers to create realistic physics interactions and dynamic systems.',
+        codeExample: `local bodyVelocity = Instance.new("BodyVelocity")
+bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+bodyVelocity.Parent = part`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Physics Simulation
+-- Realistic physics systems and constraints
+
+local TweenService = game:GetService("TweenService")
+
+print("=== ADVANCED PHYSICS DEMO ===")
+
+-- 1. Create physics demonstration parts
+local function createPhysicsPart(name, position, material, size)
+    local part = Instance.new("Part")
+    part.Name = name
+    part.Size = size or Vector3.new(2, 2, 2)
+    part.Position = position
+    part.Material = material
+    part.Parent = workspace
+    
+    -- Add custom physical properties
+    if material == Enum.Material.Wood then
+        part.CustomPhysicalProperties = PhysicalProperties.new(0.7, 0.3, 0.5, 1, 1)
+    elseif material == Enum.Material.Metal then
+        part.CustomPhysicalProperties = PhysicalProperties.new(7.8, 0.2, 0.1, 1, 1)
+    elseif material == Enum.Material.Rubber then
+        part.CustomPhysicalProperties = PhysicalProperties.new(0.9, 0.8, 0.9, 1, 1)
+    end
+    
+    return part
+end
+
+-- Create different material parts
+local woodPart = createPhysicsPart("WoodPart", Vector3.new(0, 10, 0), Enum.Material.Wood)
+local metalPart = createPhysicsPart("MetalPart", Vector3.new(3, 10, 0), Enum.Material.Metal)
+local rubberPart = createPhysicsPart("RubberPart", Vector3.new(-3, 10, 0), Enum.Material.Rubber)
+
+-- 2. Advanced Constraint System
+local function createHingeConstraint(part1, part2, position)
+    -- Create attachments
+    local attachment1 = Instance.new("HingeAttachment")
+    attachment1.Parent = part1
+    attachment1.CFrame = CFrame.new(position)
+    
+    local attachment2 = Instance.new("HingeAttachment")
+    attachment2.Parent = part2
+    attachment2.CFrame = CFrame.new(position)
+    
+    -- Create constraint
+    local hinge = Instance.new("HingeConstraint")
+    hinge.Attachment0 = attachment1
+    hinge.Attachment1 = attachment2
+    hinge.LimitsEnabled = true
+    hinge.LowerAngle = -45
+    hinge.UpperAngle = 45
+    hinge.Parent = part1
+    
+    return hinge
+end
+
+-- Create connected parts
+local basePart = createPhysicsPart("BasePart", Vector3.new(0, 5, 0), Enum.Material.Metal, Vector3.new(4, 1, 4))
+local swingPart = createPhysicsPart("SwingPart", Vector3.new(0, 8, 0), Enum.Material.Wood, Vector3.new(1, 4, 1))
+
+-- Create hinge constraint between them
+local hinge = createHingeConstraint(basePart, swingPart, Vector3.new(0, 6, 0))
+
+-- 3. Force and Impulse System
+local function applyImpulse(part, force)
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyVelocity.Velocity = force
+    bodyVelocity.Parent = part
+    
+    -- Remove after 0.1 seconds
+    game:GetService("Debris"):AddItem(bodyVelocity, 0.1)
+end
+
+local function applyAngularImpulse(part, torque)
+    local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+    bodyAngularVelocity.MaxTorque = Vector3.new(4000, 4000, 4000)
+    bodyAngularVelocity.AngularVelocity = torque
+    bodyAngularVelocity.Parent = part
+    
+    -- Remove after 0.1 seconds
+    game:GetService("Debris"):AddItem(bodyAngularVelocity, 0.1)
+end
+
+-- 4. Physics Interaction Demo
+local function createPhysicsDemo()
+    -- Create a ball that will interact with our parts
+    local ball = createPhysicsPart("PhysicsBall", Vector3.new(0, 15, 0), Enum.Material.Rubber, Vector3.new(1, 1, 1))
+    ball.Shape = Enum.PartType.Ball
+    
+    -- Apply initial impulse to the ball
+    applyImpulse(ball, Vector3.new(0, -20, 0))
+    
+    -- Add some spin
+    applyAngularImpulse(ball, Vector3.new(0, 0, 10))
+    
+    return ball
+end
+
+-- 5. Advanced Physics Properties Demo
+local function createMaterialComparison()
+    local materials = {
+        {Enum.Material.Wood, "Wood", Vector3.new(0, 12, 0)},
+        {Enum.Material.Metal, "Metal", Vector3.new(3, 12, 0)},
+        {Enum.Material.Rubber, "Rubber", Vector3.new(-3, 12, 0)},
+        {Enum.Material.Plastic, "Plastic", Vector3.new(6, 12, 0)},
+        {Enum.Material.Glass, "Glass", Vector3.new(-6, 12, 0)}
+    }
+    
+    for _, materialData in ipairs(materials) do
+        local material, name, position = materialData[1], materialData[2], materialData[3]
+        local part = createPhysicsPart(name .. "Demo", position, material, Vector3.new(1, 1, 1))
+        
+        -- Apply different forces based on material
+        if material == Enum.Material.Rubber then
+            applyImpulse(part, Vector3.new(0, -15, 0))
+        elseif material == Enum.Material.Metal then
+            applyImpulse(part, Vector3.new(0, -25, 0))
+        else
+            applyImpulse(part, Vector3.new(0, -20, 0))
+        end
+    end
+end
+
+-- 6. Run the physics demos
+print("\\nCreating physics ball demo...")
+createPhysicsDemo()
+
+wait(1)
+
+print("\\nCreating material comparison demo...")
+createMaterialComparison()
+
+-- 7. Interactive physics system
+local function createInteractivePhysics()
+    local interactivePart = createPhysicsPart("InteractivePart", Vector3.new(0, 20, 0), Enum.Material.Metal, Vector3.new(3, 3, 3))
+    
+    -- Make it respond to touches
+    interactivePart.Touched:Connect(function(hit)
+        local humanoid = hit.Parent:FindFirstChild("Humanoid")
+        if humanoid then
+            -- Apply force away from the player
+            local direction = (interactivePart.Position - hit.Position).Unit
+            applyImpulse(interactivePart, direction * 30)
+            applyAngularImpulse(interactivePart, Vector3.new(
+                math.random(-10, 10),
+                math.random(-10, 10),
+                math.random(-10, 10)
+            ))
+        end
+    end)
+    
+    return interactivePart
+end
+
+print("\\nCreating interactive physics system...")
+createInteractivePhysics()
+
+print("\\nAdvanced physics simulation demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Set custom physical properties for a part', type: 'code_contains', value: 'CustomPhysicalProperties' },
+        { description: 'Create a constraint between two parts', type: 'code_contains', value: 'Constraint' }
+      ],
+      hints: ['Use PhysicalProperties.new() to set custom physics', 'Create attachments before creating constraints', 'Use BodyVelocity for applying forces'],
+      successMessage: 'Excellent! You understand advanced physics simulation in Roblox.'
+    }
+  },
+
+  // === DATA MANAGEMENT & SECURITY LESSONS ===
+  'data-encryption-security': {
+    title: 'Data Encryption & Security',
+    description: 'Implement secure data handling, encryption, and anti-cheat measures for Roblox games',
+    sections: [
+      {
+        title: 'Data Validation and Sanitization',
+        content: 'Always validate and sanitize data from clients before processing. Never trust client-side data - implement server-side validation for all user inputs and game actions.',
+        codeExample: `local function validatePlayerData(data)
+    if type(data) ~= "table" then return false end
+    
+    -- Validate each field
+    if not tonumber(data.level) or data.level < 1 or data.level > 100 then
+        return false
+    end
+    
+    if not tonumber(data.coins) or data.coins < 0 then
+        return false
+    end
+    
+    return true
+end`,
+        color: 'blue'
+      },
+      {
+        title: 'Anti-Cheat Measures',
+        content: 'Implement server-side validation, rate limiting, and consistency checks to prevent cheating. Monitor for impossible actions and suspicious patterns.',
+        codeExample: `local function validatePlayerAction(player, action, data)
+    -- Rate limiting
+    if not checkRateLimit(player) then
+        return false, "Rate limit exceeded"
+    end
+    
+    -- Validate action is possible
+    if action == "spendCoins" then
+        local playerData = getPlayerData(player)
+        if data.amount > playerData.coins then
+            return false, "Insufficient coins"
+        end
+    end
+    
+    return true
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Data Integrity and Backup',
+        content: 'Implement data versioning, backup systems, and integrity checks. Use checksums and validation to ensure data hasn\'t been tampered with.',
+        codeExample: `local function createDataChecksum(data)
+    local dataString = game:GetService("HttpService"):JSONEncode(data)
+    return game:GetService("HashService"):GenerateGUID(false)
+end
+
+local function validateDataIntegrity(data, checksum)
+    local currentChecksum = createDataChecksum(data)
+    return currentChecksum == checksum
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Data Encryption & Security
+-- Comprehensive security measures for Roblox games
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+print("=== DATA SECURITY DEMO ===")
+
+-- 1. Data Validation System
+local function validatePlayerData(data)
+    if type(data) ~= "table" then 
+        print("Invalid data type")
+        return false 
+    end
+    
+    -- Validate level
+    local level = tonumber(data.level)
+    if not level or level < 1 or level > 100 then
+        print("Invalid level:", data.level)
+        return false
+    end
+    
+    -- Validate coins
+    local coins = tonumber(data.coins)
+    if not coins or coins < 0 or coins > 999999 then
+        print("Invalid coins:", data.coins)
+        return false
+    end
+    
+    -- Validate experience
+    local experience = tonumber(data.experience)
+    if not experience or experience < 0 then
+        print("Invalid experience:", data.experience)
+        return false
+    end
+    
+    print("Data validation passed")
+    return true
+end
+
+-- 2. Anti-Cheat Rate Limiting
+local playerRequestCounts = {}
+local RATE_LIMIT = 10  -- Max 10 requests per second
+local RATE_WINDOW = 1   -- 1 second window
+
+local function checkRateLimit(player)
+    local playerId = player.UserId
+    local currentTime = tick()
+    
+    if not playerRequestCounts[playerId] then
+        playerRequestCounts[playerId] = {count = 0, resetTime = currentTime + RATE_WINDOW}
+    end
+    
+    local data = playerRequestCounts[playerId]
+    if currentTime > data.resetTime then
+        data.count = 0
+        data.resetTime = currentTime + RATE_WINDOW
+    end
+    
+    data.count = data.count + 1
+    return data.count <= RATE_LIMIT
+end
+
+-- 3. Action Validation System
+local function validatePlayerAction(player, action, data)
+    print("\\nValidating action:", action, "from player:", player.Name)
+    
+    -- Rate limiting check
+    if not checkRateLimit(player) then
+        print("Rate limit exceeded for", player.Name)
+        return false, "Rate limit exceeded"
+    end
+    
+    -- Simulate player data
+    local playerData = {
+        level = 10,
+        coins = 500,
+        experience = 1200
+    }
+    
+    -- Validate specific actions
+    if action == "spendCoins" then
+        local amount = tonumber(data.amount)
+        if not amount or amount <= 0 then
+            print("Invalid coin amount:", data.amount)
+            return false, "Invalid amount"
+        end
+        
+        if amount > playerData.coins then
+            print("Insufficient coins. Player has:", playerData.coins, "Requested:", amount)
+            return false, "Insufficient coins"
+        end
+        
+        -- Check for suspicious amounts
+        if amount > 1000 then
+            print("Suspicious large transaction:", amount)
+            return false, "Transaction too large"
+        end
+        
+    elseif action == "levelUp" then
+        -- Check if level up is actually possible
+        if playerData.experience < (playerData.level * 100) then
+            print("Insufficient experience for level up")
+            return false, "Insufficient experience"
+        end
+        
+    elseif action == "teleport" then
+        local position = data.position
+        if not position or type(position) ~= "table" then
+            return false, "Invalid position"
+        end
+        
+        -- Check for impossible teleportation distances
+        local currentPos = Vector3.new(0, 0, 0)  -- Simulated current position
+        local targetPos = Vector3.new(position.x, position.y, position.z)
+        local distance = (currentPos - targetPos).Magnitude
+        
+        if distance > 1000 then
+            print("Suspicious teleportation distance:", distance)
+            return false, "Teleportation distance too far"
+        end
+    end
+    
+    print("Action validation passed")
+    return true
+end
+
+-- 4. Data Integrity System
+local function createDataChecksum(data)
+    -- Simple checksum simulation (in real implementation, use proper hashing)
+    local dataString = tostring(data.level) .. tostring(data.coins) .. tostring(data.experience)
+    local checksum = 0
+    
+    for i = 1, #dataString do
+        checksum = checksum + string.byte(dataString, i)
+    end
+    
+    return checksum
+end
+
+local function validateDataIntegrity(data, expectedChecksum)
+    local currentChecksum = createDataChecksum(data)
+    local isValid = currentChecksum == expectedChecksum
+    
+    if not isValid then
+        print("Data integrity check failed!")
+        print("Expected checksum:", expectedChecksum)
+        print("Current checksum:", currentChecksum)
+    else
+        print("Data integrity check passed")
+    end
+    
+    return isValid
+end
+
+-- 5. Secure Data Storage Simulation
+local function secureSavePlayerData(player, data)
+    print("\\nSecurely saving data for player:", player.Name)
+    
+    -- Validate data
+    if not validatePlayerData(data) then
+        return false, "Data validation failed"
+    end
+    
+    -- Create checksum
+    local checksum = createDataChecksum(data)
+    
+    -- Add security metadata
+    local secureData = {
+        version = 1,
+        playerId = player.UserId,
+        timestamp = os.time(),
+        data = data,
+        checksum = checksum
+    }
+    
+    print("Data saved securely with checksum:", checksum)
+    return true, secureData
+end
+
+local function secureLoadPlayerData(player, secureData)
+    print("\\nSecurely loading data for player:", player.Name)
+    
+    -- Validate data structure
+    if not secureData or not secureData.data or not secureData.checksum then
+        print("Invalid secure data structure")
+        return false, nil
+    end
+    
+    -- Check data integrity
+    if not validateDataIntegrity(secureData.data, secureData.checksum) then
+        print("Data integrity check failed")
+        return false, nil
+    end
+    
+    -- Validate player ID matches
+    if secureData.playerId ~= player.UserId then
+        print("Player ID mismatch")
+        return false, nil
+    end
+    
+    print("Data loaded securely")
+    return true, secureData.data
+end
+
+-- 6. Demo the security systems
+local mockPlayer = {Name = "TestPlayer", UserId = 12345}
+
+-- Test data validation
+print("\\n=== Testing Data Validation ===")
+local validData = {level = 10, coins = 500, experience = 1200}
+local invalidData = {level = 150, coins = -100, experience = "invalid"}
+
+validatePlayerData(validData)
+validatePlayerData(invalidData)
+
+-- Test action validation
+print("\\n=== Testing Action Validation ===")
+validatePlayerAction(mockPlayer, "spendCoins", {amount = 100})
+validatePlayerAction(mockPlayer, "spendCoins", {amount = 1000})  -- Should fail
+validatePlayerAction(mockPlayer, "teleport", {position = {x = 100, y = 0, z = 100}})
+
+-- Test secure data operations
+print("\\n=== Testing Secure Data Operations ===")
+local success, secureData = secureSavePlayerData(mockPlayer, validData)
+if success then
+    local loadSuccess, loadedData = secureLoadPlayerData(mockPlayer, secureData)
+    if loadSuccess then
+        print("Secure data operations successful!")
+    end
+end
+
+-- Test data tampering detection
+print("\\n=== Testing Data Tampering Detection ===")
+if secureData then
+    -- Tamper with the data
+    secureData.data.coins = 999999
+    local tamperSuccess, _ = secureLoadPlayerData(mockPlayer, secureData)
+    if not tamperSuccess then
+        print("Data tampering successfully detected!")
+    end
+end
+
+print("\\nData security demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement data validation for user input', type: 'code_contains', value: 'validatePlayerData' },
+        { description: 'Use rate limiting to prevent spam', type: 'code_contains', value: 'checkRateLimit' }
+      ],
+      hints: ['Always validate data from clients on the server', 'Implement rate limiting to prevent abuse', 'Use checksums to detect data tampering', 'Never trust client-side data'],
+      successMessage: 'Excellent! You understand data security and anti-cheat measures.'
+    }
+  },
+
+  'performance-optimization-advanced': {
+    title: 'Advanced Performance Optimization',
+    description: 'Master performance optimization techniques, profiling, and efficient game development',
+    sections: [
+      {
+        title: 'Code Profiling and Bottleneck Detection',
+        content: 'Use Roblox\'s built-in profiling tools to identify performance bottlenecks. Monitor memory usage, frame rate, and script execution time to optimize your code.',
+        codeExample: `local Stats = game:GetService("Stats")
+local memoryUsage = Stats:GetTotalMemoryUsageMb()
+local frameRate = 1 / game:GetService("RunService").Heartbeat:Wait()`,
+        color: 'blue'
+      },
+      {
+        title: 'Efficient Data Structures',
+        content: 'Choose the right data structures for your use case. Use arrays for indexed data, dictionaries for key-value pairs, and avoid nested loops when possible.',
+        codeExample: `-- Efficient: Use dictionary for O(1) lookups
+local playerData = {}
+playerData[player.UserId] = {level = 10, coins = 500}
+
+-- Inefficient: Linear search through array
+for _, data in ipairs(playerArray) do
+    if data.playerId == targetId then
+        -- Found player
+    end
+end`,
+        color: 'green'
+      },
+      {
+        title: 'Memory Management and Garbage Collection',
+        content: 'Implement proper memory management to prevent memory leaks. Use object pooling, disconnect events, and avoid creating objects in loops.',
+        codeExample: `-- Object pooling for frequently created objects
+local partPool = {}
+local function getPart()
+    return table.remove(partPool) or Instance.new("Part")
+end
+
+local function returnPart(part)
+    part.Parent = nil
+    table.insert(partPool, part)
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Performance Optimization
+-- Comprehensive performance monitoring and optimization
+
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+local Debris = game:GetService("Debris")
+
+print("=== PERFORMANCE OPTIMIZATION DEMO ===")
+
+-- 1. Performance Monitoring System
+local function getPerformanceStats()
+    local memoryUsage = Stats:GetTotalMemoryUsageMb()
+    local frameRate = 1 / RunService.Heartbeat:Wait()
+    
+    return {
+        memory = memoryUsage,
+        frameRate = frameRate,
+        timestamp = tick()
+    }
+end
+
+local function logPerformanceStats()
+    local stats = getPerformanceStats()
+    print(string.format("Memory: %.2f MB | FPS: %.1f", stats.memory, stats.frameRate))
+    return stats
+end
+
+-- 2. Object Pooling System
+local partPool = {}
+local activeParts = {}
+
+local function createOptimizedPart()
+    local part = table.remove(partPool)
+    if not part then
+        part = Instance.new("Part")
+        part.Size = Vector3.new(2, 2, 2)
+    end
+    
+    part.Parent = workspace
+    table.insert(activeParts, part)
+    return part
+end
+
+local function destroyOptimizedPart(part)
+    part.Parent = nil
+    table.insert(partPool, part)
+    
+    for i, activePart in ipairs(activeParts) do
+        if activePart == part then
+            table.remove(activeParts, i)
+            break
+        end
+    end
+end
+
+-- 3. Efficient Data Structure Examples
+local function demonstrateDataStructures()
+    print("\\n=== Data Structure Performance ===")
+    
+    -- Efficient: Dictionary for O(1) lookups
+    local playerData = {}
+    local startTime = tick()
+    
+    -- Populate dictionary
+    for i = 1, 1000 do
+        playerData[i] = {level = math.random(1, 100), coins = math.random(0, 1000)}
+    end
+    
+    -- Fast lookup
+    local lookupTime = tick()
+    local player = playerData[500]
+    local lookupDuration = tick() - lookupTime
+    
+    print("Dictionary lookup time:", lookupDuration * 1000, "ms")
+    
+    -- Inefficient: Array for O(n) lookups
+    local playerArray = {}
+    for i = 1, 1000 do
+        table.insert(playerArray, {id = i, level = math.random(1, 100), coins = math.random(0, 1000)})
+    end
+    
+    -- Slow lookup
+    lookupTime = tick()
+    for _, data in ipairs(playerArray) do
+        if data.id == 500 then
+            break
+        end
+    end
+    lookupDuration = tick() - lookupTime
+    
+    print("Array lookup time:", lookupDuration * 1000, "ms")
+end
+
+-- 4. Memory Management Demo
+local function demonstrateMemoryManagement()
+    print("\\n=== Memory Management ===")
+    
+    local initialMemory = Stats:GetTotalMemoryUsageMb()
+    print("Initial memory usage:", initialMemory, "MB")
+    
+    -- Bad: Creating objects in loop
+    local badParts = {}
+    for i = 1, 100 do
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(1, 1, 1)
+        part.Position = Vector3.new(i, 0, 0)
+        part.Parent = workspace
+        table.insert(badParts, part)
+    end
+    
+    local badMemory = Stats:GetTotalMemoryUsageMb()
+    print("Memory after creating 100 parts:", badMemory, "MB")
+    
+    -- Clean up bad parts
+    for _, part in ipairs(badParts) do
+        part:Destroy()
+    end
+    
+    -- Good: Using object pooling
+    for i = 1, 100 do
+        local part = createOptimizedPart()
+        part.Position = Vector3.new(i, 5, 0)
+    end
+    
+    local goodMemory = Stats:GetTotalMemoryUsageMb()
+    print("Memory after using object pooling:", goodMemory, "MB")
+    
+    -- Clean up pooled parts
+    for _, part in ipairs(activeParts) do
+        destroyOptimizedPart(part)
+    end
+    
+    local finalMemory = Stats:GetTotalMemoryUsageMb()
+    print("Final memory usage:", finalMemory, "MB")
+end
+
+-- 5. Event Management Optimization
+local connections = {}
+
+local function addOptimizedConnection(connection)
+    table.insert(connections, connection)
+end
+
+local function cleanupConnections()
+    for _, connection in ipairs(connections) do
+        connection:Disconnect()
+    end
+    connections = {}
+end
+
+-- 6. Performance Testing Framework
+local function runPerformanceTest(testName, testFunction, iterations)
+    print("\\n=== Performance Test:", testName, "===")
+    
+    local startTime = tick()
+    local startMemory = Stats:GetTotalMemoryUsageMb()
+    
+    for i = 1, iterations do
+        testFunction()
+    end
+    
+    local endTime = tick()
+    local endMemory = Stats:GetTotalMemoryUsageMb()
+    
+    local duration = endTime - startTime
+    local memoryDelta = endMemory - startMemory
+    
+    print(string.format("Duration: %.3f seconds", duration))
+    print(string.format("Memory delta: %.2f MB", memoryDelta))
+    print(string.format("Average per iteration: %.3f ms", (duration / iterations) * 1000))
+end
+
+-- 7. Run Performance Tests
+demonstrateDataStructures()
+demonstrateMemoryManagement()
+
+-- Performance test: Object creation
+runPerformanceTest("Object Creation", function()
+    local part = createOptimizedPart()
+    destroyOptimizedPart(part)
+end, 1000)
+
+-- Performance test: Math operations
+runPerformanceTest("Math Operations", function()
+    local result = 0
+    for i = 1, 1000 do
+        result = result + math.sin(i) * math.cos(i)
+    end
+end, 100)
+
+-- 8. Memory Leak Detection
+local function detectMemoryLeaks()
+    print("\\n=== Memory Leak Detection ===")
+    
+    local initialMemory = Stats:GetTotalMemoryUsageMb()
+    
+    -- Simulate potential memory leak
+    local leakyConnections = {}
+    for i = 1, 50 do
+        local connection = RunService.Heartbeat:Connect(function()
+            -- Do nothing - this is a leak
+        end)
+        table.insert(leakyConnections, connection)
+    end
+    
+    wait(1)
+    local leakyMemory = Stats:GetTotalMemoryUsageMb()
+    
+    -- Clean up connections
+    for _, connection in ipairs(leakyConnections) do
+        connection:Disconnect()
+    end
+    
+    wait(1)
+    local cleanedMemory = Stats:GetTotalMemoryUsageMb()
+    
+    print("Initial memory:", initialMemory, "MB")
+    print("After creating connections:", leakyMemory, "MB")
+    print("After cleaning up:", cleanedMemory, "MB")
+    print("Memory leak detected:", leakyMemory > initialMemory + 1)
+end
+
+detectMemoryLeaks()
+
+-- 9. Final cleanup
+cleanupConnections()
+
+print("\\nPerformance optimization demo complete!")`,
+    challenge: {
+      tests: [
+        { description: 'Use object pooling for efficient memory usage', type: 'code_contains', value: 'table.remove' },
+        { description: 'Monitor performance with Stats service', type: 'code_contains', value: 'Stats:GetTotalMemoryUsageMb' }
+      ],
+      hints: ['Use object pooling to reuse objects instead of creating new ones', 'Monitor memory usage with Stats service', 'Use dictionaries for O(1) lookups', 'Always disconnect events to prevent memory leaks'],
+      successMessage: 'Outstanding! You understand advanced performance optimization techniques.'
+    }
   }
 };
 
