@@ -17177,6 +17177,2230 @@ print("You've learned player spawning, team management, and matchmaking systems!
     }
   },
 
+  // === MODULESCRIPT & CODE ORGANIZATION ===
+  'modulescript-architecture': {
+    title: 'ModuleScript Architecture & Code Organization',
+    description: 'Master ModuleScript design patterns and code organization for scalable projects',
+    sections: [
+      {
+        title: 'ModuleScript Fundamentals',
+        content: `ModuleScripts are the foundation of organized, reusable code in Roblox. They allow you to create libraries, share code between scripts, and build maintainable projects.
+
+**Core ModuleScript Concepts:**
+- **Module Structure**: How to organize and structure your modules
+- **Return Values**: What to return and how to expose functionality
+- **Require System**: How the require() function works
+- **Module Loading**: Understanding when and how modules are loaded
+- **Module Lifecycle**: Creation, caching, and destruction
+
+**ModuleScript Best Practices:**
+- **Single Responsibility**: Each module should have one clear purpose
+- **Clear Interfaces**: Expose only what's necessary through return values
+- **Error Handling**: Proper error handling and validation
+- **Documentation**: Clear comments and documentation
+- **Performance**: Efficient module design and caching`,
+        codeExample: `-- Advanced ModuleScript architecture example
+
+--[[
+    PlayerDataManager Module
+    Manages player data with caching, validation, and persistence
+]]
+
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local RunService = game:GetService("RunService")
+
+local PlayerDataManager = {}
+PlayerDataManager.__index = PlayerDataManager
+
+-- Module configuration
+local CONFIG = {
+    DATASTORE_NAME = "PlayerData_v1",
+    CACHE_DURATION = 300, -- 5 minutes
+    AUTO_SAVE_INTERVAL = 60, -- 1 minute
+    MAX_RETRIES = 3,
+    RETRY_DELAY = 1
+}
+
+-- Data templates
+local DEFAULT_DATA = {
+    level = 1,
+    experience = 0,
+    coins = 100,
+    inventory = {},
+    settings = {
+        musicVolume = 0.5,
+        sfxVolume = 0.7,
+        graphics = "Medium"
+    },
+    statistics = {
+        playTime = 0,
+        gamesPlayed = 0,
+        highScore = 0
+    }
+}
+
+-- Private variables
+local playerDataCache = {}
+local dataStore = DataStoreService:GetDataStore(CONFIG.DATASTORE_NAME)
+local autoSaveConnections = {}
+
+-- Private helper functions
+local function validateData(data)
+    if not data or type(data) ~= "table" then
+        return false, "Invalid data type"
+    end
+    
+    -- Validate required fields
+    for key, defaultValue in pairs(DEFAULT_DATA) do
+        if data[key] == nil then
+            data[key] = defaultValue
+        end
+    end
+    
+    return true, "Data validated"
+end
+
+local function deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+local function logError(player, operation, error)
+    warn(string.format("[PlayerDataManager] Error for %s during %s: %s", 
+        player.Name, operation, tostring(error)))
+end
+
+-- Public interface
+function PlayerDataManager.new()
+    local self = setmetatable({}, PlayerDataManager)
+    
+    -- Initialize module
+    self:setupEvents()
+    
+    return self
+end
+
+function PlayerDataManager:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function PlayerDataManager:initializePlayer(player)
+    -- Load player data
+    local success, data = self:loadPlayerData(player)
+    
+    if success then
+        playerDataCache[player.UserId] = {
+            data = data,
+            lastAccessed = tick(),
+            isDirty = false
+        }
+        
+        -- Start auto-save
+        self:startAutoSave(player)
+        
+        print(string.format("Initialized data for %s", player.Name))
+    else
+        warn(string.format("Failed to initialize data for %s", player.Name))
+    end
+end
+
+function PlayerDataManager:cleanupPlayer(player)
+    -- Save data before cleanup
+    self:savePlayerData(player)
+    
+    -- Clean up cache
+    playerDataCache[player.UserId] = nil
+    
+    -- Stop auto-save
+    self:stopAutoSave(player)
+    
+    print(string.format("Cleaned up data for %s", player.Name))
+end
+
+function PlayerDataManager:loadPlayerData(player)
+    local retries = 0
+    
+    while retries < CONFIG.MAX_RETRIES do
+        local success, result = pcall(function()
+            return dataStore:GetAsync(player.UserId)
+        end)
+        
+        if success then
+            if result then
+                local isValid, message = validateData(result)
+                if isValid then
+                    return true, result
+                else
+                    logError(player, "validation", message)
+                    return true, deepCopy(DEFAULT_DATA)
+                end
+            else
+                -- No existing data, return default
+                return true, deepCopy(DEFAULT_DATA)
+            end
+        else
+            retries = retries + 1
+            logError(player, "load", result)
+            
+            if retries < CONFIG.MAX_RETRIES then
+                wait(CONFIG.RETRY_DELAY * retries)
+            end
+        end
+    end
+    
+    -- All retries failed, return default data
+    return false, deepCopy(DEFAULT_DATA)
+end
+
+function PlayerDataManager:savePlayerData(player)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry or not cacheEntry.isDirty then
+        return true -- Nothing to save
+    end
+    
+    local retries = 0
+    
+    while retries < CONFIG.MAX_RETRIES do
+        local success, result = pcall(function()
+            dataStore:SetAsync(player.UserId, cacheEntry.data)
+        end)
+        
+        if success then
+            cacheEntry.isDirty = false
+            cacheEntry.lastAccessed = tick()
+            return true
+        else
+            retries = retries + 1
+            logError(player, "save", result)
+            
+            if retries < CONFIG.MAX_RETRIES then
+                wait(CONFIG.RETRY_DELAY * retries)
+            end
+        end
+    end
+    
+    return false
+end
+
+function PlayerDataManager:getPlayerData(player, key)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry then
+        return nil
+    end
+    
+    cacheEntry.lastAccessed = tick()
+    
+    if key then
+        return cacheEntry.data[key]
+    else
+        return deepCopy(cacheEntry.data)
+    end
+end
+
+function PlayerDataManager:setPlayerData(player, key, value)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry then
+        return false
+    end
+    
+    -- Validate the change
+    if key == "level" and (type(value) ~= "number" or value < 1) then
+        return false, "Invalid level value"
+    elseif key == "coins" and (type(value) ~= "number" or value < 0) then
+        return false, "Invalid coins value"
+    end
+    
+    -- Update data
+    cacheEntry.data[key] = value
+    cacheEntry.isDirty = true
+    cacheEntry.lastAccessed = tick()
+    
+    return true
+end
+
+function PlayerDataManager:incrementPlayerData(player, key, amount)
+    local currentValue = self:getPlayerData(player, key)
+    if currentValue == nil then
+        return false, "Key not found"
+    end
+    
+    if type(currentValue) ~= "number" then
+        return false, "Cannot increment non-numeric value"
+    end
+    
+    return self:setPlayerData(player, key, currentValue + (amount or 1))
+end
+
+function PlayerDataManager:startAutoSave(player)
+    if autoSaveConnections[player.UserId] then
+        return -- Already running
+    end
+    
+    autoSaveConnections[player.UserId] = RunService.Heartbeat:Connect(function()
+        local cacheEntry = playerDataCache[player.UserId]
+        if cacheEntry and cacheEntry.isDirty then
+            if tick() - cacheEntry.lastAccessed > CONFIG.AUTO_SAVE_INTERVAL then
+                self:savePlayerData(player)
+            end
+        end
+    end)
+end
+
+function PlayerDataManager:stopAutoSave(player)
+    local connection = autoSaveConnections[player.UserId]
+    if connection then
+        connection:Disconnect()
+        autoSaveConnections[player.UserId] = nil
+    end
+end
+
+function PlayerDataManager:getAllPlayerData()
+    local allData = {}
+    for userId, cacheEntry in pairs(playerDataCache) do
+        local player = Players:GetPlayerByUserId(userId)
+        if player then
+            allData[player.Name] = deepCopy(cacheEntry.data)
+        end
+    end
+    return allData
+end
+
+function PlayerDataManager:clearCache()
+    playerDataCache = {}
+    print("Player data cache cleared")
+end
+
+-- Return the module
+return PlayerDataManager`,
+        color: 'blue'
+      },
+      {
+        title: 'Code Organization Patterns',
+        content: `Organize your code using proven patterns and architectures for maintainable, scalable projects.
+
+**Organization Patterns:**
+- **MVC Pattern**: Model-View-Controller separation
+- **Service Layer**: Business logic separation
+- **Repository Pattern**: Data access abstraction
+- **Factory Pattern**: Object creation management
+- **Observer Pattern**: Event-driven communication
+- **Singleton Pattern**: Single instance management
+
+**Project Structure:**
+- **Folder Organization**: Logical grouping of related code
+- **Naming Conventions**: Consistent naming across the project
+- **Dependency Management**: Clear dependency relationships
+- **Interface Design**: Clean APIs between modules
+- **Error Handling**: Consistent error handling strategies`,
+        codeExample: `-- Code organization patterns example
+
+--[[
+    Game Architecture Example
+    Demonstrates MVC pattern, service layer, and repository pattern
+]]
+
+-- === MODELS (Data Layer) ===
+local PlayerModel = {}
+PlayerModel.__index = PlayerModel
+
+function PlayerModel.new(playerData)
+    local self = setmetatable({}, PlayerModel)
+    
+    self.id = playerData.id
+    self.name = playerData.name
+    self.level = playerData.level or 1
+    self.experience = playerData.experience or 0
+    self.coins = playerData.coins or 100
+    self.inventory = playerData.inventory or {}
+    self.settings = playerData.settings or {}
+    
+    return self
+end
+
+function PlayerModel:addExperience(amount)
+    self.experience = self.experience + amount
+    
+    -- Check for level up
+    local requiredExp = self.level * 100
+    if self.experience >= requiredExp then
+        self:levelUp()
+    end
+end
+
+function PlayerModel:levelUp()
+    self.level = self.level + 1
+    self.experience = 0
+    self.coins = self.coins + 50 -- Level up bonus
+end
+
+function PlayerModel:addCoins(amount)
+    self.coins = self.coins + amount
+end
+
+function PlayerModel:spendCoins(amount)
+    if self.coins >= amount then
+        self.coins = self.coins - amount
+        return true
+    end
+    return false
+end
+
+function PlayerModel:addItem(itemId, quantity)
+    if self.inventory[itemId] then
+        self.inventory[itemId] = self.inventory[itemId] + quantity
+    else
+        self.inventory[itemId] = quantity
+    end
+end
+
+function PlayerModel:removeItem(itemId, quantity)
+    if self.inventory[itemId] and self.inventory[itemId] >= quantity then
+        self.inventory[itemId] = self.inventory[itemId] - quantity
+        if self.inventory[itemId] <= 0 then
+            self.inventory[itemId] = nil
+        end
+        return true
+    end
+    return false
+end
+
+function PlayerModel:toTable()
+    return {
+        id = self.id,
+        name = self.name,
+        level = self.level,
+        experience = self.experience,
+        coins = self.coins,
+        inventory = self.inventory,
+        settings = self.settings
+    }
+end
+
+-- === REPOSITORIES (Data Access Layer) ===
+local PlayerRepository = {}
+PlayerRepository.__index = PlayerRepository
+
+function PlayerRepository.new()
+    local self = setmetatable({}, PlayerRepository)
+    
+    self.dataStore = game:GetService("DataStoreService"):GetDataStore("Players_v1")
+    self.cache = {}
+    
+    return self
+end
+
+function PlayerRepository:findById(playerId)
+    -- Check cache first
+    if self.cache[playerId] then
+        return self.cache[playerId]
+    end
+    
+    -- Load from data store
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(playerId)
+    end)
+    
+    if success and data then
+        local player = PlayerModel.new(data)
+        self.cache[playerId] = player
+        return player
+    end
+    
+    return nil
+end
+
+function PlayerRepository:save(player)
+    local success, result = pcall(function()
+        self.dataStore:SetAsync(player.id, player:toTable())
+    end)
+    
+    if success then
+        self.cache[player.id] = player
+        return true
+    else
+        warn("Failed to save player data:", result)
+        return false
+    end
+end
+
+function PlayerRepository:delete(playerId)
+    local success, result = pcall(function()
+        self.dataStore:RemoveAsync(playerId)
+    end)
+    
+    if success then
+        self.cache[playerId] = nil
+        return true
+    else
+        warn("Failed to delete player data:", result)
+        return false
+    end
+end
+
+-- === SERVICES (Business Logic Layer) ===
+local PlayerService = {}
+PlayerService.__index = PlayerService
+
+function PlayerService.new()
+    local self = setmetatable({}, PlayerService)
+    
+    self.repository = PlayerRepository.new()
+    self.players = {}
+    
+    return self
+end
+
+function PlayerService:createPlayer(playerId, playerName)
+    local playerData = {
+        id = playerId,
+        name = playerName,
+        level = 1,
+        experience = 0,
+        coins = 100,
+        inventory = {},
+        settings = {}
+    }
+    
+    local player = PlayerModel.new(playerData)
+    self.players[playerId] = player
+    
+    -- Save to repository
+    self.repository:save(player)
+    
+    return player
+end
+
+function PlayerService:getPlayer(playerId)
+    if self.players[playerId] then
+        return self.players[playerId]
+    end
+    
+    local player = self.repository:findById(playerId)
+    if player then
+        self.players[playerId] = player
+    end
+    
+    return player
+end
+
+function PlayerService:addExperience(playerId, amount)
+    local player = self:getPlayer(playerId)
+    if not player then
+        return false, "Player not found"
+    end
+    
+    local oldLevel = player.level
+    player:addExperience(amount)
+    
+    -- Save changes
+    self.repository:save(player)
+    
+    -- Fire level up event if applicable
+    if player.level > oldLevel then
+        self:fireLevelUpEvent(player)
+    end
+    
+    return true
+end
+
+function PlayerService:purchaseItem(playerId, itemId, cost, quantity)
+    local player = self:getPlayer(playerId)
+    if not player then
+        return false, "Player not found"
+    end
+    
+    if not player:spendCoins(cost) then
+        return false, "Insufficient coins"
+    end
+    
+    player:addItem(itemId, quantity or 1)
+    
+    -- Save changes
+    self.repository:save(player)
+    
+    return true
+end
+
+function PlayerService:fireLevelUpEvent(player)
+    -- This would typically fire a RemoteEvent or use a proper event system
+    print(string.format("%s leveled up to level %d!", player.name, player.level))
+end
+
+-- === CONTROLLERS (Application Logic Layer) ===
+local PlayerController = {}
+PlayerController.__index = PlayerController
+
+function PlayerController.new()
+    local self = setmetatable({}, PlayerController)
+    
+    self.service = PlayerService.new()
+    self.players = game:GetService("Players")
+    
+    self:setupEvents()
+    
+    return self
+end
+
+function PlayerController:setupEvents()
+    self.players.PlayerAdded:Connect(function(player)
+        self:onPlayerAdded(player)
+    end)
+    
+    self.players.PlayerRemoving:Connect(function(player)
+        self:onPlayerRemoving(player)
+    end)
+end
+
+function PlayerController:onPlayerAdded(player)
+    -- Try to load existing player or create new one
+    local existingPlayer = self.service:getPlayer(player.UserId)
+    
+    if not existingPlayer then
+        existingPlayer = self.service:createPlayer(player.UserId, player.Name)
+        print(string.format("Created new player: %s", player.Name))
+    else
+        print(string.format("Loaded existing player: %s", player.Name))
+    end
+    
+    -- Send player data to client
+    self:sendPlayerDataToClient(player, existingPlayer)
+end
+
+function PlayerController:onPlayerRemoving(player)
+    local playerData = self.service:getPlayer(player.UserId)
+    if playerData then
+        self.service.repository:save(playerData)
+        print(string.format("Saved data for: %s", player.Name))
+    end
+end
+
+function PlayerController:sendPlayerDataToClient(player, playerData)
+    -- This would typically use a RemoteEvent
+    print(string.format("Sending data to %s: Level %d, %d coins", 
+        player.Name, playerData.level, playerData.coins))
+end
+
+function PlayerController:handleExperienceGain(playerId, amount)
+    local success, message = self.service:addExperience(playerId, amount)
+    if success then
+        local player = self.players:GetPlayerByUserId(playerId)
+        if player then
+            self:sendPlayerDataToClient(player, self.service:getPlayer(playerId))
+        end
+    else
+        warn("Failed to add experience:", message)
+    end
+end
+
+function PlayerController:handleItemPurchase(playerId, itemId, cost, quantity)
+    local success, message = self.service:purchaseItem(playerId, itemId, cost, quantity)
+    if success then
+        local player = self.players:GetPlayerByUserId(playerId)
+        if player then
+            self:sendPlayerDataToClient(player, self.service:getPlayer(playerId))
+        end
+    else
+        warn("Failed to purchase item:", message)
+    end
+end
+
+-- === FACTORY (Object Creation) ===
+local GameFactory = {}
+GameFactory.__index = GameFactory
+
+function GameFactory.new()
+    local self = setmetatable({}, GameFactory)
+    return self
+end
+
+function GameFactory:createPlayerController()
+    return PlayerController.new()
+end
+
+function GameFactory:createPlayerService()
+    return PlayerService.new()
+end
+
+function GameFactory:createPlayerRepository()
+    return PlayerRepository.new()
+end
+
+-- === SINGLETON (Global Access) ===
+local GameManager = {}
+GameManager.__index = GameManager
+
+local instance = nil
+
+function GameManager.getInstance()
+    if not instance then
+        instance = GameManager.new()
+    end
+    return instance
+end
+
+function GameManager.new()
+    local self = setmetatable({}, GameManager)
+    
+    self.factory = GameFactory.new()
+    self.playerController = self.factory:createPlayerController()
+    
+    return self
+end
+
+function GameManager:getPlayerController()
+    return self.playerController
+end
+
+-- Initialize the game
+local gameManager = GameManager.getInstance()
+
+print("Game architecture initialized with MVC pattern")`,
+        color: 'green'
+      },
+      {
+        title: 'Version Control & Code Libraries',
+        content: `Implement version control and code library systems for collaborative development and code reuse.
+
+**Version Control Concepts:**
+- **Module Versioning**: Track versions of your modules
+- **Backward Compatibility**: Maintain compatibility with older versions
+- **Migration Systems**: Handle data structure changes
+- **Rollback Mechanisms**: Revert to previous versions if needed
+- **Change Logging**: Track what changed between versions
+
+**Code Library Management:**
+- **Library Organization**: Structure reusable code libraries
+- **Dependency Management**: Handle module dependencies
+- **Documentation Systems**: Auto-generate documentation
+- **Testing Frameworks**: Unit testing for modules
+- **Code Quality**: Linting and style checking`,
+        codeExample: `-- Version control and code library system
+
+--[[
+    Version Control System for Modules
+    Handles versioning, migration, and compatibility
+]]
+
+local VersionControl = {}
+VersionControl.__index = VersionControl
+
+-- Version configuration
+local VERSION_CONFIG = {
+    CURRENT_VERSION = "1.2.0",
+    SUPPORTED_VERSIONS = {"1.0.0", "1.1.0", "1.2.0"},
+    MIGRATION_SCRIPTS = {
+        ["1.0.0"] = "1.1.0",
+        ["1.1.0"] = "1.2.0"
+    }
+}
+
+-- Version history
+local VERSION_HISTORY = {
+    ["1.0.0"] = {
+        date = "2024-01-01",
+        changes = {
+            "Initial release",
+            "Basic player data system",
+            "Simple inventory management"
+        },
+        breakingChanges = {}
+    },
+    ["1.1.0"] = {
+        date = "2024-02-01",
+        changes = {
+            "Added experience system",
+            "Improved inventory with categories",
+            "Added player settings"
+        },
+        breakingChanges = {
+            "inventory structure changed from array to object"
+        }
+    },
+    ["1.2.0"] = {
+        date = "2024-03-01",
+        changes = {
+            "Added achievement system",
+            "Improved data validation",
+            "Added auto-save functionality"
+        },
+        breakingChanges = {
+            "playerData.settings structure updated"
+        }
+    }
+}
+
+function VersionControl.new()
+    local self = setmetatable({}, VersionControl)
+    
+    self.currentVersion = VERSION_CONFIG.CURRENT_VERSION
+    self.supportedVersions = VERSION_CONFIG.SUPPORTED_VERSIONS
+    self.migrationScripts = VERSION_CONFIG.MIGRATION_SCRIPTS
+    
+    return self
+end
+
+function VersionControl:getCurrentVersion()
+    return self.currentVersion
+end
+
+function VersionControl:isVersionSupported(version)
+    for _, supportedVersion in ipairs(self.supportedVersions) do
+        if supportedVersion == version then
+            return true
+        end
+    end
+    return false
+end
+
+function VersionControl:compareVersions(version1, version2)
+    local v1Parts = self:parseVersion(version1)
+    local v2Parts = self:parseVersion(version2)
+    
+    for i = 1, 3 do
+        if v1Parts[i] > v2Parts[i] then
+            return 1
+        elseif v1Parts[i] < v2Parts[i] then
+            return -1
+        end
+    end
+    
+    return 0
+end
+
+function VersionControl:parseVersion(version)
+    local parts = {}
+    for part in string.gmatch(version, "%d+") do
+        table.insert(parts, tonumber(part))
+    end
+    return parts
+end
+
+function VersionControl:migrateData(data, fromVersion, toVersion)
+    if not self:isVersionSupported(fromVersion) then
+        return false, "Source version not supported"
+    end
+    
+    if not self:isVersionSupported(toVersion) then
+        return false, "Target version not supported"
+    end
+    
+    local currentVersion = fromVersion
+    local migratedData = self:deepCopy(data)
+    
+    -- Apply migrations step by step
+    while currentVersion ~= toVersion do
+        local nextVersion = self.migrationScripts[currentVersion]
+        if not nextVersion then
+            return false, "No migration path found"
+        end
+        
+        local success, result = self:applyMigration(migratedData, currentVersion, nextVersion)
+        if not success then
+            return false, result
+        end
+        
+        currentVersion = nextVersion
+    end
+    
+    return true, migratedData
+end
+
+function VersionControl:applyMigration(data, fromVersion, toVersion)
+    local migrationKey = fromVersion .. "_to_" .. toVersion
+    
+    if migrationKey == "1.0.0_to_1.1.0" then
+        return self:migrate_1_0_0_to_1_1_0(data)
+    elseif migrationKey == "1.1.0_to_1.2.0" then
+        return self:migrate_1_1_0_to_1_2_0(data)
+    else
+        return false, "Migration not implemented"
+    end
+end
+
+function VersionControl:migrate_1_0_0_to_1_1_0(data)
+    -- Convert inventory from array to object
+    if data.inventory and type(data.inventory) == "table" then
+        local newInventory = {}
+        for i, item in ipairs(data.inventory) do
+            if type(item) == "string" then
+                newInventory[item] = 1
+            elseif type(item) == "table" then
+                newInventory[item.id] = item.quantity or 1
+            end
+        end
+        data.inventory = newInventory
+    end
+    
+    -- Add experience system
+    data.experience = data.experience or 0
+    
+    -- Add settings
+    data.settings = data.settings or {
+        musicVolume = 0.5,
+        sfxVolume = 0.7
+    }
+    
+    return true, data
+end
+
+function VersionControl:migrate_1_1_0_to_1_2_0(data)
+    -- Update settings structure
+    if data.settings then
+        data.settings.graphics = data.settings.graphics or "Medium"
+        data.settings.language = data.settings.language or "English"
+    end
+    
+    -- Add achievement system
+    data.achievements = data.achievements or {}
+    
+    -- Add statistics
+    data.statistics = data.statistics or {
+        playTime = 0,
+        gamesPlayed = 0,
+        highScore = 0
+    }
+    
+    return true, data
+end
+
+function VersionControl:deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = self:deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+function VersionControl:getVersionHistory(version)
+    return VERSION_HISTORY[version]
+end
+
+function VersionControl:getAllVersions()
+    local versions = {}
+    for version, _ in pairs(VERSION_HISTORY) do
+        table.insert(versions, version)
+    end
+    table.sort(versions, function(a, b)
+        return self:compareVersions(a, b) < 0
+    end)
+    return versions
+end
+
+-- === CODE LIBRARY SYSTEM ===
+local CodeLibrary = {}
+CodeLibrary.__index = CodeLibrary
+
+function CodeLibrary.new()
+    local self = setmetatable({}, CodeLibrary)
+    
+    self.libraries = {}
+    self.dependencies = {}
+    
+    return self
+end
+
+function CodeLibrary:registerLibrary(name, version, module, dependencies)
+    self.libraries[name] = {
+        version = version,
+        module = module,
+        dependencies = dependencies or {},
+        registeredAt = tick()
+    }
+    
+    -- Build dependency graph
+    self:buildDependencyGraph()
+    
+    print(string.format("Registered library: %s v%s", name, version))
+end
+
+function CodeLibrary:getLibrary(name, version)
+    local library = self.libraries[name]
+    if not library then
+        return nil, "Library not found"
+    end
+    
+    if version and library.version ~= version then
+        return nil, "Version mismatch"
+    end
+    
+    return library.module
+end
+
+function CodeLibrary:buildDependencyGraph()
+    self.dependencies = {}
+    
+    for name, library in pairs(self.libraries) do
+        self.dependencies[name] = library.dependencies
+    end
+end
+
+function CodeLibrary:resolveDependencies(libraryName)
+    local resolved = {}
+    local visited = {}
+    
+    local function visit(name)
+        if visited[name] then
+            return -- Already visited
+        end
+        
+        visited[name] = true
+        
+        local dependencies = self.dependencies[name] or {}
+        for _, dep in ipairs(dependencies) do
+            visit(dep)
+        end
+        
+        table.insert(resolved, name)
+    end
+    
+    visit(libraryName)
+    return resolved
+end
+
+function CodeLibrary:validateDependencies(libraryName)
+    local dependencies = self.dependencies[libraryName] or {}
+    
+    for _, dep in ipairs(dependencies) do
+        if not self.libraries[dep] then
+            return false, string.format("Missing dependency: %s", dep)
+        end
+    end
+    
+    return true
+end
+
+function CodeLibrary:getLibraryInfo(name)
+    local library = self.libraries[name]
+    if not library then
+        return nil
+    end
+    
+    return {
+        name = name,
+        version = library.version,
+        dependencies = library.dependencies,
+        registeredAt = library.registeredAt,
+        dependencyCount = #library.dependencies
+    }
+end
+
+function CodeLibrary:listLibraries()
+    local list = {}
+    for name, library in pairs(self.libraries) do
+        table.insert(list, {
+            name = name,
+            version = library.version,
+            dependencies = library.dependencies
+        })
+    end
+    return list
+end
+
+-- === TESTING FRAMEWORK ===
+local TestFramework = {}
+TestFramework.__index = TestFramework
+
+function TestFramework.new()
+    local self = setmetatable({}, TestFramework)
+    
+    self.tests = {}
+    self.results = {}
+    
+    return self
+end
+
+function TestFramework:addTest(name, testFunction)
+    self.tests[name] = testFunction
+end
+
+function TestFramework:runTest(name)
+    local testFunction = self.tests[name]
+    if not testFunction then
+        return false, "Test not found"
+    end
+    
+    local success, result = pcall(testFunction)
+    
+    self.results[name] = {
+        success = success,
+        result = result,
+        timestamp = tick()
+    }
+    
+    return success, result
+end
+
+function TestFramework:runAllTests()
+    local passed = 0
+    local failed = 0
+    
+    for name, _ in pairs(self.tests) do
+        local success, result = self:runTest(name)
+        if success then
+            passed = passed + 1
+            print(string.format("✓ %s passed", name))
+        else
+            failed = failed + 1
+            print(string.format("✗ %s failed: %s", name, tostring(result)))
+        end
+    end
+    
+    print(string.format("Tests completed: %d passed, %d failed", passed, failed))
+    return passed, failed
+end
+
+function TestFramework:getTestResults()
+    return self.results
+end
+
+-- Example usage
+local versionControl = VersionControl.new()
+local codeLibrary = CodeLibrary.new()
+local testFramework = TestFramework.new()
+
+-- Test version control
+testFramework:addTest("version_support", function()
+    assert(versionControl:isVersionSupported("1.2.0"), "Current version should be supported")
+    assert(not versionControl:isVersionSupported("0.9.0"), "Old version should not be supported")
+    return true
+end)
+
+testFramework:addTest("version_comparison", function()
+    assert(versionControl:compareVersions("1.2.0", "1.1.0") > 0, "1.2.0 should be greater than 1.1.0")
+    assert(versionControl:compareVersions("1.1.0", "1.2.0") < 0, "1.1.0 should be less than 1.2.0")
+    return true
+end)
+
+-- Run tests
+testFramework:runAllTests()
+
+print("Version control and code library system initialized")`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- ModuleScript Architecture & Code Organization - Comprehensive Learning Example
+-- Master ModuleScript design patterns and code organization for scalable projects
+
+print("=== MODULESCRIPT ARCHITECTURE & CODE ORGANIZATION DEMO ===")
+print("Learning ModuleScript design patterns and code organization...")
+
+-- 1. MODULESCRIPT FUNDAMENTALS
+print("\\n1. DEMONSTRATING MODULESCRIPT FUNDAMENTALS...")
+
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local RunService = game:GetService("RunService")
+
+local PlayerDataManager = {}
+PlayerDataManager.__index = PlayerDataManager
+
+-- Module configuration
+local CONFIG = {
+    DATASTORE_NAME = "PlayerData_v1",
+    CACHE_DURATION = 300, -- 5 minutes
+    AUTO_SAVE_INTERVAL = 60, -- 1 minute
+    MAX_RETRIES = 3,
+    RETRY_DELAY = 1
+}
+
+-- Data templates
+local DEFAULT_DATA = {
+    level = 1,
+    experience = 0,
+    coins = 100,
+    inventory = {},
+    settings = {
+        musicVolume = 0.5,
+        sfxVolume = 0.7,
+        graphics = "Medium"
+    },
+    statistics = {
+        playTime = 0,
+        gamesPlayed = 0,
+        highScore = 0
+    }
+}
+
+-- Private variables
+local playerDataCache = {}
+local dataStore = DataStoreService:GetDataStore(CONFIG.DATASTORE_NAME)
+local autoSaveConnections = {}
+
+-- Private helper functions
+local function validateData(data)
+    if not data or type(data) ~= "table" then
+        return false, "Invalid data type"
+    end
+    
+    -- Validate required fields
+    for key, defaultValue in pairs(DEFAULT_DATA) do
+        if data[key] == nil then
+            data[key] = defaultValue
+        end
+    end
+    
+    return true, "Data validated"
+end
+
+local function deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+local function logError(player, operation, error)
+    warn(string.format("[PlayerDataManager] Error for %s during %s: %s", 
+        player.Name, operation, tostring(error)))
+end
+
+-- Public interface
+function PlayerDataManager.new()
+    local self = setmetatable({}, PlayerDataManager)
+    
+    -- Initialize module
+    self:setupEvents()
+    
+    return self
+end
+
+function PlayerDataManager:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function PlayerDataManager:initializePlayer(player)
+    -- Load player data
+    local success, data = self:loadPlayerData(player)
+    
+    if success then
+        playerDataCache[player.UserId] = {
+            data = data,
+            lastAccessed = tick(),
+            isDirty = false
+        }
+        
+        -- Start auto-save
+        self:startAutoSave(player)
+        
+        print(string.format("Initialized data for %s", player.Name))
+    else
+        warn(string.format("Failed to initialize data for %s", player.Name))
+    end
+end
+
+function PlayerDataManager:cleanupPlayer(player)
+    -- Save data before cleanup
+    self:savePlayerData(player)
+    
+    -- Clean up cache
+    playerDataCache[player.UserId] = nil
+    
+    -- Stop auto-save
+    self:stopAutoSave(player)
+    
+    print(string.format("Cleaned up data for %s", player.Name))
+end
+
+function PlayerDataManager:loadPlayerData(player)
+    local retries = 0
+    
+    while retries < CONFIG.MAX_RETRIES do
+        local success, result = pcall(function()
+            return dataStore:GetAsync(player.UserId)
+        end)
+        
+        if success then
+            if result then
+                local isValid, message = validateData(result)
+                if isValid then
+                    return true, result
+                else
+                    logError(player, "validation", message)
+                    return true, deepCopy(DEFAULT_DATA)
+                end
+            else
+                -- No existing data, return default
+                return true, deepCopy(DEFAULT_DATA)
+            end
+        else
+            retries = retries + 1
+            logError(player, "load", result)
+            
+            if retries < CONFIG.MAX_RETRIES then
+                wait(CONFIG.RETRY_DELAY * retries)
+            end
+        end
+    end
+    
+    -- All retries failed, return default data
+    return false, deepCopy(DEFAULT_DATA)
+end
+
+function PlayerDataManager:savePlayerData(player)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry or not cacheEntry.isDirty then
+        return true -- Nothing to save
+    end
+    
+    local retries = 0
+    
+    while retries < CONFIG.MAX_RETRIES do
+        local success, result = pcall(function()
+            dataStore:SetAsync(player.UserId, cacheEntry.data)
+        end)
+        
+        if success then
+            cacheEntry.isDirty = false
+            cacheEntry.lastAccessed = tick()
+            return true
+        else
+            retries = retries + 1
+            logError(player, "save", result)
+            
+            if retries < CONFIG.MAX_RETRIES then
+                wait(CONFIG.RETRY_DELAY * retries)
+            end
+        end
+    end
+    
+    return false
+end
+
+function PlayerDataManager:getPlayerData(player, key)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry then
+        return nil
+    end
+    
+    cacheEntry.lastAccessed = tick()
+    
+    if key then
+        return cacheEntry.data[key]
+    else
+        return deepCopy(cacheEntry.data)
+    end
+end
+
+function PlayerDataManager:setPlayerData(player, key, value)
+    local cacheEntry = playerDataCache[player.UserId]
+    if not cacheEntry then
+        return false
+    end
+    
+    -- Validate the change
+    if key == "level" and (type(value) ~= "number" or value < 1) then
+        return false, "Invalid level value"
+    elseif key == "coins" and (type(value) ~= "number" or value < 0) then
+        return false, "Invalid coins value"
+    end
+    
+    -- Update data
+    cacheEntry.data[key] = value
+    cacheEntry.isDirty = true
+    cacheEntry.lastAccessed = tick()
+    
+    return true
+end
+
+function PlayerDataManager:incrementPlayerData(player, key, amount)
+    local currentValue = self:getPlayerData(player, key)
+    if currentValue == nil then
+        return false, "Key not found"
+    end
+    
+    if type(currentValue) ~= "number" then
+        return false, "Cannot increment non-numeric value"
+    end
+    
+    return self:setPlayerData(player, key, currentValue + (amount or 1))
+end
+
+function PlayerDataManager:startAutoSave(player)
+    if autoSaveConnections[player.UserId] then
+        return -- Already running
+    end
+    
+    autoSaveConnections[player.UserId] = RunService.Heartbeat:Connect(function()
+        local cacheEntry = playerDataCache[player.UserId]
+        if cacheEntry and cacheEntry.isDirty then
+            if tick() - cacheEntry.lastAccessed > CONFIG.AUTO_SAVE_INTERVAL then
+                self:savePlayerData(player)
+            end
+        end
+    end)
+end
+
+function PlayerDataManager:stopAutoSave(player)
+    local connection = autoSaveConnections[player.UserId]
+    if connection then
+        connection:Disconnect()
+        autoSaveConnections[player.UserId] = nil
+    end
+end
+
+function PlayerDataManager:getAllPlayerData()
+    local allData = {}
+    for userId, cacheEntry in pairs(playerDataCache) do
+        local player = Players:GetPlayerByUserId(userId)
+        if player then
+            allData[player.Name] = deepCopy(cacheEntry.data)
+        end
+    end
+    return allData
+end
+
+function PlayerDataManager:clearCache()
+    playerDataCache = {}
+    print("Player data cache cleared")
+end
+
+-- 2. CODE ORGANIZATION PATTERNS
+print("\\n2. DEMONSTRATING CODE ORGANIZATION PATTERNS...")
+
+-- === MODELS (Data Layer) ===
+local PlayerModel = {}
+PlayerModel.__index = PlayerModel
+
+function PlayerModel.new(playerData)
+    local self = setmetatable({}, PlayerModel)
+    
+    self.id = playerData.id
+    self.name = playerData.name
+    self.level = playerData.level or 1
+    self.experience = playerData.experience or 0
+    self.coins = playerData.coins or 100
+    self.inventory = playerData.inventory or {}
+    self.settings = playerData.settings or {}
+    
+    return self
+end
+
+function PlayerModel:addExperience(amount)
+    self.experience = self.experience + amount
+    
+    -- Check for level up
+    local requiredExp = self.level * 100
+    if self.experience >= requiredExp then
+        self:levelUp()
+    end
+end
+
+function PlayerModel:levelUp()
+    self.level = self.level + 1
+    self.experience = 0
+    self.coins = self.coins + 50 -- Level up bonus
+end
+
+function PlayerModel:addCoins(amount)
+    self.coins = self.coins + amount
+end
+
+function PlayerModel:spendCoins(amount)
+    if self.coins >= amount then
+        self.coins = self.coins - amount
+        return true
+    end
+    return false
+end
+
+function PlayerModel:addItem(itemId, quantity)
+    if self.inventory[itemId] then
+        self.inventory[itemId] = self.inventory[itemId] + quantity
+    else
+        self.inventory[itemId] = quantity
+    end
+end
+
+function PlayerModel:removeItem(itemId, quantity)
+    if self.inventory[itemId] and self.inventory[itemId] >= quantity then
+        self.inventory[itemId] = self.inventory[itemId] - quantity
+        if self.inventory[itemId] <= 0 then
+            self.inventory[itemId] = nil
+        end
+        return true
+    end
+    return false
+end
+
+function PlayerModel:toTable()
+    return {
+        id = self.id,
+        name = self.name,
+        level = self.level,
+        experience = self.experience,
+        coins = self.coins,
+        inventory = self.inventory,
+        settings = self.settings
+    }
+end
+
+-- === REPOSITORIES (Data Access Layer) ===
+local PlayerRepository = {}
+PlayerRepository.__index = PlayerRepository
+
+function PlayerRepository.new()
+    local self = setmetatable({}, PlayerRepository)
+    
+    self.dataStore = game:GetService("DataStoreService"):GetDataStore("Players_v1")
+    self.cache = {}
+    
+    return self
+end
+
+function PlayerRepository:findById(playerId)
+    -- Check cache first
+    if self.cache[playerId] then
+        return self.cache[playerId]
+    end
+    
+    -- Load from data store
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(playerId)
+    end)
+    
+    if success and data then
+        local player = PlayerModel.new(data)
+        self.cache[playerId] = player
+        return player
+    end
+    
+    return nil
+end
+
+function PlayerRepository:save(player)
+    local success, result = pcall(function()
+        self.dataStore:SetAsync(player.id, player:toTable())
+    end)
+    
+    if success then
+        self.cache[player.id] = player
+        return true
+    else
+        warn("Failed to save player data:", result)
+        return false
+    end
+end
+
+function PlayerRepository:delete(playerId)
+    local success, result = pcall(function()
+        self.dataStore:RemoveAsync(playerId)
+    end)
+    
+    if success then
+        self.cache[playerId] = nil
+        return true
+    else
+        warn("Failed to delete player data:", result)
+        return false
+    end
+end
+
+-- === SERVICES (Business Logic Layer) ===
+local PlayerService = {}
+PlayerService.__index = PlayerService
+
+function PlayerService.new()
+    local self = setmetatable({}, PlayerService)
+    
+    self.repository = PlayerRepository.new()
+    self.players = {}
+    
+    return self
+end
+
+function PlayerService:createPlayer(playerId, playerName)
+    local playerData = {
+        id = playerId,
+        name = playerName,
+        level = 1,
+        experience = 0,
+        coins = 100,
+        inventory = {},
+        settings = {}
+    }
+    
+    local player = PlayerModel.new(playerData)
+    self.players[playerId] = player
+    
+    -- Save to repository
+    self.repository:save(player)
+    
+    return player
+end
+
+function PlayerService:getPlayer(playerId)
+    if self.players[playerId] then
+        return self.players[playerId]
+    end
+    
+    local player = self.repository:findById(playerId)
+    if player then
+        self.players[playerId] = player
+    end
+    
+    return player
+end
+
+function PlayerService:addExperience(playerId, amount)
+    local player = self:getPlayer(playerId)
+    if not player then
+        return false, "Player not found"
+    end
+    
+    local oldLevel = player.level
+    player:addExperience(amount)
+    
+    -- Save changes
+    self.repository:save(player)
+    
+    -- Fire level up event if applicable
+    if player.level > oldLevel then
+        self:fireLevelUpEvent(player)
+    end
+    
+    return true
+end
+
+function PlayerService:purchaseItem(playerId, itemId, cost, quantity)
+    local player = self:getPlayer(playerId)
+    if not player then
+        return false, "Player not found"
+    end
+    
+    if not player:spendCoins(cost) then
+        return false, "Insufficient coins"
+    end
+    
+    player:addItem(itemId, quantity or 1)
+    
+    -- Save changes
+    self.repository:save(player)
+    
+    return true
+end
+
+function PlayerService:fireLevelUpEvent(player)
+    -- This would typically fire a RemoteEvent or use a proper event system
+    print(string.format("%s leveled up to level %d!", player.name, player.level))
+end
+
+-- === CONTROLLERS (Application Logic Layer) ===
+local PlayerController = {}
+PlayerController.__index = PlayerController
+
+function PlayerController.new()
+    local self = setmetatable({}, PlayerController)
+    
+    self.service = PlayerService.new()
+    self.players = game:GetService("Players")
+    
+    self:setupEvents()
+    
+    return self
+end
+
+function PlayerController:setupEvents()
+    self.players.PlayerAdded:Connect(function(player)
+        self:onPlayerAdded(player)
+    end)
+    
+    self.players.PlayerRemoving:Connect(function(player)
+        self:onPlayerRemoving(player)
+    end)
+end
+
+function PlayerController:onPlayerAdded(player)
+    -- Try to load existing player or create new one
+    local existingPlayer = self.service:getPlayer(player.UserId)
+    
+    if not existingPlayer then
+        existingPlayer = self.service:createPlayer(player.UserId, player.Name)
+        print(string.format("Created new player: %s", player.Name))
+    else
+        print(string.format("Loaded existing player: %s", player.Name))
+    end
+    
+    -- Send player data to client
+    self:sendPlayerDataToClient(player, existingPlayer)
+end
+
+function PlayerController:onPlayerRemoving(player)
+    local playerData = self.service:getPlayer(player.UserId)
+    if playerData then
+        self.service.repository:save(playerData)
+        print(string.format("Saved data for: %s", player.Name))
+    end
+end
+
+function PlayerController:sendPlayerDataToClient(player, playerData)
+    -- This would typically use a RemoteEvent
+    print(string.format("Sending data to %s: Level %d, %d coins", 
+        player.Name, playerData.level, playerData.coins))
+end
+
+function PlayerController:handleExperienceGain(playerId, amount)
+    local success, message = self.service:addExperience(playerId, amount)
+    if success then
+        local player = self.players:GetPlayerByUserId(playerId)
+        if player then
+            self:sendPlayerDataToClient(player, self.service:getPlayer(playerId))
+        end
+    else
+        warn("Failed to add experience:", message)
+    end
+end
+
+function PlayerController:handleItemPurchase(playerId, itemId, cost, quantity)
+    local success, message = self.service:purchaseItem(playerId, itemId, cost, quantity)
+    if success then
+        local player = self.players:GetPlayerByUserId(playerId)
+        if player then
+            self:sendPlayerDataToClient(player, self.service:getPlayer(playerId))
+        end
+    else
+        warn("Failed to purchase item:", message)
+    end
+end
+
+-- === FACTORY (Object Creation) ===
+local GameFactory = {}
+GameFactory.__index = GameFactory
+
+function GameFactory.new()
+    local self = setmetatable({}, GameFactory)
+    return self
+end
+
+function GameFactory:createPlayerController()
+    return PlayerController.new()
+end
+
+function GameFactory:createPlayerService()
+    return PlayerService.new()
+end
+
+function GameFactory:createPlayerRepository()
+    return PlayerRepository.new()
+end
+
+-- === SINGLETON (Global Access) ===
+local GameManager = {}
+GameManager.__index = GameManager
+
+local instance = nil
+
+function GameManager.getInstance()
+    if not instance then
+        instance = GameManager.new()
+    end
+    return instance
+end
+
+function GameManager.new()
+    local self = setmetatable({}, GameManager)
+    
+    self.factory = GameFactory.new()
+    self.playerController = self.factory:createPlayerController()
+    
+    return self
+end
+
+function GameManager:getPlayerController()
+    return self.playerController
+end
+
+-- 3. VERSION CONTROL & CODE LIBRARIES
+print("\\n3. DEMONSTRATING VERSION CONTROL & CODE LIBRARIES...")
+
+local VersionControl = {}
+VersionControl.__index = VersionControl
+
+-- Version configuration
+local VERSION_CONFIG = {
+    CURRENT_VERSION = "1.2.0",
+    SUPPORTED_VERSIONS = {"1.0.0", "1.1.0", "1.2.0"},
+    MIGRATION_SCRIPTS = {
+        ["1.0.0"] = "1.1.0",
+        ["1.1.0"] = "1.2.0"
+    }
+}
+
+-- Version history
+local VERSION_HISTORY = {
+    ["1.0.0"] = {
+        date = "2024-01-01",
+        changes = {
+            "Initial release",
+            "Basic player data system",
+            "Simple inventory management"
+        },
+        breakingChanges = {}
+    },
+    ["1.1.0"] = {
+        date = "2024-02-01",
+        changes = {
+            "Added experience system",
+            "Improved inventory with categories",
+            "Added player settings"
+        },
+        breakingChanges = {
+            "inventory structure changed from array to object"
+        }
+    },
+    ["1.2.0"] = {
+        date = "2024-03-01",
+        changes = {
+            "Added achievement system",
+            "Improved data validation",
+            "Added auto-save functionality"
+        },
+        breakingChanges = {
+            "playerData.settings structure updated"
+        }
+    }
+}
+
+function VersionControl.new()
+    local self = setmetatable({}, VersionControl)
+    
+    self.currentVersion = VERSION_CONFIG.CURRENT_VERSION
+    self.supportedVersions = VERSION_CONFIG.SUPPORTED_VERSIONS
+    self.migrationScripts = VERSION_CONFIG.MIGRATION_SCRIPTS
+    
+    return self
+end
+
+function VersionControl:getCurrentVersion()
+    return self.currentVersion
+end
+
+function VersionControl:isVersionSupported(version)
+    for _, supportedVersion in ipairs(self.supportedVersions) do
+        if supportedVersion == version then
+            return true
+        end
+    end
+    return false
+end
+
+function VersionControl:compareVersions(version1, version2)
+    local v1Parts = self:parseVersion(version1)
+    local v2Parts = self:parseVersion(version2)
+    
+    for i = 1, 3 do
+        if v1Parts[i] > v2Parts[i] then
+            return 1
+        elseif v1Parts[i] < v2Parts[i] then
+            return -1
+        end
+    end
+    
+    return 0
+end
+
+function VersionControl:parseVersion(version)
+    local parts = {}
+    for part in string.gmatch(version, "%d+") do
+        table.insert(parts, tonumber(part))
+    end
+    return parts
+end
+
+function VersionControl:migrateData(data, fromVersion, toVersion)
+    if not self:isVersionSupported(fromVersion) then
+        return false, "Source version not supported"
+    end
+    
+    if not self:isVersionSupported(toVersion) then
+        return false, "Target version not supported"
+    end
+    
+    local currentVersion = fromVersion
+    local migratedData = self:deepCopy(data)
+    
+    -- Apply migrations step by step
+    while currentVersion ~= toVersion do
+        local nextVersion = self.migrationScripts[currentVersion]
+        if not nextVersion then
+            return false, "No migration path found"
+        end
+        
+        local success, result = self:applyMigration(migratedData, currentVersion, nextVersion)
+        if not success then
+            return false, result
+        end
+        
+        currentVersion = nextVersion
+    end
+    
+    return true, migratedData
+end
+
+function VersionControl:applyMigration(data, fromVersion, toVersion)
+    local migrationKey = fromVersion .. "_to_" .. toVersion
+    
+    if migrationKey == "1.0.0_to_1.1.0" then
+        return self:migrate_1_0_0_to_1_1_0(data)
+    elseif migrationKey == "1.1.0_to_1_2_0" then
+        return self:migrate_1_1_0_to_1_2_0(data)
+    else
+        return false, "Migration not implemented"
+    end
+end
+
+function VersionControl:migrate_1_0_0_to_1_1_0(data)
+    -- Convert inventory from array to object
+    if data.inventory and type(data.inventory) == "table" then
+        local newInventory = {}
+        for i, item in ipairs(data.inventory) do
+            if type(item) == "string" then
+                newInventory[item] = 1
+            elseif type(item) == "table" then
+                newInventory[item.id] = item.quantity or 1
+            end
+        end
+        data.inventory = newInventory
+    end
+    
+    -- Add experience system
+    data.experience = data.experience or 0
+    
+    -- Add settings
+    data.settings = data.settings or {
+        musicVolume = 0.5,
+        sfxVolume = 0.7
+    }
+    
+    return true, data
+end
+
+function VersionControl:migrate_1_1_0_to_1_2_0(data)
+    -- Update settings structure
+    if data.settings then
+        data.settings.graphics = data.settings.graphics or "Medium"
+        data.settings.language = data.settings.language or "English"
+    end
+    
+    -- Add achievement system
+    data.achievements = data.achievements or {}
+    
+    -- Add statistics
+    data.statistics = data.statistics or {
+        playTime = 0,
+        gamesPlayed = 0,
+        highScore = 0
+    }
+    
+    return true, data
+end
+
+function VersionControl:deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = self:deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+function VersionControl:getVersionHistory(version)
+    return VERSION_HISTORY[version]
+end
+
+function VersionControl:getAllVersions()
+    local versions = {}
+    for version, _ in pairs(VERSION_HISTORY) do
+        table.insert(versions, version)
+    end
+    table.sort(versions, function(a, b)
+        return self:compareVersions(a, b) < 0
+    end)
+    return versions
+end
+
+-- === CODE LIBRARY SYSTEM ===
+local CodeLibrary = {}
+CodeLibrary.__index = CodeLibrary
+
+function CodeLibrary.new()
+    local self = setmetatable({}, CodeLibrary)
+    
+    self.libraries = {}
+    self.dependencies = {}
+    
+    return self
+end
+
+function CodeLibrary:registerLibrary(name, version, module, dependencies)
+    self.libraries[name] = {
+        version = version,
+        module = module,
+        dependencies = dependencies or {},
+        registeredAt = tick()
+    }
+    
+    -- Build dependency graph
+    self:buildDependencyGraph()
+    
+    print(string.format("Registered library: %s v%s", name, version))
+end
+
+function CodeLibrary:getLibrary(name, version)
+    local library = self.libraries[name]
+    if not library then
+        return nil, "Library not found"
+    end
+    
+    if version and library.version ~= version then
+        return nil, "Version mismatch"
+    end
+    
+    return library.module
+end
+
+function CodeLibrary:buildDependencyGraph()
+    self.dependencies = {}
+    
+    for name, library in pairs(self.libraries) do
+        self.dependencies[name] = library.dependencies
+    end
+end
+
+function CodeLibrary:resolveDependencies(libraryName)
+    local resolved = {}
+    local visited = {}
+    
+    local function visit(name)
+        if visited[name] then
+            return -- Already visited
+        end
+        
+        visited[name] = true
+        
+        local dependencies = self.dependencies[name] or {}
+        for _, dep in ipairs(dependencies) do
+            visit(dep)
+        end
+        
+        table.insert(resolved, name)
+    end
+    
+    visit(libraryName)
+    return resolved
+end
+
+function CodeLibrary:validateDependencies(libraryName)
+    local dependencies = self.dependencies[libraryName] or {}
+    
+    for _, dep in ipairs(dependencies) do
+        if not self.libraries[dep] then
+            return false, string.format("Missing dependency: %s", dep)
+        end
+    end
+    
+    return true
+end
+
+function CodeLibrary:getLibraryInfo(name)
+    local library = self.libraries[name]
+    if not library then
+        return nil
+    end
+    
+    return {
+        name = name,
+        version = library.version,
+        dependencies = library.dependencies,
+        registeredAt = library.registeredAt,
+        dependencyCount = #library.dependencies
+    }
+end
+
+function CodeLibrary:listLibraries()
+    local list = {}
+    for name, library in pairs(self.libraries) do
+        table.insert(list, {
+            name = name,
+            version = library.version,
+            dependencies = library.dependencies
+        })
+    end
+    return list
+end
+
+-- === TESTING FRAMEWORK ===
+local TestFramework = {}
+TestFramework.__index = TestFramework
+
+function TestFramework.new()
+    local self = setmetatable({}, TestFramework)
+    
+    self.tests = {}
+    self.results = {}
+    
+    return self
+end
+
+function TestFramework:addTest(name, testFunction)
+    self.tests[name] = testFunction
+end
+
+function TestFramework:runTest(name)
+    local testFunction = self.tests[name]
+    if not testFunction then
+        return false, "Test not found"
+    end
+    
+    local success, result = pcall(testFunction)
+    
+    self.results[name] = {
+        success = success,
+        result = result,
+        timestamp = tick()
+    }
+    
+    return success, result
+end
+
+function TestFramework:runAllTests()
+    local passed = 0
+    local failed = 0
+    
+    for name, _ in pairs(self.tests) do
+        local success, result = self:runTest(name)
+        if success then
+            passed = passed + 1
+            print(string.format("✓ %s passed", name))
+        else
+            failed = failed + 1
+            print(string.format("✗ %s failed: %s", name, tostring(result)))
+        end
+    end
+    
+    print(string.format("Tests completed: %d passed, %d failed", passed, failed))
+    return passed, failed
+end
+
+function TestFramework:getTestResults()
+    return self.results
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local playerDataManager = PlayerDataManager.new()
+local gameManager = GameManager.getInstance()
+local versionControl = VersionControl.new()
+local codeLibrary = CodeLibrary.new()
+local testFramework = TestFramework.new()
+
+-- Test version control
+testFramework:addTest("version_support", function()
+    assert(versionControl:isVersionSupported("1.2.0"), "Current version should be supported")
+    assert(not versionControl:isVersionSupported("0.9.0"), "Old version should not be supported")
+    return true
+end)
+
+testFramework:addTest("version_comparison", function()
+    assert(versionControl:compareVersions("1.2.0", "1.1.0") > 0, "1.2.0 should be greater than 1.1.0")
+    assert(versionControl:compareVersions("1.1.0", "1.2.0") < 0, "1.1.0 should be less than 1.2.0")
+    return true
+end)
+
+-- Test data migration
+testFramework:addTest("data_migration", function()
+    local oldData = {
+        level = 5,
+        coins = 1000,
+        inventory = {"sword", "potion", "shield"}
+    }
+    
+    local success, migratedData = versionControl:migrateData(oldData, "1.0.0", "1.2.0")
+    assert(success, "Migration should succeed")
+    assert(migratedData.experience == 0, "Experience should be added")
+    assert(migratedData.inventory.sword == 1, "Inventory should be converted to object")
+    assert(migratedData.settings.graphics == "Medium", "Settings should be added")
+    
+    return true
+end)
+
+-- Register libraries
+codeLibrary:registerLibrary("PlayerDataManager", "1.0.0", playerDataManager, {})
+codeLibrary:registerLibrary("VersionControl", "1.0.0", versionControl, {})
+codeLibrary:registerLibrary("TestFramework", "1.0.0", testFramework, {})
+
+-- Run tests
+testFramework:runAllTests()
+
+-- Test library system
+local playerController = gameManager:getPlayerController()
+print("Player controller created through factory pattern")
+
+-- Test players
+Players.PlayerAdded:Connect(function(player)
+    wait(1) -- Wait for player to load
+    
+    -- Test experience gain
+    playerController:handleExperienceGain(player.UserId, 50)
+    
+    -- Test item purchase
+    playerController:handleItemPurchase(player.UserId, "sword", 100, 1)
+    
+    print("Applied ModuleScript architecture tests to", player.Name)
+end)
+
+print("\\n=== MODULESCRIPT ARCHITECTURE & CODE ORGANIZATION DEMO COMPLETE ===")
+print("You've learned ModuleScript design patterns, code organization, and version control!")`,
+    challenge: {
+      tests: [
+        { description: 'Create ModuleScript with proper structure and interface', type: 'code_contains', value: 'PlayerDataManager.new' },
+        { description: 'Implement MVC pattern with models, services, and controllers', type: 'code_contains', value: 'PlayerController.new' },
+        { description: 'Build version control system with migration support', type: 'code_contains', value: 'migrateData' }
+      ],
+      hints: [
+        'Use setmetatable() to create object-oriented modules with proper inheritance',
+        'Separate concerns using MVC pattern: Models for data, Services for business logic, Controllers for application logic',
+        'Implement version control with migration scripts to handle data structure changes',
+        'Use factory pattern for object creation and singleton pattern for global access',
+        'Create proper error handling and validation in your modules'
+      ],
+      successMessage: 'Excellent! You now understand ModuleScript architecture, code organization patterns, and version control systems. These skills are essential for building maintainable, scalable Roblox projects!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
