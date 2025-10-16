@@ -14595,6 +14595,2588 @@ print("You've learned health management, experience systems, and inventory manag
     }
   },
 
+  // === MULTIPLAYER SYSTEMS ===
+  'player-spawning-systems': {
+    title: 'Player Spawning & Team Management',
+    description: 'Master player spawning, team systems, and multiplayer coordination',
+    sections: [
+      {
+        title: 'Player Spawning Systems',
+        content: `Player spawning systems control how players enter and exit your game, ensuring smooth multiplayer experiences.
+
+**Core Spawning Concepts:**
+- **Spawn Points**: Designated locations for player entry
+- **Spawn Protection**: Temporary invincibility after spawning
+- **Spawn Animation**: Visual effects during player creation
+- **Spawn Validation**: Security checks before allowing entry
+- **Spawn Queuing**: Managing multiple players spawning simultaneously
+
+**Advanced Spawning Features:**
+- **Dynamic Spawn Points**: Spawn locations that change based on game state
+- **Team-Based Spawning**: Different spawn points for different teams
+- **Spawn Cooldowns**: Preventing rapid respawning
+- **Spawn Zones**: Areas that trigger spawning events
+- **Custom Spawn Logic**: Complex spawning rules and conditions`,
+        codeExample: `-- Advanced player spawning system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local SpawnSystem = {}
+SpawnSystem.__index = SpawnSystem
+
+-- Spawn configuration
+local SPAWN_PROTECTION_DURATION = 3 -- seconds
+local SPAWN_COOLDOWN = 2 -- seconds
+local MAX_SPAWN_ATTEMPTS = 3
+
+-- Spawn states
+local SPAWN_STATES = {
+    IDLE = "Idle",
+    SPAWNING = "Spawning",
+    PROTECTED = "Protected",
+    ACTIVE = "Active"
+}
+
+function SpawnSystem.new()
+    local self = setmetatable({}, SpawnSystem)
+    
+    -- Spawn data
+    self.spawnPoints = {}
+    self.playerStates = {}
+    self.spawnCooldowns = {}
+    self.spawnProtection = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function SpawnSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function SpawnSystem:initializePlayer(player)
+    self.playerStates[player.UserId] = SPAWN_STATES.IDLE
+    self.spawnCooldowns[player.UserId] = 0
+    self.spawnProtection[player.UserId] = false
+    
+    -- Wait for character
+    player.CharacterAdded:Connect(function(character)
+        self:onCharacterAdded(player, character)
+    end)
+    
+    print("Initialized spawn system for", player.Name)
+end
+
+function SpawnSystem:cleanupPlayer(player)
+    self.playerStates[player.UserId] = nil
+    self.spawnCooldowns[player.UserId] = nil
+    self.spawnProtection[player.UserId] = nil
+end
+
+function SpawnSystem:onCharacterAdded(player, character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Set spawn state
+    self.playerStates[player.UserId] = SPAWN_STATES.SPAWNING
+    
+    -- Find best spawn point
+    local spawnPoint = self:findBestSpawnPoint(player)
+    if spawnPoint then
+        self:spawnPlayerAtPoint(player, character, spawnPoint)
+    else
+        self:spawnPlayerAtDefault(player, character)
+    end
+    
+    -- Apply spawn protection
+    self:applySpawnProtection(player, character)
+    
+    -- Fire spawn event
+    self:fireSpawnEvent(player, character)
+    
+    print("Spawned", player.Name, "at spawn point")
+end
+
+function SpawnSystem:findBestSpawnPoint(player)
+    local bestPoint = nil
+    local bestScore = -1
+    
+    for _, spawnPoint in pairs(self.spawnPoints) do
+        if spawnPoint.enabled then
+            local score = self:calculateSpawnScore(player, spawnPoint)
+            if score > bestScore then
+                bestScore = score
+                bestPoint = spawnPoint
+            end
+        end
+    end
+    
+    return bestPoint
+end
+
+function SpawnSystem:calculateSpawnScore(player, spawnPoint)
+    local score = 0
+    
+    -- Base score
+    score = score + spawnPoint.priority
+    
+    -- Team-based scoring
+    if spawnPoint.team and player.Team == spawnPoint.team then
+        score = score + 100
+    end
+    
+    -- Distance from other players
+    local nearbyPlayers = self:countNearbyPlayers(spawnPoint.position, 50)
+    score = score - (nearbyPlayers * 10)
+    
+    -- Spawn point capacity
+    if spawnPoint.capacity then
+        local currentPlayers = self:countPlayersAtSpawn(spawnPoint)
+        if currentPlayers < spawnPoint.capacity then
+            score = score + 50
+        else
+            score = score - 1000 -- Don't use full spawn points
+        end
+    end
+    
+    return score
+end
+
+function SpawnSystem:spawnPlayerAtPoint(player, character, spawnPoint)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Set position
+    character:SetPrimaryPartCFrame(CFrame.new(spawnPoint.position))
+    
+    -- Apply spawn effects
+    self:applySpawnEffects(character, spawnPoint)
+    
+    -- Update spawn point usage
+    self:updateSpawnPointUsage(spawnPoint, player)
+    
+    print("Spawned", player.Name, "at", spawnPoint.name)
+end
+
+function SpawnSystem:spawnPlayerAtDefault(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Use default spawn location
+    character:SetPrimaryPartCFrame(CFrame.new(0, 10, 0))
+    
+    print("Spawned", player.Name, "at default location")
+end
+
+function SpawnSystem:applySpawnProtection(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Enable spawn protection
+    self.spawnProtection[player.UserId] = true
+    self.playerStates[player.UserId] = SPAWN_STATES.PROTECTED
+    
+    -- Make player invincible
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = math.huge
+    
+    -- Add visual effect
+    self:addSpawnProtectionEffect(character)
+    
+    -- Remove protection after duration
+    wait(SPAWN_PROTECTION_DURATION)
+    
+    if character.Parent then
+        self:removeSpawnProtection(player, character)
+    end
+end
+
+function SpawnSystem:removeSpawnProtection(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Disable spawn protection
+    self.spawnProtection[player.UserId] = false
+    self.playerStates[player.UserId] = SPAWN_STATES.ACTIVE
+    
+    -- Restore normal health
+    humanoid.MaxHealth = 100
+    humanoid.Health = 100
+    
+    -- Remove visual effect
+    self:removeSpawnProtectionEffect(character)
+    
+    print("Removed spawn protection for", player.Name)
+end
+
+function SpawnSystem:addSpawnProtectionEffect(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Create protection effect
+    local protectionEffect = Instance.new("SelectionBox")
+    protectionEffect.Adornee = character
+    protectionEffect.Color3 = Color3.fromRGB(0, 255, 0)
+    protectionEffect.LineThickness = 0.2
+    protectionEffect.Transparency = 0.5
+    protectionEffect.Name = "SpawnProtection"
+    protectionEffect.Parent = character
+    
+    -- Animate effect
+    local tween = TweenService:Create(protectionEffect, 
+        TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Transparency = 0.8}
+    )
+    tween:Play()
+end
+
+function SpawnSystem:removeSpawnProtectionEffect(character)
+    local protectionEffect = character:FindFirstChild("SpawnProtection")
+    if protectionEffect then
+        protectionEffect:Destroy()
+    end
+end
+
+function SpawnSystem:applySpawnEffects(character, spawnPoint)
+    if spawnPoint.effects then
+        for _, effect in pairs(spawnPoint.effects) do
+            self:createSpawnEffect(character, effect)
+        end
+    end
+end
+
+function SpawnSystem:createSpawnEffect(character, effectData)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    if effectData.type == "particle" then
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = humanoidRootPart
+        
+        local particles = Instance.new("ParticleEmitter")
+        particles.Parent = attachment
+        particles.Texture = effectData.texture or "rbxasset://textures/particles/sparkles_main.dds"
+        particles.Lifetime = NumberRange.new(effectData.lifetime or 1)
+        particles.Rate = effectData.rate or 50
+        particles.SpreadAngle = Vector2.new(effectData.spread or 45, effectData.spread or 45)
+        particles.Speed = NumberRange.new(effectData.speed or 5)
+        particles.Color = ColorSequence.new(effectData.color or Color3.fromRGB(255, 255, 255))
+        
+        -- Clean up after duration
+        game:GetService("Debris"):AddItem(attachment, effectData.duration or 2)
+    end
+end
+
+function SpawnSystem:addSpawnPoint(name, position, options)
+    local spawnPoint = {
+        name = name,
+        position = position,
+        enabled = options.enabled or true,
+        priority = options.priority or 50,
+        team = options.team,
+        capacity = options.capacity,
+        effects = options.effects or {},
+        currentPlayers = 0
+    }
+    
+    self.spawnPoints[name] = spawnPoint
+    
+    print("Added spawn point:", name, "at", position)
+end
+
+function SpawnSystem:removeSpawnPoint(name)
+    self.spawnPoints[name] = nil
+    print("Removed spawn point:", name)
+end
+
+function SpawnSystem:enableSpawnPoint(name, enabled)
+    if self.spawnPoints[name] then
+        self.spawnPoints[name].enabled = enabled
+        print("Spawn point", name, "enabled:", enabled)
+    end
+end
+
+function SpawnSystem:countNearbyPlayers(position, radius)
+    local count = 0
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+            if distance <= radius then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count
+end
+
+function SpawnSystem:countPlayersAtSpawn(spawnPoint)
+    return spawnPoint.currentPlayers or 0
+end
+
+function SpawnSystem:updateSpawnPointUsage(spawnPoint, player)
+    if spawnPoint.capacity then
+        spawnPoint.currentPlayers = spawnPoint.currentPlayers + 1
+        
+        -- Decrease count when player leaves
+        player.CharacterRemoving:Connect(function()
+            spawnPoint.currentPlayers = math.max(0, spawnPoint.currentPlayers - 1)
+        end)
+    end
+end
+
+function SpawnSystem:fireSpawnEvent(player, character)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("SpawnEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "SpawnEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "PlayerSpawned",
+        player = player,
+        character = character,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local spawnSystem = SpawnSystem.new()
+
+-- Add spawn points
+spawnSystem:addSpawnPoint("Team1Spawn", Vector3.new(0, 5, 0), {
+    enabled = true,
+    priority = 100,
+    team = game.Teams.Team1,
+    capacity = 5,
+    effects = {
+        {type = "particle", texture = "rbxasset://textures/particles/fire_main.dds", color = Color3.fromRGB(255, 0, 0)}
+    }
+})
+
+spawnSystem:addSpawnPoint("Team2Spawn", Vector3.new(50, 5, 0), {
+    enabled = true,
+    priority = 100,
+    team = game.Teams.Team2,
+    capacity = 5,
+    effects = {
+        {type = "particle", texture = "rbxasset://textures/particles/fire_main.dds", color = Color3.fromRGB(0, 0, 255)}
+    }
+})
+
+print("Spawn system initialized with", #spawnSystem.spawnPoints, "spawn points")`,
+        color: 'blue'
+      },
+      {
+        title: 'Team Management Systems',
+        content: `Create comprehensive team management systems for competitive and cooperative gameplay.
+
+**Team System Features:**
+- **Team Creation**: Dynamic team formation and management
+- **Team Balancing**: Automatic team size and skill balancing
+- **Team Colors**: Visual identification and customization
+- **Team Chat**: Communication within teams
+- **Team Objectives**: Shared goals and missions
+- **Team Statistics**: Performance tracking and analytics
+
+**Advanced Team Mechanics:**
+- **Team Switching**: Rules and cooldowns for changing teams
+- **Team Leaders**: Special permissions and responsibilities
+- **Team Events**: Notifications and celebrations
+- **Team Persistence**: Saving team data across sessions
+- **Team Matchmaking**: Skill-based team formation`,
+        codeExample: `-- Comprehensive team management system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Teams = game:GetService("Teams")
+
+local TeamManager = {}
+TeamManager.__index = TeamManager
+
+-- Team configuration
+local MAX_TEAM_SIZE = 8
+local MIN_TEAM_SIZE = 1
+local TEAM_SWITCH_COOLDOWN = 30 -- seconds
+local AUTO_BALANCE_THRESHOLD = 2 -- players difference
+
+-- Team colors
+local TEAM_COLORS = {
+    Color3.fromRGB(255, 0, 0),    -- Red
+    Color3.fromRGB(0, 0, 255),    -- Blue
+    Color3.fromRGB(0, 255, 0),    -- Green
+    Color3.fromRGB(255, 255, 0),  -- Yellow
+    Color3.fromRGB(255, 0, 255),  -- Magenta
+    Color3.fromRGB(0, 255, 255),  -- Cyan
+    Color3.fromRGB(255, 128, 0),  -- Orange
+    Color3.fromRGB(128, 0, 255)   -- Purple
+}
+
+function TeamManager.new()
+    local self = setmetatable({}, TeamManager)
+    
+    -- Team data
+    self.teams = {}
+    self.teamLeaders = {}
+    self.teamSwitchCooldowns = {}
+    self.teamStatistics = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function TeamManager:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function TeamManager:initializePlayer(player)
+    self.teamSwitchCooldowns[player.UserId] = 0
+    
+    -- Auto-assign to team if needed
+    if not player.Team then
+        self:autoAssignTeam(player)
+    end
+    
+    print("Initialized team management for", player.Name)
+end
+
+function TeamManager:cleanupPlayer(player)
+    self.teamSwitchCooldowns[player.UserId] = nil
+    
+    -- Update team statistics
+    if player.Team then
+        self:updateTeamStatistics(player.Team, "player_left")
+    end
+end
+
+function TeamManager:createTeam(name, color, options)
+    local team = Instance.new("Team")
+    team.Name = name
+    team.TeamColor = color or self:getNextAvailableColor()
+    team.AutoAssignable = options.autoAssignable or true
+    team.Parent = Teams
+    
+    -- Initialize team data
+    self.teams[team] = {
+        name = name,
+        color = team.TeamColor,
+        leader = nil,
+        members = {},
+        statistics = {
+            wins = 0,
+            losses = 0,
+            totalGames = 0,
+            totalKills = 0,
+            totalDeaths = 0,
+            totalScore = 0
+        },
+        settings = {
+            maxSize = options.maxSize or MAX_TEAM_SIZE,
+            minSize = options.minSize or MIN_TEAM_SIZE,
+            allowSwitching = options.allowSwitching or true,
+            private = options.private or false
+        }
+    }
+    
+    -- Initialize team statistics
+    self.teamStatistics[team] = self.teams[team].statistics
+    
+    print("Created team:", name, "with color", team.TeamColor)
+    
+    return team
+end
+
+function TeamManager:removeTeam(team)
+    if self.teams[team] then
+        -- Move all players to neutral team
+        for _, player in pairs(team:GetPlayers()) do
+            player.Team = nil
+        end
+        
+        -- Clean up team data
+        self.teams[team] = nil
+        self.teamStatistics[team] = nil
+        
+        -- Destroy team
+        team:Destroy()
+        
+        print("Removed team:", team.Name)
+    end
+end
+
+function TeamManager:addPlayerToTeam(player, team)
+    if not self.teams[team] then
+        return false, "Team does not exist"
+    end
+    
+    local teamData = self.teams[team]
+    
+    -- Check team capacity
+    if #team:GetPlayers() >= teamData.settings.maxSize then
+        return false, "Team is full"
+    end
+    
+    -- Check if player is already on a team
+    if player.Team then
+        local success, message = self:removePlayerFromTeam(player)
+        if not success then
+            return false, message
+        end
+    end
+    
+    -- Add player to team
+    player.Team = team
+    teamData.members[player.UserId] = {
+        player = player,
+        joinedAt = tick(),
+        role = "Member"
+    }
+    
+    -- Set team leader if first player
+    if #team:GetPlayers() == 1 then
+        self:setTeamLeader(team, player)
+    end
+    
+    -- Update team statistics
+    self:updateTeamStatistics(team, "player_joined")
+    
+    -- Fire team event
+    self:fireTeamEvent("PlayerJoinedTeam", team, player)
+    
+    print("Added", player.Name, "to team", team.Name)
+    
+    return true, "Successfully joined team"
+end
+
+function TeamManager:removePlayerFromTeam(player)
+    if not player.Team then
+        return false, "Player is not on a team"
+    end
+    
+    local team = player.Team
+    local teamData = self.teams[team]
+    
+    if not teamData then
+        return false, "Team data not found"
+    end
+    
+    -- Remove player from team data
+    teamData.members[player.UserId] = nil
+    
+    -- Remove team leader if they're leaving
+    if self.teamLeaders[team] == player then
+        self:removeTeamLeader(team)
+    end
+    
+    -- Remove player from team
+    player.Team = nil
+    
+    -- Update team statistics
+    self:updateTeamStatistics(team, "player_left")
+    
+    -- Fire team event
+    self:fireTeamEvent("PlayerLeftTeam", team, player)
+    
+    print("Removed", player.Name, "from team", team.Name)
+    
+    return true, "Successfully left team"
+end
+
+function TeamManager:setTeamLeader(team, player)
+    if not self.teams[team] then
+        return false
+    end
+    
+    local teamData = self.teams[team]
+    
+    -- Check if player is on the team
+    if not teamData.members[player.UserId] then
+        return false
+    end
+    
+    -- Remove previous leader
+    if self.teamLeaders[team] then
+        local previousLeader = self.teamLeaders[team]
+        if teamData.members[previousLeader.UserId] then
+            teamData.members[previousLeader.UserId].role = "Member"
+        end
+    end
+    
+    -- Set new leader
+    self.teamLeaders[team] = player
+    teamData.members[player.UserId].role = "Leader"
+    teamData.leader = player
+    
+    -- Fire team event
+    self:fireTeamEvent("TeamLeaderChanged", team, player)
+    
+    print("Set", player.Name, "as leader of team", team.Name)
+    
+    return true
+end
+
+function TeamManager:removeTeamLeader(team)
+    if not self.teams[team] then
+        return false
+    end
+    
+    local teamData = self.teams[team]
+    local previousLeader = self.teamLeaders[team]
+    
+    if previousLeader and teamData.members[previousLeader.UserId] then
+        teamData.members[previousLeader.UserId].role = "Member"
+    end
+    
+    self.teamLeaders[team] = nil
+    teamData.leader = nil
+    
+    -- Assign new leader if team has members
+    local players = team:GetPlayers()
+    if #players > 0 then
+        self:setTeamLeader(team, players[1])
+    end
+    
+    print("Removed team leader from", team.Name)
+    
+    return true
+end
+
+function TeamManager:switchPlayerTeam(player, newTeam)
+    if not self.teams[newTeam] then
+        return false, "Team does not exist"
+    end
+    
+    local teamData = self.teams[newTeam]
+    
+    -- Check if switching is allowed
+    if not teamData.settings.allowSwitching then
+        return false, "Team switching is not allowed"
+    end
+    
+    -- Check cooldown
+    if tick() - self.teamSwitchCooldowns[player.UserId] < TEAM_SWITCH_COOLDOWN then
+        local remainingTime = TEAM_SWITCH_COOLDOWN - (tick() - self.teamSwitchCooldowns[player.UserId])
+        return false, "Team switch cooldown: " .. math.ceil(remainingTime) .. " seconds"
+    end
+    
+    -- Add player to new team
+    local success, message = self:addPlayerToTeam(player, newTeam)
+    if success then
+        self.teamSwitchCooldowns[player.UserId] = tick()
+        return true, "Successfully switched teams"
+    else
+        return false, message
+    end
+end
+
+function TeamManager:autoAssignTeam(player)
+    local bestTeam = self:findBestTeamForPlayer(player)
+    if bestTeam then
+        self:addPlayerToTeam(player, bestTeam)
+    end
+end
+
+function TeamManager:findBestTeamForPlayer(player)
+    local bestTeam = nil
+    local bestScore = math.huge
+    
+    for team, teamData in pairs(self.teams) do
+        if teamData.settings.autoAssignable and not teamData.settings.private then
+            local playerCount = #team:GetPlayers()
+            local capacity = teamData.settings.maxSize
+            
+            if playerCount < capacity then
+                local score = playerCount -- Prefer teams with fewer players
+                if score < bestScore then
+                    bestScore = score
+                    bestTeam = team
+                end
+            end
+        end
+    end
+    
+    return bestTeam
+end
+
+function TeamManager:balanceTeams()
+    local allPlayers = {}
+    local teamCounts = {}
+    
+    -- Count players in each team
+    for team, teamData in pairs(self.teams) do
+        local count = #team:GetPlayers()
+        teamCounts[team] = count
+        
+        -- Add players to list
+        for _, player in pairs(team:GetPlayers()) do
+            table.insert(allPlayers, player)
+        end
+    end
+    
+    -- Check if balancing is needed
+    local maxCount = 0
+    local minCount = math.huge
+    
+    for _, count in pairs(teamCounts) do
+        maxCount = math.max(maxCount, count)
+        minCount = math.min(minCount, count)
+    end
+    
+    if maxCount - minCount > AUTO_BALANCE_THRESHOLD then
+        self:performTeamBalancing(allPlayers, teamCounts)
+    end
+end
+
+function TeamManager:performTeamBalancing(players, teamCounts)
+    -- Sort teams by player count
+    local sortedTeams = {}
+    for team, count in pairs(teamCounts) do
+        table.insert(sortedTeams, {team = team, count = count})
+    end
+    
+    table.sort(sortedTeams, function(a, b)
+        return a.count < b.count
+    end)
+    
+    -- Redistribute players
+    local targetCount = math.floor(#players / #sortedTeams)
+    local extraPlayers = #players % #sortedTeams
+    
+    for i, teamData in ipairs(sortedTeams) do
+        local team = teamData.team
+        local currentCount = #team:GetPlayers()
+        local target = targetCount + (i <= extraPlayers and 1 or 0)
+        
+        if currentCount > target then
+            -- Move excess players to other teams
+            local excess = currentCount - target
+            local playersToMove = {}
+            
+            for _, player in pairs(team:GetPlayers()) do
+                table.insert(playersToMove, player)
+                if #playersToMove >= excess then
+                    break
+                end
+            end
+            
+            for _, player in ipairs(playersToMove) do
+                self:removePlayerFromTeam(player)
+                self:autoAssignTeam(player)
+            end
+        end
+    end
+    
+    print("Performed team balancing")
+end
+
+function TeamManager:updateTeamStatistics(team, event)
+    if not self.teamStatistics[team] then
+        return
+    end
+    
+    local stats = self.teamStatistics[team]
+    
+    if event == "player_joined" then
+        -- Update team size statistics
+    elseif event == "player_left" then
+        -- Update team size statistics
+    elseif event == "game_won" then
+        stats.wins = stats.wins + 1
+        stats.totalGames = stats.totalGames + 1
+    elseif event == "game_lost" then
+        stats.losses = stats.losses + 1
+        stats.totalGames = stats.totalGames + 1
+    elseif event == "kill" then
+        stats.totalKills = stats.totalKills + 1
+    elseif event == "death" then
+        stats.totalDeaths = stats.totalDeaths + 1
+    end
+end
+
+function TeamManager:getNextAvailableColor()
+    local usedColors = {}
+    
+    for team, teamData in pairs(self.teams) do
+        usedColors[teamData.color] = true
+    end
+    
+    for _, color in ipairs(TEAM_COLORS) do
+        if not usedColors[color] then
+            return color
+        end
+    end
+    
+    -- If all colors are used, return a random one
+    return TEAM_COLORS[math.random(1, #TEAM_COLORS)]
+end
+
+function TeamManager:fireTeamEvent(eventName, team, player)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("TeamEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "TeamEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        team = team,
+        player = player,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local teamManager = TeamManager.new()
+
+-- Create teams
+local redTeam = teamManager:createTeam("Red Team", Color3.fromRGB(255, 0, 0), {
+    maxSize = 4,
+    autoAssignable = true
+})
+
+local blueTeam = teamManager:createTeam("Blue Team", Color3.fromRGB(0, 0, 255), {
+    maxSize = 4,
+    autoAssignable = true
+})
+
+print("Team management system initialized with", #teamManager.teams, "teams")`,
+        color: 'green'
+      },
+      {
+        title: 'Matchmaking & Game Modes',
+        content: `Implement sophisticated matchmaking systems and game mode management for competitive gameplay.
+
+**Matchmaking Features:**
+- **Skill-Based Matching**: Pair players of similar skill levels
+- **Queue Systems**: Manage player waiting lists
+- **Match Creation**: Automatically form balanced matches
+- **Match Validation**: Ensure fair and valid matches
+- **Match Statistics**: Track performance and outcomes
+
+**Game Mode Management:**
+- **Mode Selection**: Choose from available game modes
+- **Mode Configuration**: Customize rules and settings
+- **Mode Rotation**: Automatic switching between modes
+- **Mode Statistics**: Track mode popularity and performance
+- **Mode Events**: Special events and tournaments`,
+        codeExample: `-- Advanced matchmaking and game mode system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local MatchmakingSystem = {}
+MatchmakingSystem.__index = MatchmakingSystem
+
+-- Matchmaking configuration
+local QUEUE_TIMEOUT = 300 -- seconds
+local MIN_PLAYERS_PER_MATCH = 2
+local MAX_PLAYERS_PER_MATCH = 16
+local SKILL_RANGE = 200 -- MMR difference for matching
+
+-- Game modes
+local GAME_MODES = {
+    DEATHMATCH = {
+        name = "Deathmatch",
+        minPlayers = 2,
+        maxPlayers = 8,
+        duration = 300, -- 5 minutes
+        description = "Eliminate opponents to score points"
+    },
+    TEAM_DEATHMATCH = {
+        name = "Team Deathmatch",
+        minPlayers = 4,
+        maxPlayers = 16,
+        duration = 600, -- 10 minutes
+        description = "Team-based elimination match"
+    },
+    CAPTURE_THE_FLAG = {
+        name = "Capture the Flag",
+        minPlayers = 4,
+        maxPlayers = 16,
+        duration = 900, -- 15 minutes
+        description = "Capture enemy flags to win"
+    },
+    KING_OF_THE_HILL = {
+        name = "King of the Hill",
+        minPlayers = 4,
+        maxPlayers = 12,
+        duration = 600, -- 10 minutes
+        description = "Control the hill to earn points"
+    }
+}
+
+function MatchmakingSystem.new()
+    local self = setmetatable({}, MatchmakingSystem)
+    
+    -- Matchmaking data
+    self.queues = {}
+    self.activeMatches = {}
+    self.playerMMR = {}
+    self.matchHistory = {}
+    
+    -- Game mode data
+    self.currentGameMode = GAME_MODES.DEATHMATCH
+    self.gameModeRotation = {}
+    self.modeStatistics = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function MatchmakingSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function MatchmakingSystem:initializePlayer(player)
+    -- Initialize MMR
+    self.playerMMR[player.UserId] = 1000 -- Starting MMR
+    
+    print("Initialized matchmaking for", player.Name, "MMR:", self.playerMMR[player.UserId])
+end
+
+function MatchmakingSystem:cleanupPlayer(player)
+    -- Remove from all queues
+    self:removePlayerFromQueues(player)
+    
+    -- Clean up MMR data
+    self.playerMMR[player.UserId] = nil
+end
+
+function MatchmakingSystem:addPlayerToQueue(player, gameMode)
+    if not GAME_MODES[gameMode] then
+        return false, "Invalid game mode"
+    end
+    
+    -- Remove player from other queues
+    self:removePlayerFromQueues(player)
+    
+    -- Add to queue
+    local queueData = {
+        player = player,
+        gameMode = gameMode,
+        joinTime = tick(),
+        mmr = self.playerMMR[player.UserId] or 1000
+    }
+    
+    if not self.queues[gameMode] then
+        self.queues[gameMode] = {}
+    end
+    
+    table.insert(self.queues[gameMode], queueData)
+    
+    -- Fire queue event
+    self:fireQueueEvent("PlayerJoinedQueue", player, gameMode)
+    
+    -- Try to create match
+    self:tryCreateMatch(gameMode)
+    
+    print("Added", player.Name, "to", gameMode, "queue")
+    
+    return true, "Successfully joined queue"
+end
+
+function MatchmakingSystem:removePlayerFromQueues(player)
+    for gameMode, queue in pairs(self.queues) do
+        for i, queueData in ipairs(queue) do
+            if queueData.player == player then
+                table.remove(queue, i)
+                self:fireQueueEvent("PlayerLeftQueue", player, gameMode)
+                print("Removed", player.Name, "from", gameMode, "queue")
+                break
+            end
+        end
+    end
+end
+
+function MatchmakingSystem:tryCreateMatch(gameMode)
+    local queue = self.queues[gameMode]
+    if not queue or #queue < GAME_MODES[gameMode].minPlayers then
+        return false
+    end
+    
+    -- Sort queue by MMR
+    table.sort(queue, function(a, b)
+        return a.mmr < b.mmr
+    end)
+    
+    -- Find players within skill range
+    local matchPlayers = {}
+    local baseMMR = queue[1].mmr
+    
+    for _, queueData in ipairs(queue) do
+        if #matchPlayers >= GAME_MODES[gameMode].maxPlayers then
+            break
+        end
+        
+        if math.abs(queueData.mmr - baseMMR) <= SKILL_RANGE then
+            table.insert(matchPlayers, queueData)
+        end
+    end
+    
+    -- Check if we have enough players
+    if #matchPlayers >= GAME_MODES[gameMode].minPlayers then
+        self:createMatch(gameMode, matchPlayers)
+        return true
+    end
+    
+    return false
+end
+
+function MatchmakingSystem:createMatch(gameMode, players)
+    local matchId = "match_" .. tick() .. "_" .. math.random(1000, 9999)
+    
+    local match = {
+        id = matchId,
+        gameMode = gameMode,
+        players = {},
+        teams = {},
+        startTime = tick(),
+        endTime = nil,
+        status = "Starting",
+        settings = GAME_MODES[gameMode]
+    }
+    
+    -- Add players to match
+    for _, queueData in ipairs(players) do
+        table.insert(match.players, queueData.player)
+        
+        -- Remove from queue
+        self:removePlayerFromQueues(queueData.player)
+    end
+    
+    -- Create teams if needed
+    if gameMode == "TEAM_DEATHMATCH" or gameMode == "CAPTURE_THE_FLAG" then
+        self:createTeamsForMatch(match)
+    end
+    
+    -- Store active match
+    self.activeMatches[matchId] = match
+    
+    -- Fire match created event
+    self:fireMatchEvent("MatchCreated", match)
+    
+    -- Start match
+    self:startMatch(match)
+    
+    print("Created match", matchId, "with", #match.players, "players")
+end
+
+function MatchmakingSystem:createTeamsForMatch(match)
+    local players = match.players
+    local teamCount = 2
+    
+    -- Shuffle players
+    for i = #players, 2, -1 do
+        local j = math.random(i)
+        players[i], players[j] = players[j], players[i]
+    end
+    
+    -- Distribute players to teams
+    for i, player in ipairs(players) do
+        local teamIndex = ((i - 1) % teamCount) + 1
+        
+        if not match.teams[teamIndex] then
+            match.teams[teamIndex] = {
+                name = "Team " .. teamIndex,
+                players = {},
+                score = 0
+            }
+        end
+        
+        table.insert(match.teams[teamIndex].players, player)
+    end
+    
+    print("Created", teamCount, "teams for match", match.id)
+end
+
+function MatchmakingSystem:startMatch(match)
+    match.status = "Active"
+    
+    -- Fire match started event
+    self:fireMatchEvent("MatchStarted", match)
+    
+    -- Set match timer
+    spawn(function()
+        wait(match.settings.duration)
+        self:endMatch(match)
+    end)
+    
+    print("Started match", match.id)
+end
+
+function MatchmakingSystem:endMatch(match)
+    match.status = "Ended"
+    match.endTime = tick()
+    
+    -- Calculate results
+    local results = self:calculateMatchResults(match)
+    
+    -- Update player MMR
+    self:updatePlayerMMR(match, results)
+    
+    -- Store match history
+    self:storeMatchHistory(match, results)
+    
+    -- Fire match ended event
+    self:fireMatchEvent("MatchEnded", match, results)
+    
+    -- Clean up match
+    self.activeMatches[match.id] = nil
+    
+    print("Ended match", match.id)
+end
+
+function MatchmakingSystem:calculateMatchResults(match)
+    local results = {
+        winners = {},
+        losers = {},
+        scores = {},
+        duration = match.endTime - match.startTime
+    }
+    
+    if match.teams and #match.teams > 0 then
+        -- Team-based match
+        local winningTeam = nil
+        local highestScore = -1
+        
+        for _, team in pairs(match.teams) do
+            if team.score > highestScore then
+                highestScore = team.score
+                winningTeam = team
+            end
+        end
+        
+        for _, team in pairs(match.teams) do
+            if team == winningTeam then
+                for _, player in ipairs(team.players) do
+                    table.insert(results.winners, player)
+                end
+            else
+                for _, player in ipairs(team.players) do
+                    table.insert(results.losers, player)
+                end
+            end
+        end
+    else
+        -- Free-for-all match
+        -- This would need to be implemented based on game mode
+        results.winners = match.players
+    end
+    
+    return results
+end
+
+function MatchmakingSystem:updatePlayerMMR(match, results)
+    for _, player in ipairs(results.winners) do
+        self.playerMMR[player.UserId] = (self.playerMMR[player.UserId] or 1000) + 25
+    end
+    
+    for _, player in ipairs(results.losers) do
+        self.playerMMR[player.UserId] = math.max(0, (self.playerMMR[player.UserId] or 1000) - 25)
+    end
+end
+
+function MatchmakingSystem:storeMatchHistory(match, results)
+    local historyEntry = {
+        matchId = match.id,
+        gameMode = match.gameMode,
+        players = match.players,
+        results = results,
+        startTime = match.startTime,
+        endTime = match.endTime,
+        duration = results.duration
+    }
+    
+    table.insert(self.matchHistory, historyEntry)
+    
+    -- Keep only last 100 matches
+    if #self.matchHistory > 100 then
+        table.remove(self.matchHistory, 1)
+    end
+end
+
+function MatchmakingSystem:setGameMode(gameMode)
+    if GAME_MODES[gameMode] then
+        self.currentGameMode = GAME_MODES[gameMode]
+        self:fireGameModeEvent("GameModeChanged", gameMode)
+        print("Changed game mode to", gameMode)
+    end
+end
+
+function MatchmakingSystem:getPlayerMMR(player)
+    return self.playerMMR[player.UserId] or 1000
+end
+
+function MatchmakingSystem:getQueueStatus(gameMode)
+    local queue = self.queues[gameMode]
+    if not queue then
+        return 0
+    end
+    
+    return #queue
+end
+
+function MatchmakingSystem:fireQueueEvent(eventName, player, gameMode)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("QueueEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "QueueEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = eventName,
+        gameMode = gameMode,
+        queueSize = self:getQueueStatus(gameMode),
+        timestamp = tick()
+    })
+end
+
+function MatchmakingSystem:fireMatchEvent(eventName, match, results)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("MatchEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "MatchEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        match = match,
+        results = results,
+        timestamp = tick()
+    })
+end
+
+function MatchmakingSystem:fireGameModeEvent(eventName, gameMode)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("GameModeEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "GameModeEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        gameMode = gameMode,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local matchmakingSystem = MatchmakingSystem.new()
+
+-- Test matchmaking
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Add player to deathmatch queue
+    matchmakingSystem:addPlayerToQueue(player, "DEATHMATCH")
+    
+    print("Added", player.Name, "to matchmaking queue")
+end)
+
+print("Matchmaking system initialized with", #GAME_MODES, "game modes")`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Player Spawning & Team Management - Comprehensive Learning Example
+-- Master player spawning, team systems, and multiplayer coordination
+
+print("=== PLAYER SPAWNING & TEAM MANAGEMENT DEMO ===")
+print("Learning player spawning and team management systems...")
+
+-- 1. PLAYER SPAWNING SYSTEMS
+print("\\n1. DEMONSTRATING PLAYER SPAWNING SYSTEMS...")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local SpawnSystem = {}
+SpawnSystem.__index = SpawnSystem
+
+-- Spawn configuration
+local SPAWN_PROTECTION_DURATION = 3 -- seconds
+local SPAWN_COOLDOWN = 2 -- seconds
+local MAX_SPAWN_ATTEMPTS = 3
+
+-- Spawn states
+local SPAWN_STATES = {
+    IDLE = "Idle",
+    SPAWNING = "Spawning",
+    PROTECTED = "Protected",
+    ACTIVE = "Active"
+}
+
+function SpawnSystem.new()
+    local self = setmetatable({}, SpawnSystem)
+    
+    -- Spawn data
+    self.spawnPoints = {}
+    self.playerStates = {}
+    self.spawnCooldowns = {}
+    self.spawnProtection = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function SpawnSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function SpawnSystem:initializePlayer(player)
+    self.playerStates[player.UserId] = SPAWN_STATES.IDLE
+    self.spawnCooldowns[player.UserId] = 0
+    self.spawnProtection[player.UserId] = false
+    
+    -- Wait for character
+    player.CharacterAdded:Connect(function(character)
+        self:onCharacterAdded(player, character)
+    end)
+    
+    print("Initialized spawn system for", player.Name)
+end
+
+function SpawnSystem:cleanupPlayer(player)
+    self.playerStates[player.UserId] = nil
+    self.spawnCooldowns[player.UserId] = nil
+    self.spawnProtection[player.UserId] = nil
+end
+
+function SpawnSystem:onCharacterAdded(player, character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Set spawn state
+    self.playerStates[player.UserId] = SPAWN_STATES.SPAWNING
+    
+    -- Find best spawn point
+    local spawnPoint = self:findBestSpawnPoint(player)
+    if spawnPoint then
+        self:spawnPlayerAtPoint(player, character, spawnPoint)
+    else
+        self:spawnPlayerAtDefault(player, character)
+    end
+    
+    -- Apply spawn protection
+    self:applySpawnProtection(player, character)
+    
+    -- Fire spawn event
+    self:fireSpawnEvent(player, character)
+    
+    print("Spawned", player.Name, "at spawn point")
+end
+
+function SpawnSystem:findBestSpawnPoint(player)
+    local bestPoint = nil
+    local bestScore = -1
+    
+    for _, spawnPoint in pairs(self.spawnPoints) do
+        if spawnPoint.enabled then
+            local score = self:calculateSpawnScore(player, spawnPoint)
+            if score > bestScore then
+                bestScore = score
+                bestPoint = spawnPoint
+            end
+        end
+    end
+    
+    return bestPoint
+end
+
+function SpawnSystem:calculateSpawnScore(player, spawnPoint)
+    local score = 0
+    
+    -- Base score
+    score = score + spawnPoint.priority
+    
+    -- Team-based scoring
+    if spawnPoint.team and player.Team == spawnPoint.team then
+        score = score + 100
+    end
+    
+    -- Distance from other players
+    local nearbyPlayers = self:countNearbyPlayers(spawnPoint.position, 50)
+    score = score - (nearbyPlayers * 10)
+    
+    -- Spawn point capacity
+    if spawnPoint.capacity then
+        local currentPlayers = self:countPlayersAtSpawn(spawnPoint)
+        if currentPlayers < spawnPoint.capacity then
+            score = score + 50
+        else
+            score = score - 1000 -- Don't use full spawn points
+        end
+    end
+    
+    return score
+end
+
+function SpawnSystem:spawnPlayerAtPoint(player, character, spawnPoint)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Set position
+    character:SetPrimaryPartCFrame(CFrame.new(spawnPoint.position))
+    
+    -- Apply spawn effects
+    self:applySpawnEffects(character, spawnPoint)
+    
+    -- Update spawn point usage
+    self:updateSpawnPointUsage(spawnPoint, player)
+    
+    print("Spawned", player.Name, "at", spawnPoint.name)
+end
+
+function SpawnSystem:spawnPlayerAtDefault(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Use default spawn location
+    character:SetPrimaryPartCFrame(CFrame.new(0, 10, 0))
+    
+    print("Spawned", player.Name, "at default location")
+end
+
+function SpawnSystem:applySpawnProtection(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Enable spawn protection
+    self.spawnProtection[player.UserId] = true
+    self.playerStates[player.UserId] = SPAWN_STATES.PROTECTED
+    
+    -- Make player invincible
+    humanoid.MaxHealth = math.huge
+    humanoid.Health = math.huge
+    
+    -- Add visual effect
+    self:addSpawnProtectionEffect(character)
+    
+    -- Remove protection after duration
+    wait(SPAWN_PROTECTION_DURATION)
+    
+    if character.Parent then
+        self:removeSpawnProtection(player, character)
+    end
+end
+
+function SpawnSystem:removeSpawnProtection(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Disable spawn protection
+    self.spawnProtection[player.UserId] = false
+    self.playerStates[player.UserId] = SPAWN_STATES.ACTIVE
+    
+    -- Restore normal health
+    humanoid.MaxHealth = 100
+    humanoid.Health = 100
+    
+    -- Remove visual effect
+    self:removeSpawnProtectionEffect(character)
+    
+    print("Removed spawn protection for", player.Name)
+end
+
+function SpawnSystem:addSpawnProtectionEffect(character)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Create protection effect
+    local protectionEffect = Instance.new("SelectionBox")
+    protectionEffect.Adornee = character
+    protectionEffect.Color3 = Color3.fromRGB(0, 255, 0)
+    protectionEffect.LineThickness = 0.2
+    protectionEffect.Transparency = 0.5
+    protectionEffect.Name = "SpawnProtection"
+    protectionEffect.Parent = character
+    
+    -- Animate effect
+    local tween = TweenService:Create(protectionEffect, 
+        TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Transparency = 0.8}
+    )
+    tween:Play()
+end
+
+function SpawnSystem:removeSpawnProtectionEffect(character)
+    local protectionEffect = character:FindFirstChild("SpawnProtection")
+    if protectionEffect then
+        protectionEffect:Destroy()
+    end
+end
+
+function SpawnSystem:applySpawnEffects(character, spawnPoint)
+    if spawnPoint.effects then
+        for _, effect in pairs(spawnPoint.effects) do
+            self:createSpawnEffect(character, effect)
+        end
+    end
+end
+
+function SpawnSystem:createSpawnEffect(character, effectData)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    if effectData.type == "particle" then
+        local attachment = Instance.new("Attachment")
+        attachment.Parent = humanoidRootPart
+        
+        local particles = Instance.new("ParticleEmitter")
+        particles.Parent = attachment
+        particles.Texture = effectData.texture or "rbxasset://textures/particles/sparkles_main.dds"
+        particles.Lifetime = NumberRange.new(effectData.lifetime or 1)
+        particles.Rate = effectData.rate or 50
+        particles.SpreadAngle = Vector2.new(effectData.spread or 45, effectData.spread or 45)
+        particles.Speed = NumberRange.new(effectData.speed or 5)
+        particles.Color = ColorSequence.new(effectData.color or Color3.fromRGB(255, 255, 255))
+        
+        -- Clean up after duration
+        game:GetService("Debris"):AddItem(attachment, effectData.duration or 2)
+    end
+end
+
+function SpawnSystem:addSpawnPoint(name, position, options)
+    local spawnPoint = {
+        name = name,
+        position = position,
+        enabled = options.enabled or true,
+        priority = options.priority or 50,
+        team = options.team,
+        capacity = options.capacity,
+        effects = options.effects or {},
+        currentPlayers = 0
+    }
+    
+    self.spawnPoints[name] = spawnPoint
+    
+    print("Added spawn point:", name, "at", position)
+end
+
+function SpawnSystem:removeSpawnPoint(name)
+    self.spawnPoints[name] = nil
+    print("Removed spawn point:", name)
+end
+
+function SpawnSystem:enableSpawnPoint(name, enabled)
+    if self.spawnPoints[name] then
+        self.spawnPoints[name].enabled = enabled
+        print("Spawn point", name, "enabled:", enabled)
+    end
+end
+
+function SpawnSystem:countNearbyPlayers(position, radius)
+    local count = 0
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
+            if distance <= radius then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count
+end
+
+function SpawnSystem:countPlayersAtSpawn(spawnPoint)
+    return spawnPoint.currentPlayers or 0
+end
+
+function SpawnSystem:updateSpawnPointUsage(spawnPoint, player)
+    if spawnPoint.capacity then
+        spawnPoint.currentPlayers = spawnPoint.currentPlayers + 1
+        
+        -- Decrease count when player leaves
+        player.CharacterRemoving:Connect(function()
+            spawnPoint.currentPlayers = math.max(0, spawnPoint.currentPlayers - 1)
+        end)
+    end
+end
+
+function SpawnSystem:fireSpawnEvent(player, character)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("SpawnEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "SpawnEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "PlayerSpawned",
+        player = player,
+        character = character,
+        timestamp = tick()
+    })
+end
+
+-- 2. TEAM MANAGEMENT SYSTEMS
+print("\\n2. DEMONSTRATING TEAM MANAGEMENT SYSTEMS...")
+
+local TeamManager = {}
+TeamManager.__index = TeamManager
+
+-- Team configuration
+local MAX_TEAM_SIZE = 8
+local MIN_TEAM_SIZE = 1
+local TEAM_SWITCH_COOLDOWN = 30 -- seconds
+local AUTO_BALANCE_THRESHOLD = 2 -- players difference
+
+-- Team colors
+local TEAM_COLORS = {
+    Color3.fromRGB(255, 0, 0),    -- Red
+    Color3.fromRGB(0, 0, 255),    -- Blue
+    Color3.fromRGB(0, 255, 0),    -- Green
+    Color3.fromRGB(255, 255, 0),  -- Yellow
+    Color3.fromRGB(255, 0, 255),  -- Magenta
+    Color3.fromRGB(0, 255, 255),  -- Cyan
+    Color3.fromRGB(255, 128, 0),  -- Orange
+    Color3.fromRGB(128, 0, 255)   -- Purple
+}
+
+function TeamManager.new()
+    local self = setmetatable({}, TeamManager)
+    
+    -- Team data
+    self.teams = {}
+    self.teamLeaders = {}
+    self.teamSwitchCooldowns = {}
+    self.teamStatistics = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function TeamManager:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function TeamManager:initializePlayer(player)
+    self.teamSwitchCooldowns[player.UserId] = 0
+    
+    -- Auto-assign to team if needed
+    if not player.Team then
+        self:autoAssignTeam(player)
+    end
+    
+    print("Initialized team management for", player.Name)
+end
+
+function TeamManager:cleanupPlayer(player)
+    self.teamSwitchCooldowns[player.UserId] = nil
+    
+    -- Update team statistics
+    if player.Team then
+        self:updateTeamStatistics(player.Team, "player_left")
+    end
+end
+
+function TeamManager:createTeam(name, color, options)
+    local team = Instance.new("Team")
+    team.Name = name
+    team.TeamColor = color or self:getNextAvailableColor()
+    team.AutoAssignable = options.autoAssignable or true
+    team.Parent = Teams
+    
+    -- Initialize team data
+    self.teams[team] = {
+        name = name,
+        color = team.TeamColor,
+        leader = nil,
+        members = {},
+        statistics = {
+            wins = 0,
+            losses = 0,
+            totalGames = 0,
+            totalKills = 0,
+            totalDeaths = 0,
+            totalScore = 0
+        },
+        settings = {
+            maxSize = options.maxSize or MAX_TEAM_SIZE,
+            minSize = options.minSize or MIN_TEAM_SIZE,
+            allowSwitching = options.allowSwitching or true,
+            private = options.private or false
+        }
+    }
+    
+    -- Initialize team statistics
+    self.teamStatistics[team] = self.teams[team].statistics
+    
+    print("Created team:", name, "with color", team.TeamColor)
+    
+    return team
+end
+
+function TeamManager:removeTeam(team)
+    if self.teams[team] then
+        -- Move all players to neutral team
+        for _, player in pairs(team:GetPlayers()) do
+            player.Team = nil
+        end
+        
+        -- Clean up team data
+        self.teams[team] = nil
+        self.teamStatistics[team] = nil
+        
+        -- Destroy team
+        team:Destroy()
+        
+        print("Removed team:", team.Name)
+    end
+end
+
+function TeamManager:addPlayerToTeam(player, team)
+    if not self.teams[team] then
+        return false, "Team does not exist"
+    end
+    
+    local teamData = self.teams[team]
+    
+    -- Check team capacity
+    if #team:GetPlayers() >= teamData.settings.maxSize then
+        return false, "Team is full"
+    end
+    
+    -- Check if player is already on a team
+    if player.Team then
+        local success, message = self:removePlayerFromTeam(player)
+        if not success then
+            return false, message
+        end
+    end
+    
+    -- Add player to team
+    player.Team = team
+    teamData.members[player.UserId] = {
+        player = player,
+        joinedAt = tick(),
+        role = "Member"
+    }
+    
+    -- Set team leader if first player
+    if #team:GetPlayers() == 1 then
+        self:setTeamLeader(team, player)
+    end
+    
+    -- Update team statistics
+    self:updateTeamStatistics(team, "player_joined")
+    
+    -- Fire team event
+    self:fireTeamEvent("PlayerJoinedTeam", team, player)
+    
+    print("Added", player.Name, "to team", team.Name)
+    
+    return true, "Successfully joined team"
+end
+
+function TeamManager:removePlayerFromTeam(player)
+    if not player.Team then
+        return false, "Player is not on a team"
+    end
+    
+    local team = player.Team
+    local teamData = self.teams[team]
+    
+    if not teamData then
+        return false, "Team data not found"
+    end
+    
+    -- Remove player from team data
+    teamData.members[player.UserId] = nil
+    
+    -- Remove team leader if they're leaving
+    if self.teamLeaders[team] == player then
+        self:removeTeamLeader(team)
+    end
+    
+    -- Remove player from team
+    player.Team = nil
+    
+    -- Update team statistics
+    self:updateTeamStatistics(team, "player_left")
+    
+    -- Fire team event
+    self:fireTeamEvent("PlayerLeftTeam", team, player)
+    
+    print("Removed", player.Name, "from team", team.Name)
+    
+    return true, "Successfully left team"
+end
+
+function TeamManager:setTeamLeader(team, player)
+    if not self.teams[team] then
+        return false
+    end
+    
+    local teamData = self.teams[team]
+    
+    -- Check if player is on the team
+    if not teamData.members[player.UserId] then
+        return false
+    end
+    
+    -- Remove previous leader
+    if self.teamLeaders[team] then
+        local previousLeader = self.teamLeaders[team]
+        if teamData.members[previousLeader.UserId] then
+            teamData.members[previousLeader.UserId].role = "Member"
+        end
+    end
+    
+    -- Set new leader
+    self.teamLeaders[team] = player
+    teamData.members[player.UserId].role = "Leader"
+    teamData.leader = player
+    
+    -- Fire team event
+    self:fireTeamEvent("TeamLeaderChanged", team, player)
+    
+    print("Set", player.Name, "as leader of team", team.Name)
+    
+    return true
+end
+
+function TeamManager:removeTeamLeader(team)
+    if not self.teams[team] then
+        return false
+    end
+    
+    local teamData = self.teams[team]
+    local previousLeader = self.teamLeaders[team]
+    
+    if previousLeader and teamData.members[previousLeader.UserId] then
+        teamData.members[previousLeader.UserId].role = "Member"
+    end
+    
+    self.teamLeaders[team] = nil
+    teamData.leader = nil
+    
+    -- Assign new leader if team has members
+    local players = team:GetPlayers()
+    if #players > 0 then
+        self:setTeamLeader(team, players[1])
+    end
+    
+    print("Removed team leader from", team.Name)
+    
+    return true
+end
+
+function TeamManager:switchPlayerTeam(player, newTeam)
+    if not self.teams[newTeam] then
+        return false, "Team does not exist"
+    end
+    
+    local teamData = self.teams[newTeam]
+    
+    -- Check if switching is allowed
+    if not teamData.settings.allowSwitching then
+        return false, "Team switching is not allowed"
+    end
+    
+    -- Check cooldown
+    if tick() - self.teamSwitchCooldowns[player.UserId] < TEAM_SWITCH_COOLDOWN then
+        local remainingTime = TEAM_SWITCH_COOLDOWN - (tick() - self.teamSwitchCooldowns[player.UserId])
+        return false, "Team switch cooldown: " .. math.ceil(remainingTime) .. " seconds"
+    end
+    
+    -- Add player to new team
+    local success, message = self:addPlayerToTeam(player, newTeam)
+    if success then
+        self.teamSwitchCooldowns[player.UserId] = tick()
+        return true, "Successfully switched teams"
+    else
+        return false, message
+    end
+end
+
+function TeamManager:autoAssignTeam(player)
+    local bestTeam = self:findBestTeamForPlayer(player)
+    if bestTeam then
+        self:addPlayerToTeam(player, bestTeam)
+    end
+end
+
+function TeamManager:findBestTeamForPlayer(player)
+    local bestTeam = nil
+    local bestScore = math.huge
+    
+    for team, teamData in pairs(self.teams) do
+        if teamData.settings.autoAssignable and not teamData.settings.private then
+            local playerCount = #team:GetPlayers()
+            local capacity = teamData.settings.maxSize
+            
+            if playerCount < capacity then
+                local score = playerCount -- Prefer teams with fewer players
+                if score < bestScore then
+                    bestScore = score
+                    bestTeam = team
+                end
+            end
+        end
+    end
+    
+    return bestTeam
+end
+
+function TeamManager:balanceTeams()
+    local allPlayers = {}
+    local teamCounts = {}
+    
+    -- Count players in each team
+    for team, teamData in pairs(self.teams) do
+        local count = #team:GetPlayers()
+        teamCounts[team] = count
+        
+        -- Add players to list
+        for _, player in pairs(team:GetPlayers()) do
+            table.insert(allPlayers, player)
+        end
+    end
+    
+    -- Check if balancing is needed
+    local maxCount = 0
+    local minCount = math.huge
+    
+    for _, count in pairs(teamCounts) do
+        maxCount = math.max(maxCount, count)
+        minCount = math.min(minCount, count)
+    end
+    
+    if maxCount - minCount > AUTO_BALANCE_THRESHOLD then
+        self:performTeamBalancing(allPlayers, teamCounts)
+    end
+end
+
+function TeamManager:performTeamBalancing(players, teamCounts)
+    -- Sort teams by player count
+    local sortedTeams = {}
+    for team, count in pairs(teamCounts) do
+        table.insert(sortedTeams, {team = team, count = count})
+    end
+    
+    table.sort(sortedTeams, function(a, b)
+        return a.count < b.count
+    end)
+    
+    -- Redistribute players
+    local targetCount = math.floor(#players / #sortedTeams)
+    local extraPlayers = #players % #sortedTeams
+    
+    for i, teamData in ipairs(sortedTeams) do
+        local team = teamData.team
+        local currentCount = #team:GetPlayers()
+        local target = targetCount + (i <= extraPlayers and 1 or 0)
+        
+        if currentCount > target then
+            -- Move excess players to other teams
+            local excess = currentCount - target
+            local playersToMove = {}
+            
+            for _, player in pairs(team:GetPlayers()) do
+                table.insert(playersToMove, player)
+                if #playersToMove >= excess then
+                    break
+                end
+            end
+            
+            for _, player in ipairs(playersToMove) do
+                self:removePlayerFromTeam(player)
+                self:autoAssignTeam(player)
+            end
+        end
+    end
+    
+    print("Performed team balancing")
+end
+
+function TeamManager:updateTeamStatistics(team, event)
+    if not self.teamStatistics[team] then
+        return
+    end
+    
+    local stats = self.teamStatistics[team]
+    
+    if event == "player_joined" then
+        -- Update team size statistics
+    elseif event == "player_left" then
+        -- Update team size statistics
+    elseif event == "game_won" then
+        stats.wins = stats.wins + 1
+        stats.totalGames = stats.totalGames + 1
+    elseif event == "game_lost" then
+        stats.losses = stats.losses + 1
+        stats.totalGames = stats.totalGames + 1
+    elseif event == "kill" then
+        stats.totalKills = stats.totalKills + 1
+    elseif event == "death" then
+        stats.totalDeaths = stats.totalDeaths + 1
+    end
+end
+
+function TeamManager:getNextAvailableColor()
+    local usedColors = {}
+    
+    for team, teamData in pairs(self.teams) do
+        usedColors[teamData.color] = true
+    end
+    
+    for _, color in ipairs(TEAM_COLORS) do
+        if not usedColors[color] then
+            return color
+        end
+    end
+    
+    -- If all colors are used, return a random one
+    return TEAM_COLORS[math.random(1, #TEAM_COLORS)]
+end
+
+function TeamManager:fireTeamEvent(eventName, team, player)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("TeamEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "TeamEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        team = team,
+        player = player,
+        timestamp = tick()
+    })
+end
+
+-- 3. MATCHMAKING & GAME MODES
+print("\\n3. DEMONSTRATING MATCHMAKING & GAME MODES...")
+
+local MatchmakingSystem = {}
+MatchmakingSystem.__index = MatchmakingSystem
+
+-- Matchmaking configuration
+local QUEUE_TIMEOUT = 300 -- seconds
+local MIN_PLAYERS_PER_MATCH = 2
+local MAX_PLAYERS_PER_MATCH = 16
+local SKILL_RANGE = 200 -- MMR difference for matching
+
+-- Game modes
+local GAME_MODES = {
+    DEATHMATCH = {
+        name = "Deathmatch",
+        minPlayers = 2,
+        maxPlayers = 8,
+        duration = 300, -- 5 minutes
+        description = "Eliminate opponents to score points"
+    },
+    TEAM_DEATHMATCH = {
+        name = "Team Deathmatch",
+        minPlayers = 4,
+        maxPlayers = 16,
+        duration = 600, -- 10 minutes
+        description = "Team-based elimination match"
+    },
+    CAPTURE_THE_FLAG = {
+        name = "Capture the Flag",
+        minPlayers = 4,
+        maxPlayers = 16,
+        duration = 900, -- 15 minutes
+        description = "Capture enemy flags to win"
+    },
+    KING_OF_THE_HILL = {
+        name = "King of the Hill",
+        minPlayers = 4,
+        maxPlayers = 12,
+        duration = 600, -- 10 minutes
+        description = "Control the hill to earn points"
+    }
+}
+
+function MatchmakingSystem.new()
+    local self = setmetatable({}, MatchmakingSystem)
+    
+    -- Matchmaking data
+    self.queues = {}
+    self.activeMatches = {}
+    self.playerMMR = {}
+    self.matchHistory = {}
+    
+    -- Game mode data
+    self.currentGameMode = GAME_MODES.DEATHMATCH
+    self.gameModeRotation = {}
+    self.modeStatistics = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function MatchmakingSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function MatchmakingSystem:initializePlayer(player)
+    -- Initialize MMR
+    self.playerMMR[player.UserId] = 1000 -- Starting MMR
+    
+    print("Initialized matchmaking for", player.Name, "MMR:", self.playerMMR[player.UserId])
+end
+
+function MatchmakingSystem:cleanupPlayer(player)
+    -- Remove from all queues
+    self:removePlayerFromQueues(player)
+    
+    -- Clean up MMR data
+    self.playerMMR[player.UserId] = nil
+end
+
+function MatchmakingSystem:addPlayerToQueue(player, gameMode)
+    if not GAME_MODES[gameMode] then
+        return false, "Invalid game mode"
+    end
+    
+    -- Remove player from other queues
+    self:removePlayerFromQueues(player)
+    
+    -- Add to queue
+    local queueData = {
+        player = player,
+        gameMode = gameMode,
+        joinTime = tick(),
+        mmr = self.playerMMR[player.UserId] or 1000
+    }
+    
+    if not self.queues[gameMode] then
+        self.queues[gameMode] = {}
+    end
+    
+    table.insert(self.queues[gameMode], queueData)
+    
+    -- Fire queue event
+    self:fireQueueEvent("PlayerJoinedQueue", player, gameMode)
+    
+    -- Try to create match
+    self:tryCreateMatch(gameMode)
+    
+    print("Added", player.Name, "to", gameMode, "queue")
+    
+    return true, "Successfully joined queue"
+end
+
+function MatchmakingSystem:removePlayerFromQueues(player)
+    for gameMode, queue in pairs(self.queues) do
+        for i, queueData in ipairs(queue) do
+            if queueData.player == player then
+                table.remove(queue, i)
+                self:fireQueueEvent("PlayerLeftQueue", player, gameMode)
+                print("Removed", player.Name, "from", gameMode, "queue")
+                break
+            end
+        end
+    end
+end
+
+function MatchmakingSystem:tryCreateMatch(gameMode)
+    local queue = self.queues[gameMode]
+    if not queue or #queue < GAME_MODES[gameMode].minPlayers then
+        return false
+    end
+    
+    -- Sort queue by MMR
+    table.sort(queue, function(a, b)
+        return a.mmr < b.mmr
+    end)
+    
+    -- Find players within skill range
+    local matchPlayers = {}
+    local baseMMR = queue[1].mmr
+    
+    for _, queueData in ipairs(queue) do
+        if #matchPlayers >= GAME_MODES[gameMode].maxPlayers then
+            break
+        end
+        
+        if math.abs(queueData.mmr - baseMMR) <= SKILL_RANGE then
+            table.insert(matchPlayers, queueData)
+        end
+    end
+    
+    -- Check if we have enough players
+    if #matchPlayers >= GAME_MODES[gameMode].minPlayers then
+        self:createMatch(gameMode, matchPlayers)
+        return true
+    end
+    
+    return false
+end
+
+function MatchmakingSystem:createMatch(gameMode, players)
+    local matchId = "match_" .. tick() .. "_" .. math.random(1000, 9999)
+    
+    local match = {
+        id = matchId,
+        gameMode = gameMode,
+        players = {},
+        teams = {},
+        startTime = tick(),
+        endTime = nil,
+        status = "Starting",
+        settings = GAME_MODES[gameMode]
+    }
+    
+    -- Add players to match
+    for _, queueData in ipairs(players) do
+        table.insert(match.players, queueData.player)
+        
+        -- Remove from queue
+        self:removePlayerFromQueues(queueData.player)
+    end
+    
+    -- Create teams if needed
+    if gameMode == "TEAM_DEATHMATCH" or gameMode == "CAPTURE_THE_FLAG" then
+        self:createTeamsForMatch(match)
+    end
+    
+    -- Store active match
+    self.activeMatches[matchId] = match
+    
+    -- Fire match created event
+    self:fireMatchEvent("MatchCreated", match)
+    
+    -- Start match
+    self:startMatch(match)
+    
+    print("Created match", matchId, "with", #match.players, "players")
+end
+
+function MatchmakingSystem:createTeamsForMatch(match)
+    local players = match.players
+    local teamCount = 2
+    
+    -- Shuffle players
+    for i = #players, 2, -1 do
+        local j = math.random(i)
+        players[i], players[j] = players[j], players[i]
+    end
+    
+    -- Distribute players to teams
+    for i, player in ipairs(players) do
+        local teamIndex = ((i - 1) % teamCount) + 1
+        
+        if not match.teams[teamIndex] then
+            match.teams[teamIndex] = {
+                name = "Team " .. teamIndex,
+                players = {},
+                score = 0
+            }
+        end
+        
+        table.insert(match.teams[teamIndex].players, player)
+    end
+    
+    print("Created", teamCount, "teams for match", match.id)
+end
+
+function MatchmakingSystem:startMatch(match)
+    match.status = "Active"
+    
+    -- Fire match started event
+    self:fireMatchEvent("MatchStarted", match)
+    
+    -- Set match timer
+    spawn(function()
+        wait(match.settings.duration)
+        self:endMatch(match)
+    end)
+    
+    print("Started match", match.id)
+end
+
+function MatchmakingSystem:endMatch(match)
+    match.status = "Ended"
+    match.endTime = tick()
+    
+    -- Calculate results
+    local results = self:calculateMatchResults(match)
+    
+    -- Update player MMR
+    self:updatePlayerMMR(match, results)
+    
+    -- Store match history
+    self:storeMatchHistory(match, results)
+    
+    -- Fire match ended event
+    self:fireMatchEvent("MatchEnded", match, results)
+    
+    -- Clean up match
+    self.activeMatches[match.id] = nil
+    
+    print("Ended match", match.id)
+end
+
+function MatchmakingSystem:calculateMatchResults(match)
+    local results = {
+        winners = {},
+        losers = {},
+        scores = {},
+        duration = match.endTime - match.startTime
+    }
+    
+    if match.teams and #match.teams > 0 then
+        -- Team-based match
+        local winningTeam = nil
+        local highestScore = -1
+        
+        for _, team in pairs(match.teams) do
+            if team.score > highestScore then
+                highestScore = team.score
+                winningTeam = team
+            end
+        end
+        
+        for _, team in pairs(match.teams) do
+            if team == winningTeam then
+                for _, player in ipairs(team.players) do
+                    table.insert(results.winners, player)
+                end
+            else
+                for _, player in ipairs(team.players) do
+                    table.insert(results.losers, player)
+                end
+            end
+        end
+    else
+        -- Free-for-all match
+        -- This would need to be implemented based on game mode
+        results.winners = match.players
+    end
+    
+    return results
+end
+
+function MatchmakingSystem:updatePlayerMMR(match, results)
+    for _, player in ipairs(results.winners) do
+        self.playerMMR[player.UserId] = (self.playerMMR[player.UserId] or 1000) + 25
+    end
+    
+    for _, player in ipairs(results.losers) do
+        self.playerMMR[player.UserId] = math.max(0, (self.playerMMR[player.UserId] or 1000) - 25)
+    end
+end
+
+function MatchmakingSystem:storeMatchHistory(match, results)
+    local historyEntry = {
+        matchId = match.id,
+        gameMode = match.gameMode,
+        players = match.players,
+        results = results,
+        startTime = match.startTime,
+        endTime = match.endTime,
+        duration = results.duration
+    }
+    
+    table.insert(self.matchHistory, historyEntry)
+    
+    -- Keep only last 100 matches
+    if #self.matchHistory > 100 then
+        table.remove(self.matchHistory, 1)
+    end
+end
+
+function MatchmakingSystem:setGameMode(gameMode)
+    if GAME_MODES[gameMode] then
+        self.currentGameMode = GAME_MODES[gameMode]
+        self:fireGameModeEvent("GameModeChanged", gameMode)
+        print("Changed game mode to", gameMode)
+    end
+end
+
+function MatchmakingSystem:getPlayerMMR(player)
+    return self.playerMMR[player.UserId] or 1000
+end
+
+function MatchmakingSystem:getQueueStatus(gameMode)
+    local queue = self.queues[gameMode]
+    if not queue then
+        return 0
+    end
+    
+    return #queue
+end
+
+function MatchmakingSystem:fireQueueEvent(eventName, player, gameMode)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("QueueEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "QueueEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = eventName,
+        gameMode = gameMode,
+        queueSize = self:getQueueStatus(gameMode),
+        timestamp = tick()
+    })
+end
+
+function MatchmakingSystem:fireMatchEvent(eventName, match, results)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("MatchEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "MatchEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        match = match,
+        results = results,
+        timestamp = tick()
+    })
+end
+
+function MatchmakingSystem:fireGameModeEvent(eventName, gameMode)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("GameModeEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "GameModeEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireAllClients({
+        event = eventName,
+        gameMode = gameMode,
+        timestamp = tick()
+    })
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local spawnSystem = SpawnSystem.new()
+local teamManager = TeamManager.new()
+local matchmakingSystem = MatchmakingSystem.new()
+
+-- Add spawn points
+spawnSystem:addSpawnPoint("Team1Spawn", Vector3.new(0, 5, 0), {
+    enabled = true,
+    priority = 100,
+    team = nil,
+    capacity = 5,
+    effects = {
+        {type = "particle", texture = "rbxasset://textures/particles/fire_main.dds", color = Color3.fromRGB(255, 0, 0)}
+    }
+})
+
+spawnSystem:addSpawnPoint("Team2Spawn", Vector3.new(50, 5, 0), {
+    enabled = true,
+    priority = 100,
+    team = nil,
+    capacity = 5,
+    effects = {
+        {type = "particle", texture = "rbxasset://textures/particles/fire_main.dds", color = Color3.fromRGB(0, 0, 255)}
+    }
+})
+
+-- Create teams
+local redTeam = teamManager:createTeam("Red Team", Color3.fromRGB(255, 0, 0), {
+    maxSize = 4,
+    autoAssignable = true
+})
+
+local blueTeam = teamManager:createTeam("Blue Team", Color3.fromRGB(0, 0, 255), {
+    maxSize = 4,
+    autoAssignable = true
+})
+
+-- Test systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Add player to deathmatch queue
+    matchmakingSystem:addPlayerToQueue(player, "DEATHMATCH")
+    
+    print("Applied all system tests to", player.Name)
+end)
+
+print("\\n=== PLAYER SPAWNING & TEAM MANAGEMENT DEMO COMPLETE ===")
+print("You've learned player spawning, team management, and matchmaking systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Create spawn system with protection and effects', type: 'code_contains', value: 'spawnPlayerAtPoint' },
+        { description: 'Implement team management with leaders and balancing', type: 'code_contains', value: 'addPlayerToTeam' },
+        { description: 'Build matchmaking system with queues and MMR', type: 'code_contains', value: 'addPlayerToQueue' }
+      ],
+      hints: [
+        'Use character:SetPrimaryPartCFrame() to position players at spawn points',
+        'Use Teams service to create and manage team objects',
+        'Implement MMR (Matchmaking Rating) for skill-based matching',
+        'Use RemoteEvents to communicate spawn and team events to clients',
+        'Create spawn protection with temporary invincibility and visual effects'
+      ],
+      successMessage: 'Excellent! You now understand player spawning, team management, and matchmaking systems. These skills are essential for creating competitive multiplayer experiences!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
