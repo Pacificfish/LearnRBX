@@ -11912,6 +11912,2689 @@ print("You've learned player data management and leaderboard systems!")`,
     }
   },
 
+  // === GAME MECHANICS ===
+  'health-damage-systems': {
+    title: 'Health & Damage Systems',
+    description: 'Master health management, damage calculation, and combat mechanics',
+    sections: [
+      {
+        title: 'Health System Fundamentals',
+        content: `Health systems are the foundation of most game mechanics, controlling player survival and combat interactions.
+
+**Core Health Concepts:**
+- **Health Points (HP)**: Current health value
+- **Maximum Health**: Upper limit of health
+- **Health Regeneration**: Automatic health recovery
+- **Health Bars**: Visual representation of health
+- **Health States**: Alive, dead, critical, etc.
+
+**Health System Features:**
+- **Damage Types**: Physical, magical, environmental, etc.
+- **Damage Resistance**: Protection against specific damage types
+- **Health Modifiers**: Temporary health boosts or reductions
+- **Health Events**: OnHealthChanged, OnDied, OnRespawned
+- **Health Persistence**: Saving health state across sessions
+
+**Advanced Health Mechanics:**
+- **Shield Systems**: Temporary health protection
+- **Armor Systems**: Damage reduction mechanics
+- **Status Effects**: Poison, regeneration, etc.
+- **Health Zones**: Areas that affect health over time`,
+        codeExample: `-- Comprehensive health and damage system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local HealthSystem = {}
+HealthSystem.__index = HealthSystem
+
+-- Health configuration
+local DEFAULT_MAX_HEALTH = 100
+local HEALTH_REGEN_RATE = 1 -- health per second
+local HEALTH_REGEN_DELAY = 5 -- seconds after damage before regen starts
+local SHIELD_DURATION = 10 -- seconds
+
+-- Damage types
+local DAMAGE_TYPES = {
+    PHYSICAL = "Physical",
+    MAGICAL = "Magical",
+    FIRE = "Fire",
+    ICE = "Ice",
+    POISON = "Poison",
+    ENVIRONMENTAL = "Environmental"
+}
+
+function HealthSystem.new()
+    local self = setmetatable({}, HealthSystem)
+    
+    -- Player health data
+    self.playerHealth = {}
+    self.playerShields = {}
+    self.playerArmor = {}
+    self.playerStatusEffects = {}
+    
+    -- Health events
+    self.healthEvents = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function HealthSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function HealthSystem:initializePlayer(player)
+    local character = player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Initialize health data
+    self.playerHealth[player.UserId] = {
+        maxHealth = DEFAULT_MAX_HEALTH,
+        currentHealth = DEFAULT_MAX_HEALTH,
+        lastDamageTime = 0,
+        isDead = false,
+        respawnTime = 0
+    }
+    
+    -- Initialize shield data
+    self.playerShields[player.UserId] = {
+        currentShield = 0,
+        maxShield = 0,
+        shieldEndTime = 0
+    }
+    
+    -- Initialize armor data
+    self.playerArmor[player.UserId] = {
+        physicalResistance = 0,
+        magicalResistance = 0,
+        fireResistance = 0,
+        iceResistance = 0,
+        poisonResistance = 0
+    }
+    
+    -- Initialize status effects
+    self.playerStatusEffects[player.UserId] = {}
+    
+    -- Set humanoid health
+    humanoid.MaxHealth = DEFAULT_MAX_HEALTH
+    humanoid.Health = DEFAULT_MAX_HEALTH
+    
+    -- Connect humanoid events
+    humanoid.Died:Connect(function()
+        self:onPlayerDied(player)
+    end)
+    
+    humanoid.HealthChanged:Connect(function(health)
+        self:onHealthChanged(player, health)
+    end)
+    
+    -- Start health regeneration
+    self:startHealthRegeneration(player)
+    
+    print("Initialized health system for", player.Name)
+end
+
+function HealthSystem:cleanupPlayer(player)
+    self.playerHealth[player.UserId] = nil
+    self.playerShields[player.UserId] = nil
+    self.playerArmor[player.UserId] = nil
+    self.playerStatusEffects[player.UserId] = nil
+end
+
+function HealthSystem:dealDamage(player, damage, damageType, source)
+    local healthData = self.playerHealth[player.UserId]
+    local shieldData = self.playerShields[player.UserId]
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not healthData or healthData.isDead then
+        return false
+    end
+    
+    -- Calculate damage resistance
+    local resistance = self:getDamageResistance(player, damageType)
+    local finalDamage = damage * (1 - resistance)
+    
+    -- Apply shield first
+    if shieldData.currentShield > 0 then
+        local shieldDamage = math.min(finalDamage, shieldData.currentShield)
+        shieldData.currentShield = shieldData.currentShield - shieldDamage
+        finalDamage = finalDamage - shieldDamage
+        
+        print("Shield absorbed", shieldDamage, "damage for", player.Name)
+    end
+    
+    -- Apply remaining damage to health
+    if finalDamage > 0 then
+        healthData.currentHealth = math.max(0, healthData.currentHealth - finalDamage)
+        healthData.lastDamageTime = tick()
+        
+        -- Update humanoid health
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.Health = healthData.currentHealth
+            end
+        end
+        
+        -- Fire damage event
+        self:fireDamageEvent(player, finalDamage, damageType, source)
+        
+        print("Dealt", finalDamage, damageType, "damage to", player.Name)
+    end
+    
+    return true
+end
+
+function HealthSystem:healPlayer(player, healAmount, source)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData or healthData.isDead then
+        return false
+    end
+    
+    local oldHealth = healthData.currentHealth
+    healthData.currentHealth = math.min(healthData.maxHealth, healthData.currentHealth + healAmount)
+    
+    -- Update humanoid health
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Health = healthData.currentHealth
+        end
+    end
+    
+    -- Fire heal event
+    self:fireHealEvent(player, healAmount, source)
+    
+    print("Healed", player.Name, "for", healAmount, "health")
+    
+    return true
+end
+
+function HealthSystem:setMaxHealth(player, newMaxHealth)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return false
+    end
+    
+    local oldMaxHealth = healthData.maxHealth
+    healthData.maxHealth = newMaxHealth
+    
+    -- Adjust current health proportionally
+    local healthRatio = healthData.currentHealth / oldMaxHealth
+    healthData.currentHealth = newMaxHealth * healthRatio
+    
+    -- Update humanoid
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.MaxHealth = newMaxHealth
+            humanoid.Health = healthData.currentHealth
+        end
+    end
+    
+    print("Set max health for", player.Name, "to", newMaxHealth)
+    
+    return true
+end
+
+function HealthSystem:addShield(player, shieldAmount, duration)
+    local shieldData = self.playerShields[player.UserId]
+    
+    if not shieldData then
+        return false
+    end
+    
+    shieldData.currentShield = shieldData.currentShield + shieldAmount
+    shieldData.maxShield = math.max(shieldData.maxShield, shieldData.currentShield)
+    shieldData.shieldEndTime = tick() + duration
+    
+    -- Start shield countdown
+    self:startShieldCountdown(player)
+    
+    print("Added", shieldAmount, "shield to", player.Name, "for", duration, "seconds")
+    
+    return true
+end
+
+function HealthSystem:setArmor(player, armorType, resistance)
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not armorData then
+        return false
+    end
+    
+    if armorType == "physical" then
+        armorData.physicalResistance = resistance
+    elseif armorType == "magical" then
+        armorData.magicalResistance = resistance
+    elseif armorType == "fire" then
+        armorData.fireResistance = resistance
+    elseif armorType == "ice" then
+        armorData.iceResistance = resistance
+    elseif armorType == "poison" then
+        armorData.poisonResistance = resistance
+    end
+    
+    print("Set", armorType, "resistance for", player.Name, "to", resistance)
+    
+    return true
+end
+
+function HealthSystem:addStatusEffect(player, effectName, duration, effectData)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    
+    if not statusEffects then
+        return false
+    end
+    
+    statusEffects[effectName] = {
+        startTime = tick(),
+        duration = duration,
+        data = effectData or {}
+    }
+    
+    -- Start status effect
+    self:startStatusEffect(player, effectName)
+    
+    print("Added status effect", effectName, "to", player.Name, "for", duration, "seconds")
+    
+    return true
+end
+
+function HealthSystem:removeStatusEffect(player, effectName)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    
+    if not statusEffects or not statusEffects[effectName] then
+        return false
+    end
+    
+    statusEffects[effectName] = nil
+    
+    print("Removed status effect", effectName, "from", player.Name)
+    
+    return true
+end
+
+function HealthSystem:getDamageResistance(player, damageType)
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not armorData then
+        return 0
+    end
+    
+    if damageType == DAMAGE_TYPES.PHYSICAL then
+        return armorData.physicalResistance
+    elseif damageType == DAMAGE_TYPES.MAGICAL then
+        return armorData.magicalResistance
+    elseif damageType == DAMAGE_TYPES.FIRE then
+        return armorData.fireResistance
+    elseif damageType == DAMAGE_TYPES.ICE then
+        return armorData.iceResistance
+    elseif damageType == DAMAGE_TYPES.POISON then
+        return armorData.poisonResistance
+    end
+    
+    return 0
+end
+
+function HealthSystem:startHealthRegeneration(player)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if healthData.isDead then
+            connection:Disconnect()
+            return
+        end
+        
+        -- Check if enough time has passed since last damage
+        if tick() - healthData.lastDamageTime >= HEALTH_REGEN_DELAY then
+            if healthData.currentHealth < healthData.maxHealth then
+                local regenAmount = HEALTH_REGEN_RATE * (1/60) -- Per frame
+                healthData.currentHealth = math.min(healthData.maxHealth, healthData.currentHealth + regenAmount)
+                
+                -- Update humanoid health
+                local character = player.Character
+                if character then
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        humanoid.Health = healthData.currentHealth
+                    end
+                end
+            end
+        end
+    end)
+end
+
+function HealthSystem:startShieldCountdown(player)
+    local shieldData = self.playerShields[player.UserId]
+    
+    if not shieldData then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if tick() >= shieldData.shieldEndTime then
+            shieldData.currentShield = 0
+            connection:Disconnect()
+            print("Shield expired for", player.Name)
+        end
+    end)
+end
+
+function HealthSystem:startStatusEffect(player, effectName)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    local effect = statusEffects[effectName]
+    
+    if not effect then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if tick() >= effect.startTime + effect.duration then
+            self:removeStatusEffect(player, effectName)
+            connection:Disconnect()
+            return
+        end
+        
+        -- Apply status effect
+        if effectName == "poison" then
+            self:dealDamage(player, effect.data.damage or 1, DAMAGE_TYPES.POISON, "Poison")
+        elseif effectName == "regeneration" then
+            self:healPlayer(player, effect.data.healAmount or 1, "Regeneration")
+        end
+    end)
+end
+
+function HealthSystem:onPlayerDied(player)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    healthData.isDead = true
+    healthData.respawnTime = tick() + 5 -- 5 second respawn delay
+    
+    -- Fire death event
+    self:fireDeathEvent(player)
+    
+    print(player.Name, "died")
+end
+
+function HealthSystem:onHealthChanged(player, health)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    healthData.currentHealth = health
+    
+    -- Fire health changed event
+    self:fireHealthChangedEvent(player, health)
+end
+
+function HealthSystem:fireDamageEvent(player, damage, damageType, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Damage",
+        damage = damage,
+        damageType = damageType,
+        source = source,
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireHealEvent(player, healAmount, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Heal",
+        healAmount = healAmount,
+        source = source,
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireDeathEvent(player)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Death",
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireHealthChangedEvent(player, health)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "HealthChanged",
+        health = health,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local healthSystem = HealthSystem.new()
+
+-- Test damage and healing
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for character to load
+    
+    -- Deal some damage
+    healthSystem:dealDamage(player, 25, DAMAGE_TYPES.PHYSICAL, "Test Damage")
+    
+    -- Add shield
+    healthSystem:addShield(player, 50, 10)
+    
+    -- Set armor
+    healthSystem:setArmor(player, "physical", 0.5) -- 50% physical resistance
+    
+    -- Add status effect
+    healthSystem:addStatusEffect(player, "poison", 5, {damage = 2})
+    
+    -- Heal player
+    healthSystem:healPlayer(player, 30, "Test Heal")
+    
+    print("Applied health system tests to", player.Name)
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'Experience & Leveling Systems',
+        content: `Create comprehensive experience and leveling systems that drive player progression and engagement.
+
+**Experience System Components:**
+- **Experience Points (XP)**: Currency for leveling up
+- **Level Requirements**: XP needed for each level
+- **Experience Sources**: Combat, quests, exploration, etc.
+- **Experience Multipliers**: Bonuses for different activities
+- **Experience Sharing**: Group experience distribution
+
+**Leveling System Features:**
+- **Level Progression**: Linear, exponential, or custom curves
+- **Level Rewards**: Unlocks, stat increases, new abilities
+- **Prestige Systems**: Advanced progression beyond max level
+- **Skill Trees**: Branching progression paths
+- **Class Systems**: Different progression paths for different roles
+
+**Progression Mechanics:**
+- **Stat Increases**: Health, damage, speed, etc.
+- **Ability Unlocks**: New skills and powers
+- **Item Unlocks**: Access to better equipment
+- **Area Unlocks**: New zones and content
+- **Achievement Systems**: Milestone rewards`,
+        codeExample: `-- Advanced experience and leveling system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
+
+local ExperienceSystem = {}
+ExperienceSystem.__index = ExperienceSystem
+
+-- Experience configuration
+local BASE_EXPERIENCE_REQUIRED = 100
+local EXPERIENCE_MULTIPLIER = 1.5
+local MAX_LEVEL = 100
+local PRESTIGE_LEVELS = 10
+
+-- Experience sources
+local EXPERIENCE_SOURCES = {
+    KILL = "Kill",
+    QUEST = "Quest",
+    EXPLORATION = "Exploration",
+    CRAFTING = "Crafting",
+    SOCIAL = "Social",
+    ACHIEVEMENT = "Achievement"
+}
+
+-- Experience multipliers
+local EXPERIENCE_MULTIPLIERS = {
+    [EXPERIENCE_SOURCES.KILL] = 1.0,
+    [EXPERIENCE_SOURCES.QUEST] = 1.5,
+    [EXPERIENCE_SOURCES.EXPLORATION] = 0.8,
+    [EXPERIENCE_SOURCES.CRAFTING] = 1.2,
+    [EXPERIENCE_SOURCES.SOCIAL] = 0.5,
+    [EXPERIENCE_SOURCES.ACHIEVEMENT] = 2.0
+}
+
+function ExperienceSystem.new()
+    local self = setmetatable({}, ExperienceSystem)
+    
+    -- Player experience data
+    self.playerExperience = {}
+    self.playerLevels = {}
+    self.playerStats = {}
+    self.playerSkills = {}
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("PlayerExperience_v1")
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function ExperienceSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function ExperienceSystem:initializePlayer(player)
+    -- Load player data
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        self.playerExperience[player.UserId] = data.experience or 0
+        self.playerLevels[player.UserId] = data.level or 1
+        self.playerStats[player.UserId] = data.stats or self:getDefaultStats()
+        self.playerSkills[player.UserId] = data.skills or {}
+    else
+        self.playerExperience[player.UserId] = 0
+        self.playerLevels[player.UserId] = 1
+        self.playerStats[player.UserId] = self:getDefaultStats()
+        self.playerSkills[player.UserId] = {}
+    end
+    
+    -- Apply level bonuses
+    self:applyLevelBonuses(player)
+    
+    print("Initialized experience system for", player.Name, "Level:", self.playerLevels[player.UserId])
+end
+
+function ExperienceSystem:cleanupPlayer(player)
+    self.playerExperience[player.UserId] = nil
+    self.playerLevels[player.UserId] = nil
+    self.playerStats[player.UserId] = nil
+    self.playerSkills[player.UserId] = nil
+end
+
+function ExperienceSystem:addExperience(player, amount, source)
+    local currentExp = self.playerExperience[player.UserId]
+    local currentLevel = self.playerLevels[player.UserId]
+    
+    if not currentExp or not currentLevel then
+        return false
+    end
+    
+    -- Apply experience multiplier
+    local multiplier = EXPERIENCE_MULTIPLIERS[source] or 1.0
+    local finalAmount = amount * multiplier
+    
+    -- Add experience
+    self.playerExperience[player.UserId] = currentExp + finalAmount
+    
+    -- Check for level up
+    local newLevel = self:calculateLevel(self.playerExperience[player.UserId])
+    if newLevel > currentLevel then
+        self:levelUp(player, newLevel)
+    end
+    
+    -- Fire experience event
+    self:fireExperienceEvent(player, finalAmount, source)
+    
+    print("Added", finalAmount, "experience to", player.Name, "from", source)
+    
+    return true
+end
+
+function ExperienceSystem:levelUp(player, newLevel)
+    local oldLevel = self.playerLevels[player.UserId]
+    self.playerLevels[player.UserId] = newLevel
+    
+    -- Apply level bonuses
+    self:applyLevelBonuses(player)
+    
+    -- Unlock new skills
+    self:unlockSkills(player, newLevel)
+    
+    -- Fire level up event
+    self:fireLevelUpEvent(player, oldLevel, newLevel)
+    
+    print(player.Name, "leveled up from", oldLevel, "to", newLevel)
+end
+
+function ExperienceSystem:calculateLevel(experience)
+    local level = 1
+    local expRequired = BASE_EXPERIENCE_REQUIRED
+    
+    while experience >= expRequired and level < MAX_LEVEL do
+        experience = experience - expRequired
+        level = level + 1
+        expRequired = expRequired * EXPERIENCE_MULTIPLIER
+    end
+    
+    return level
+end
+
+function ExperienceSystem:getExperienceRequired(level)
+    if level <= 1 then
+        return 0
+    end
+    
+    local totalExp = 0
+    local expRequired = BASE_EXPERIENCE_REQUIRED
+    
+    for i = 2, level do
+        totalExp = totalExp + expRequired
+        expRequired = expRequired * EXPERIENCE_MULTIPLIER
+    end
+    
+    return totalExp
+end
+
+function ExperienceSystem:getExperienceToNextLevel(player)
+    local currentLevel = self.playerLevels[player.UserId]
+    local currentExp = self.playerExperience[player.UserId]
+    
+    if not currentLevel or not currentExp then
+        return 0
+    end
+    
+    local expForCurrentLevel = self:getExperienceRequired(currentLevel)
+    local expForNextLevel = self:getExperienceRequired(currentLevel + 1)
+    
+    return expForNextLevel - currentExp
+end
+
+function ExperienceSystem:applyLevelBonuses(player)
+    local level = self.playerLevels[player.UserId]
+    local stats = self.playerStats[player.UserId]
+    
+    if not level or not stats then
+        return
+    end
+    
+    -- Calculate stat bonuses
+    local healthBonus = level * 10
+    local damageBonus = level * 5
+    local speedBonus = level * 0.5
+    local defenseBonus = level * 3
+    
+    -- Apply bonuses
+    stats.health = stats.baseHealth + healthBonus
+    stats.damage = stats.baseDamage + damageBonus
+    stats.speed = stats.baseSpeed + speedBonus
+    stats.defense = stats.baseDefense + defenseBonus
+    
+    -- Update player's actual stats
+    self:updatePlayerStats(player)
+end
+
+function ExperienceSystem:unlockSkills(player, level)
+    local skills = self.playerSkills[player.UserId]
+    
+    if not skills then
+        return
+    end
+    
+    -- Define skill unlocks by level
+    local skillUnlocks = {
+        [5] = "DoubleJump",
+        [10] = "Dash",
+        [15] = "Shield",
+        [20] = "Fireball",
+        [25] = "Heal",
+        [30] = "Teleport",
+        [35] = "Invisibility",
+        [40] = "Lightning",
+        [45] = "IceWall",
+        [50] = "Summon"
+    }
+    
+    for unlockLevel, skillName in pairs(skillUnlocks) do
+        if level >= unlockLevel and not skills[skillName] then
+            skills[skillName] = {
+                unlocked = true,
+                level = unlockLevel,
+                unlockedAt = tick()
+            }
+            
+            print("Unlocked skill", skillName, "for", player.Name, "at level", level)
+        end
+    end
+end
+
+function ExperienceSystem:updatePlayerStats(player)
+    local stats = self.playerStats[player.UserId]
+    
+    if not stats then
+        return
+    end
+    
+    -- Update humanoid stats
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.MaxHealth = stats.health
+            humanoid.WalkSpeed = stats.speed
+        end
+    end
+    
+    -- Fire stats update event
+    self:fireStatsUpdateEvent(player, stats)
+end
+
+function ExperienceSystem:getDefaultStats()
+    return {
+        baseHealth = 100,
+        baseDamage = 10,
+        baseSpeed = 16,
+        baseDefense = 0,
+        health = 100,
+        damage = 10,
+        speed = 16,
+        defense = 0
+    }
+end
+
+function ExperienceSystem:savePlayerData(player)
+    local data = {
+        experience = self.playerExperience[player.UserId],
+        level = self.playerLevels[player.UserId],
+        stats = self.playerStats[player.UserId],
+        skills = self.playerSkills[player.UserId]
+    }
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, data)
+    end)
+    
+    if success then
+        print("Saved experience data for", player.Name)
+    else
+        warn("Failed to save experience data for", player.Name)
+    end
+end
+
+function ExperienceSystem:fireExperienceEvent(player, amount, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "ExperienceGained",
+        amount = amount,
+        source = source,
+        totalExperience = self.playerExperience[player.UserId],
+        level = self.playerLevels[player.UserId],
+        timestamp = tick()
+    })
+end
+
+function ExperienceSystem:fireLevelUpEvent(player, oldLevel, newLevel)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "LevelUp",
+        oldLevel = oldLevel,
+        newLevel = newLevel,
+        totalExperience = self.playerExperience[player.UserId],
+        timestamp = tick()
+    })
+end
+
+function ExperienceSystem:fireStatsUpdateEvent(player, stats)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "StatsUpdate",
+        stats = stats,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local experienceSystem = ExperienceSystem.new()
+
+-- Test experience system
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Add experience from different sources
+    experienceSystem:addExperience(player, 50, EXPERIENCE_SOURCES.KILL)
+    experienceSystem:addExperience(player, 100, EXPERIENCE_SOURCES.QUEST)
+    experienceSystem:addExperience(player, 25, EXPERIENCE_SOURCES.EXPLORATION)
+    experienceSystem:addExperience(player, 75, EXPERIENCE_SOURCES.CRAFTING)
+    
+    print("Applied experience system tests to", player.Name)
+end)`,
+        color: 'green'
+      },
+      {
+        title: 'Inventory & Item Systems',
+        content: `Create comprehensive inventory and item management systems for player equipment and collectibles.
+
+**Inventory System Features:**
+- **Item Storage**: Organized item containers
+- **Item Categories**: Weapons, armor, consumables, materials
+- **Item Rarity**: Common, uncommon, rare, epic, legendary
+- **Item Stacking**: Stackable items with quantity limits
+- **Item Sorting**: Automatic and manual organization
+- **Item Filtering**: Search and filter capabilities
+
+**Item System Components:**
+- **Item Properties**: Stats, effects, descriptions
+- **Item Durability**: Wear and tear mechanics
+- **Item Enchantments**: Magical enhancements
+- **Item Sets**: Bonus effects for matching items
+- **Item Trading**: Player-to-player item exchange
+- **Item Crafting**: Creation and modification systems
+
+**Advanced Inventory Features:**
+- **Bank Storage**: Extended storage systems
+- **Item Locking**: Prevent accidental deletion
+- **Item Favoriting**: Quick access to important items
+- **Item History**: Track item acquisition and usage
+- **Item Comparison**: Compare item stats and effects`,
+        codeExample: `-- Comprehensive inventory and item system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
+
+local InventorySystem = {}
+InventorySystem.__index = InventorySystem
+
+-- Inventory configuration
+local MAX_INVENTORY_SLOTS = 50
+local MAX_BANK_SLOTS = 100
+local MAX_STACK_SIZE = 99
+
+-- Item rarities
+local ITEM_RARITIES = {
+    COMMON = "Common",
+    UNCOMMON = "Uncommon",
+    RARE = "Rare",
+    EPIC = "Epic",
+    LEGENDARY = "Legendary"
+}
+
+-- Item categories
+local ITEM_CATEGORIES = {
+    WEAPON = "Weapon",
+    ARMOR = "Armor",
+    CONSUMABLE = "Consumable",
+    MATERIAL = "Material",
+    TOOL = "Tool",
+    MISC = "Misc"
+}
+
+-- Item rarity colors
+local RARITY_COLORS = {
+    [ITEM_RARITIES.COMMON] = Color3.fromRGB(255, 255, 255),
+    [ITEM_RARITIES.UNCOMMON] = Color3.fromRGB(0, 255, 0),
+    [ITEM_RARITIES.RARE] = Color3.fromRGB(0, 0, 255),
+    [ITEM_RARITIES.EPIC] = Color3.fromRGB(128, 0, 128),
+    [ITEM_RARITIES.LEGENDARY] = Color3.fromRGB(255, 165, 0)
+}
+
+function InventorySystem.new()
+    local self = setmetatable({}, InventorySystem)
+    
+    -- Player inventory data
+    self.playerInventories = {}
+    self.playerBanks = {}
+    self.playerEquipment = {}
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("PlayerInventory_v1")
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function InventorySystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function InventorySystem:initializePlayer(player)
+    -- Load player data
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        self.playerInventories[player.UserId] = data.inventory or {}
+        self.playerBanks[player.UserId] = data.bank or {}
+        self.playerEquipment[player.UserId] = data.equipment or {}
+    else
+        self.playerInventories[player.UserId] = {}
+        self.playerBanks[player.UserId] = {}
+        self.playerEquipment[player.UserId] = {}
+    end
+    
+    print("Initialized inventory system for", player.Name)
+end
+
+function InventorySystem:cleanupPlayer(player)
+    self.playerInventories[player.UserId] = nil
+    self.playerBanks[player.UserId] = nil
+    self.playerEquipment[player.UserId] = nil
+end
+
+function InventorySystem:addItem(player, itemId, quantity, source)
+    local inventory = self.playerInventories[player.UserId]
+    
+    if not inventory then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(itemId)
+    if not itemData then
+        return false
+    end
+    
+    -- Check if item is stackable
+    if itemData.stackable then
+        -- Find existing stack
+        for slot, item in pairs(inventory) do
+            if item.id == itemId and item.quantity < MAX_STACK_SIZE then
+                local addAmount = math.min(quantity, MAX_STACK_SIZE - item.quantity)
+                item.quantity = item.quantity + addAmount
+                quantity = quantity - addAmount
+                
+                if quantity <= 0 then
+                    break
+                end
+            end
+        end
+    end
+    
+    -- Add remaining items to new slots
+    while quantity > 0 do
+        local emptySlot = self:findEmptySlot(inventory)
+        if not emptySlot then
+            -- Inventory full
+            break
+        end
+        
+        local addAmount = math.min(quantity, itemData.stackable and MAX_STACK_SIZE or 1)
+        inventory[emptySlot] = {
+            id = itemId,
+            quantity = addAmount,
+            acquiredAt = tick(),
+            source = source or "Unknown"
+        }
+        
+        quantity = quantity - addAmount
+    end
+    
+    -- Fire item added event
+    self:fireItemEvent(player, "ItemAdded", itemId, quantity, source)
+    
+    print("Added", quantity, "of", itemId, "to", player.Name, "inventory")
+    
+    return true
+end
+
+function InventorySystem:removeItem(player, itemId, quantity)
+    local inventory = self.playerInventories[player.UserId]
+    
+    if not inventory then
+        return false
+    end
+    
+    local removedAmount = 0
+    
+    -- Remove items from inventory
+    for slot, item in pairs(inventory) do
+        if item.id == itemId and removedAmount < quantity then
+            local removeAmount = math.min(quantity - removedAmount, item.quantity)
+            item.quantity = item.quantity - removeAmount
+            removedAmount = removedAmount + removeAmount
+            
+            if item.quantity <= 0 then
+                inventory[slot] = nil
+            end
+        end
+    end
+    
+    -- Fire item removed event
+    self:fireItemEvent(player, "ItemRemoved", itemId, removedAmount)
+    
+    print("Removed", removedAmount, "of", itemId, "from", player.Name, "inventory")
+    
+    return removedAmount > 0
+end
+
+function InventorySystem:equipItem(player, itemId, slot)
+    local inventory = self.playerInventories[player.UserId]
+    local equipment = self.playerEquipment[player.UserId]
+    
+    if not inventory or not equipment then
+        return false
+    end
+    
+    -- Find item in inventory
+    local item = self:findItemInInventory(inventory, itemId)
+    if not item then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(itemId)
+    if not itemData or not itemData.equippable then
+        return false
+    end
+    
+    -- Check if slot is valid for this item
+    if not self:isValidEquipmentSlot(itemData.category, slot) then
+        return false
+    end
+    
+    -- Unequip current item in slot
+    if equipment[slot] then
+        self:unequipItem(player, slot)
+    end
+    
+    -- Equip new item
+    equipment[slot] = {
+        id = itemId,
+        equippedAt = tick()
+    }
+    
+    -- Remove item from inventory
+    self:removeItem(player, itemId, 1)
+    
+    -- Apply item effects
+    self:applyItemEffects(player, itemData)
+    
+    -- Fire item equipped event
+    self:fireItemEvent(player, "ItemEquipped", itemId, slot)
+    
+    print("Equipped", itemId, "to", slot, "for", player.Name)
+    
+    return true
+end
+
+function InventorySystem:unequipItem(player, slot)
+    local inventory = self.playerInventories[player.UserId]
+    local equipment = self.playerEquipment[player.UserId]
+    
+    if not inventory or not equipment then
+        return false
+    end
+    
+    local equippedItem = equipment[slot]
+    if not equippedItem then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(equippedItem.id)
+    if itemData then
+        -- Remove item effects
+        self:removeItemEffects(player, itemData)
+    end
+    
+    -- Add item back to inventory
+    self:addItem(player, equippedItem.id, 1, "Unequipped")
+    
+    -- Remove from equipment
+    equipment[slot] = nil
+    
+    -- Fire item unequipped event
+    self:fireItemEvent(player, "ItemUnequipped", equippedItem.id, slot)
+    
+    print("Unequipped", equippedItem.id, "from", slot, "for", player.Name)
+    
+    return true
+end
+
+function InventorySystem:findEmptySlot(inventory)
+    for i = 1, MAX_INVENTORY_SLOTS do
+        if not inventory[i] then
+            return i
+        end
+    end
+    return nil
+end
+
+function InventorySystem:findItemInInventory(inventory, itemId)
+    for slot, item in pairs(inventory) do
+        if item.id == itemId then
+            return item
+        end
+    end
+    return nil
+end
+
+function InventorySystem:isValidEquipmentSlot(category, slot)
+    local validSlots = {
+        [ITEM_CATEGORIES.WEAPON] = {"MainHand", "OffHand"},
+        [ITEM_CATEGORIES.ARMOR] = {"Helmet", "Chestplate", "Leggings", "Boots"},
+        [ITEM_CATEGORIES.TOOL] = {"Tool"}
+    }
+    
+    return validSlots[category] and table.find(validSlots[category], slot) ~= nil
+end
+
+function InventorySystem:applyItemEffects(player, itemData)
+    if not itemData.effects then
+        return
+    end
+    
+    -- Apply stat bonuses
+    if itemData.effects.stats then
+        for stat, bonus in pairs(itemData.effects.stats) do
+            -- Apply stat bonus to player
+            print("Applied", stat, "bonus of", bonus, "to", player.Name)
+        end
+    end
+    
+    -- Apply special effects
+    if itemData.effects.special then
+        for effect, data in pairs(itemData.effects.special) do
+            -- Apply special effect
+            print("Applied special effect", effect, "to", player.Name)
+        end
+    end
+end
+
+function InventorySystem:removeItemEffects(player, itemData)
+    if not itemData.effects then
+        return
+    end
+    
+    -- Remove stat bonuses
+    if itemData.effects.stats then
+        for stat, bonus in pairs(itemData.effects.stats) do
+            -- Remove stat bonus from player
+            print("Removed", stat, "bonus of", bonus, "from", player.Name)
+        end
+    end
+    
+    -- Remove special effects
+    if itemData.effects.special then
+        for effect, data in pairs(itemData.effects.special) do
+            -- Remove special effect
+            print("Removed special effect", effect, "from", player.Name)
+        end
+    end
+end
+
+function InventorySystem:getItemData(itemId)
+    -- This would typically load from a database or configuration file
+    -- For now, return mock data
+    local itemDatabase = {
+        ["sword_iron"] = {
+            id = "sword_iron",
+            name = "Iron Sword",
+            description = "A sturdy iron sword",
+            category = ITEM_CATEGORIES.WEAPON,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = false,
+            equippable = true,
+            effects = {
+                stats = {
+                    damage = 15,
+                    speed = -1
+                }
+            }
+        },
+        ["potion_health"] = {
+            id = "potion_health",
+            name = "Health Potion",
+            description = "Restores 50 health",
+            category = ITEM_CATEGORIES.CONSUMABLE,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = true,
+            equippable = false,
+            effects = {
+                special = {
+                    heal = 50
+                }
+            }
+        },
+        ["armor_leather"] = {
+            id = "armor_leather",
+            name = "Leather Armor",
+            description = "Basic leather protection",
+            category = ITEM_CATEGORIES.ARMOR,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = false,
+            equippable = true,
+            effects = {
+                stats = {
+                    defense = 5
+                }
+            }
+        }
+    }
+    
+    return itemDatabase[itemId]
+end
+
+function InventorySystem:savePlayerData(player)
+    local data = {
+        inventory = self.playerInventories[player.UserId],
+        bank = self.playerBanks[player.UserId],
+        equipment = self.playerEquipment[player.UserId]
+    }
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, data)
+    end)
+    
+    if success then
+        print("Saved inventory data for", player.Name)
+    else
+        warn("Failed to save inventory data for", player.Name)
+    end
+end
+
+function InventorySystem:fireItemEvent(player, event, itemId, data)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("InventoryEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "InventoryEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = event,
+        itemId = itemId,
+        data = data,
+        timestamp = tick()
+    })
+end
+
+-- Example usage
+local inventorySystem = InventorySystem.new()
+
+-- Test inventory system
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Add some items
+    inventorySystem:addItem(player, "sword_iron", 1, "Starting Equipment")
+    inventorySystem:addItem(player, "potion_health", 5, "Starting Equipment")
+    inventorySystem:addItem(player, "armor_leather", 1, "Starting Equipment")
+    
+    -- Equip items
+    inventorySystem:equipItem(player, "sword_iron", "MainHand")
+    inventorySystem:equipItem(player, "armor_leather", "Chestplate")
+    
+    print("Applied inventory system tests to", player.Name)
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Health & Damage Systems - Comprehensive Learning Example
+-- Master health management, damage calculation, and combat mechanics
+
+print("=== HEALTH & DAMAGE SYSTEMS DEMO ===")
+print("Learning health management and combat mechanics...")
+
+-- 1. HEALTH SYSTEM FUNDAMENTALS
+print("\\n1. DEMONSTRATING HEALTH SYSTEM FUNDAMENTALS...")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local HealthSystem = {}
+HealthSystem.__index = HealthSystem
+
+-- Health configuration
+local DEFAULT_MAX_HEALTH = 100
+local HEALTH_REGEN_RATE = 1 -- health per second
+local HEALTH_REGEN_DELAY = 5 -- seconds after damage before regen starts
+local SHIELD_DURATION = 10 -- seconds
+
+-- Damage types
+local DAMAGE_TYPES = {
+    PHYSICAL = "Physical",
+    MAGICAL = "Magical",
+    FIRE = "Fire",
+    ICE = "Ice",
+    POISON = "Poison",
+    ENVIRONMENTAL = "Environmental"
+}
+
+function HealthSystem.new()
+    local self = setmetatable({}, HealthSystem)
+    
+    -- Player health data
+    self.playerHealth = {}
+    self.playerShields = {}
+    self.playerArmor = {}
+    self.playerStatusEffects = {}
+    
+    -- Health events
+    self.healthEvents = {}
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function HealthSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function HealthSystem:initializePlayer(player)
+    local character = player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Initialize health data
+    self.playerHealth[player.UserId] = {
+        maxHealth = DEFAULT_MAX_HEALTH,
+        currentHealth = DEFAULT_MAX_HEALTH,
+        lastDamageTime = 0,
+        isDead = false,
+        respawnTime = 0
+    }
+    
+    -- Initialize shield data
+    self.playerShields[player.UserId] = {
+        currentShield = 0,
+        maxShield = 0,
+        shieldEndTime = 0
+    }
+    
+    -- Initialize armor data
+    self.playerArmor[player.UserId] = {
+        physicalResistance = 0,
+        magicalResistance = 0,
+        fireResistance = 0,
+        iceResistance = 0,
+        poisonResistance = 0
+    }
+    
+    -- Initialize status effects
+    self.playerStatusEffects[player.UserId] = {}
+    
+    -- Set humanoid health
+    humanoid.MaxHealth = DEFAULT_MAX_HEALTH
+    humanoid.Health = DEFAULT_MAX_HEALTH
+    
+    -- Connect humanoid events
+    humanoid.Died:Connect(function()
+        self:onPlayerDied(player)
+    end)
+    
+    humanoid.HealthChanged:Connect(function(health)
+        self:onHealthChanged(player, health)
+    end)
+    
+    -- Start health regeneration
+    self:startHealthRegeneration(player)
+    
+    print("Initialized health system for", player.Name)
+end
+
+function HealthSystem:cleanupPlayer(player)
+    self.playerHealth[player.UserId] = nil
+    self.playerShields[player.UserId] = nil
+    self.playerArmor[player.UserId] = nil
+    self.playerStatusEffects[player.UserId] = nil
+end
+
+function HealthSystem:dealDamage(player, damage, damageType, source)
+    local healthData = self.playerHealth[player.UserId]
+    local shieldData = self.playerShields[player.UserId]
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not healthData or healthData.isDead then
+        return false
+    end
+    
+    -- Calculate damage resistance
+    local resistance = self:getDamageResistance(player, damageType)
+    local finalDamage = damage * (1 - resistance)
+    
+    -- Apply shield first
+    if shieldData.currentShield > 0 then
+        local shieldDamage = math.min(finalDamage, shieldData.currentShield)
+        shieldData.currentShield = shieldData.currentShield - shieldDamage
+        finalDamage = finalDamage - shieldDamage
+        
+        print("Shield absorbed", shieldDamage, "damage for", player.Name)
+    end
+    
+    -- Apply remaining damage to health
+    if finalDamage > 0 then
+        healthData.currentHealth = math.max(0, healthData.currentHealth - finalDamage)
+        healthData.lastDamageTime = tick()
+        
+        -- Update humanoid health
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.Health = healthData.currentHealth
+            end
+        end
+        
+        -- Fire damage event
+        self:fireDamageEvent(player, finalDamage, damageType, source)
+        
+        print("Dealt", finalDamage, damageType, "damage to", player.Name)
+    end
+    
+    return true
+end
+
+function HealthSystem:healPlayer(player, healAmount, source)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData or healthData.isDead then
+        return false
+    end
+    
+    local oldHealth = healthData.currentHealth
+    healthData.currentHealth = math.min(healthData.maxHealth, healthData.currentHealth + healAmount)
+    
+    -- Update humanoid health
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Health = healthData.currentHealth
+        end
+    end
+    
+    -- Fire heal event
+    self:fireHealEvent(player, healAmount, source)
+    
+    print("Healed", player.Name, "for", healAmount, "health")
+    
+    return true
+end
+
+function HealthSystem:setMaxHealth(player, newMaxHealth)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return false
+    end
+    
+    local oldMaxHealth = healthData.maxHealth
+    healthData.maxHealth = newMaxHealth
+    
+    -- Adjust current health proportionally
+    local healthRatio = healthData.currentHealth / oldMaxHealth
+    healthData.currentHealth = newMaxHealth * healthRatio
+    
+    -- Update humanoid
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.MaxHealth = newMaxHealth
+            humanoid.Health = healthData.currentHealth
+        end
+    end
+    
+    print("Set max health for", player.Name, "to", newMaxHealth)
+    
+    return true
+end
+
+function HealthSystem:addShield(player, shieldAmount, duration)
+    local shieldData = self.playerShields[player.UserId]
+    
+    if not shieldData then
+        return false
+    end
+    
+    shieldData.currentShield = shieldData.currentShield + shieldAmount
+    shieldData.maxShield = math.max(shieldData.maxShield, shieldData.currentShield)
+    shieldData.shieldEndTime = tick() + duration
+    
+    -- Start shield countdown
+    self:startShieldCountdown(player)
+    
+    print("Added", shieldAmount, "shield to", player.Name, "for", duration, "seconds")
+    
+    return true
+end
+
+function HealthSystem:setArmor(player, armorType, resistance)
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not armorData then
+        return false
+    end
+    
+    if armorType == "physical" then
+        armorData.physicalResistance = resistance
+    elseif armorType == "magical" then
+        armorData.magicalResistance = resistance
+    elseif armorType == "fire" then
+        armorData.fireResistance = resistance
+    elseif armorType == "ice" then
+        armorData.iceResistance = resistance
+    elseif armorType == "poison" then
+        armorData.poisonResistance = resistance
+    end
+    
+    print("Set", armorType, "resistance for", player.Name, "to", resistance)
+    
+    return true
+end
+
+function HealthSystem:addStatusEffect(player, effectName, duration, effectData)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    
+    if not statusEffects then
+        return false
+    end
+    
+    statusEffects[effectName] = {
+        startTime = tick(),
+        duration = duration,
+        data = effectData or {}
+    }
+    
+    -- Start status effect
+    self:startStatusEffect(player, effectName)
+    
+    print("Added status effect", effectName, "to", player.Name, "for", duration, "seconds")
+    
+    return true
+end
+
+function HealthSystem:removeStatusEffect(player, effectName)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    
+    if not statusEffects or not statusEffects[effectName] then
+        return false
+    end
+    
+    statusEffects[effectName] = nil
+    
+    print("Removed status effect", effectName, "from", player.Name)
+    
+    return true
+end
+
+function HealthSystem:getDamageResistance(player, damageType)
+    local armorData = self.playerArmor[player.UserId]
+    
+    if not armorData then
+        return 0
+    end
+    
+    if damageType == DAMAGE_TYPES.PHYSICAL then
+        return armorData.physicalResistance
+    elseif damageType == DAMAGE_TYPES.MAGICAL then
+        return armorData.magicalResistance
+    elseif damageType == DAMAGE_TYPES.FIRE then
+        return armorData.fireResistance
+    elseif damageType == DAMAGE_TYPES.ICE then
+        return armorData.iceResistance
+    elseif damageType == DAMAGE_TYPES.POISON then
+        return armorData.poisonResistance
+    end
+    
+    return 0
+end
+
+function HealthSystem:startHealthRegeneration(player)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if healthData.isDead then
+            connection:Disconnect()
+            return
+        end
+        
+        -- Check if enough time has passed since last damage
+        if tick() - healthData.lastDamageTime >= HEALTH_REGEN_DELAY then
+            if healthData.currentHealth < healthData.maxHealth then
+                local regenAmount = HEALTH_REGEN_RATE * (1/60) -- Per frame
+                healthData.currentHealth = math.min(healthData.maxHealth, healthData.currentHealth + regenAmount)
+                
+                -- Update humanoid health
+                local character = player.Character
+                if character then
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        humanoid.Health = healthData.currentHealth
+                    end
+                end
+            end
+        end
+    end)
+end
+
+function HealthSystem:startShieldCountdown(player)
+    local shieldData = self.playerShields[player.UserId]
+    
+    if not shieldData then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if tick() >= shieldData.shieldEndTime then
+            shieldData.currentShield = 0
+            connection:Disconnect()
+            print("Shield expired for", player.Name)
+        end
+    end)
+end
+
+function HealthSystem:startStatusEffect(player, effectName)
+    local statusEffects = self.playerStatusEffects[player.UserId]
+    local effect = statusEffects[effectName]
+    
+    if not effect then
+        return
+    end
+    
+    local connection = RunService.Heartbeat:Connect(function()
+        if tick() >= effect.startTime + effect.duration then
+            self:removeStatusEffect(player, effectName)
+            connection:Disconnect()
+            return
+        end
+        
+        -- Apply status effect
+        if effectName == "poison" then
+            self:dealDamage(player, effect.data.damage or 1, DAMAGE_TYPES.POISON, "Poison")
+        elseif effectName == "regeneration" then
+            self:healPlayer(player, effect.data.healAmount or 1, "Regeneration")
+        end
+    end)
+end
+
+function HealthSystem:onPlayerDied(player)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    healthData.isDead = true
+    healthData.respawnTime = tick() + 5 -- 5 second respawn delay
+    
+    -- Fire death event
+    self:fireDeathEvent(player)
+    
+    print(player.Name, "died")
+end
+
+function HealthSystem:onHealthChanged(player, health)
+    local healthData = self.playerHealth[player.UserId]
+    
+    if not healthData then
+        return
+    end
+    
+    healthData.currentHealth = health
+    
+    -- Fire health changed event
+    self:fireHealthChangedEvent(player, health)
+end
+
+function HealthSystem:fireDamageEvent(player, damage, damageType, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Damage",
+        damage = damage,
+        damageType = damageType,
+        source = source,
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireHealEvent(player, healAmount, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Heal",
+        healAmount = healAmount,
+        source = source,
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireDeathEvent(player)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "Death",
+        timestamp = tick()
+    })
+end
+
+function HealthSystem:fireHealthChangedEvent(player, health)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("HealthEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "HealthEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "HealthChanged",
+        health = health,
+        timestamp = tick()
+    })
+end
+
+-- 2. EXPERIENCE & LEVELING SYSTEM
+print("\\n2. DEMONSTRATING EXPERIENCE & LEVELING SYSTEM...")
+
+local ExperienceSystem = {}
+ExperienceSystem.__index = ExperienceSystem
+
+-- Experience configuration
+local BASE_EXPERIENCE_REQUIRED = 100
+local EXPERIENCE_MULTIPLIER = 1.5
+local MAX_LEVEL = 100
+local PRESTIGE_LEVELS = 10
+
+-- Experience sources
+local EXPERIENCE_SOURCES = {
+    KILL = "Kill",
+    QUEST = "Quest",
+    EXPLORATION = "Exploration",
+    CRAFTING = "Crafting",
+    SOCIAL = "Social",
+    ACHIEVEMENT = "Achievement"
+}
+
+-- Experience multipliers
+local EXPERIENCE_MULTIPLIERS = {
+    [EXPERIENCE_SOURCES.KILL] = 1.0,
+    [EXPERIENCE_SOURCES.QUEST] = 1.5,
+    [EXPERIENCE_SOURCES.EXPLORATION] = 0.8,
+    [EXPERIENCE_SOURCES.CRAFTING] = 1.2,
+    [EXPERIENCE_SOURCES.SOCIAL] = 0.5,
+    [EXPERIENCE_SOURCES.ACHIEVEMENT] = 2.0
+}
+
+function ExperienceSystem.new()
+    local self = setmetatable({}, ExperienceSystem)
+    
+    -- Player experience data
+    self.playerExperience = {}
+    self.playerLevels = {}
+    self.playerStats = {}
+    self.playerSkills = {}
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("PlayerExperience_v1")
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function ExperienceSystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function ExperienceSystem:initializePlayer(player)
+    -- Load player data
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        self.playerExperience[player.UserId] = data.experience or 0
+        self.playerLevels[player.UserId] = data.level or 1
+        self.playerStats[player.UserId] = data.stats or self:getDefaultStats()
+        self.playerSkills[player.UserId] = data.skills or {}
+    else
+        self.playerExperience[player.UserId] = 0
+        self.playerLevels[player.UserId] = 1
+        self.playerStats[player.UserId] = self:getDefaultStats()
+        self.playerSkills[player.UserId] = {}
+    end
+    
+    -- Apply level bonuses
+    self:applyLevelBonuses(player)
+    
+    print("Initialized experience system for", player.Name, "Level:", self.playerLevels[player.UserId])
+end
+
+function ExperienceSystem:cleanupPlayer(player)
+    self.playerExperience[player.UserId] = nil
+    self.playerLevels[player.UserId] = nil
+    self.playerStats[player.UserId] = nil
+    self.playerSkills[player.UserId] = nil
+end
+
+function ExperienceSystem:addExperience(player, amount, source)
+    local currentExp = self.playerExperience[player.UserId]
+    local currentLevel = self.playerLevels[player.UserId]
+    
+    if not currentExp or not currentLevel then
+        return false
+    end
+    
+    -- Apply experience multiplier
+    local multiplier = EXPERIENCE_MULTIPLIERS[source] or 1.0
+    local finalAmount = amount * multiplier
+    
+    -- Add experience
+    self.playerExperience[player.UserId] = currentExp + finalAmount
+    
+    -- Check for level up
+    local newLevel = self:calculateLevel(self.playerExperience[player.UserId])
+    if newLevel > currentLevel then
+        self:levelUp(player, newLevel)
+    end
+    
+    -- Fire experience event
+    self:fireExperienceEvent(player, finalAmount, source)
+    
+    print("Added", finalAmount, "experience to", player.Name, "from", source)
+    
+    return true
+end
+
+function ExperienceSystem:levelUp(player, newLevel)
+    local oldLevel = self.playerLevels[player.UserId]
+    self.playerLevels[player.UserId] = newLevel
+    
+    -- Apply level bonuses
+    self:applyLevelBonuses(player)
+    
+    -- Unlock new skills
+    self:unlockSkills(player, newLevel)
+    
+    -- Fire level up event
+    self:fireLevelUpEvent(player, oldLevel, newLevel)
+    
+    print(player.Name, "leveled up from", oldLevel, "to", newLevel)
+end
+
+function ExperienceSystem:calculateLevel(experience)
+    local level = 1
+    local expRequired = BASE_EXPERIENCE_REQUIRED
+    
+    while experience >= expRequired and level < MAX_LEVEL do
+        experience = experience - expRequired
+        level = level + 1
+        expRequired = expRequired * EXPERIENCE_MULTIPLIER
+    end
+    
+    return level
+end
+
+function ExperienceSystem:getExperienceRequired(level)
+    if level <= 1 then
+        return 0
+    end
+    
+    local totalExp = 0
+    local expRequired = BASE_EXPERIENCE_REQUIRED
+    
+    for i = 2, level do
+        totalExp = totalExp + expRequired
+        expRequired = expRequired * EXPERIENCE_MULTIPLIER
+    end
+    
+    return totalExp
+end
+
+function ExperienceSystem:getExperienceToNextLevel(player)
+    local currentLevel = self.playerLevels[player.UserId]
+    local currentExp = self.playerExperience[player.UserId]
+    
+    if not currentLevel or not currentExp then
+        return 0
+    end
+    
+    local expForCurrentLevel = self:getExperienceRequired(currentLevel)
+    local expForNextLevel = self:getExperienceRequired(currentLevel + 1)
+    
+    return expForNextLevel - currentExp
+end
+
+function ExperienceSystem:applyLevelBonuses(player)
+    local level = self.playerLevels[player.UserId]
+    local stats = self.playerStats[player.UserId]
+    
+    if not level or not stats then
+        return
+    end
+    
+    -- Calculate stat bonuses
+    local healthBonus = level * 10
+    local damageBonus = level * 5
+    local speedBonus = level * 0.5
+    local defenseBonus = level * 3
+    
+    -- Apply bonuses
+    stats.health = stats.baseHealth + healthBonus
+    stats.damage = stats.baseDamage + damageBonus
+    stats.speed = stats.baseSpeed + speedBonus
+    stats.defense = stats.baseDefense + defenseBonus
+    
+    -- Update player's actual stats
+    self:updatePlayerStats(player)
+end
+
+function ExperienceSystem:unlockSkills(player, level)
+    local skills = self.playerSkills[player.UserId]
+    
+    if not skills then
+        return
+    end
+    
+    -- Define skill unlocks by level
+    local skillUnlocks = {
+        [5] = "DoubleJump",
+        [10] = "Dash",
+        [15] = "Shield",
+        [20] = "Fireball",
+        [25] = "Heal",
+        [30] = "Teleport",
+        [35] = "Invisibility",
+        [40] = "Lightning",
+        [45] = "IceWall",
+        [50] = "Summon"
+    }
+    
+    for unlockLevel, skillName in pairs(skillUnlocks) do
+        if level >= unlockLevel and not skills[skillName] then
+            skills[skillName] = {
+                unlocked = true,
+                level = unlockLevel,
+                unlockedAt = tick()
+            }
+            
+            print("Unlocked skill", skillName, "for", player.Name, "at level", level)
+        end
+    end
+end
+
+function ExperienceSystem:updatePlayerStats(player)
+    local stats = self.playerStats[player.UserId]
+    
+    if not stats then
+        return
+    end
+    
+    -- Update humanoid stats
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.MaxHealth = stats.health
+            humanoid.WalkSpeed = stats.speed
+        end
+    end
+    
+    -- Fire stats update event
+    self:fireStatsUpdateEvent(player, stats)
+end
+
+function ExperienceSystem:getDefaultStats()
+    return {
+        baseHealth = 100,
+        baseDamage = 10,
+        baseSpeed = 16,
+        baseDefense = 0,
+        health = 100,
+        damage = 10,
+        speed = 16,
+        defense = 0
+    }
+end
+
+function ExperienceSystem:savePlayerData(player)
+    local data = {
+        experience = self.playerExperience[player.UserId],
+        level = self.playerLevels[player.UserId],
+        stats = self.playerStats[player.UserId],
+        skills = self.playerSkills[player.UserId]
+    }
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, data)
+    end)
+    
+    if success then
+        print("Saved experience data for", player.Name)
+    else
+        warn("Failed to save experience data for", player.Name)
+    end
+end
+
+function ExperienceSystem:fireExperienceEvent(player, amount, source)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "ExperienceGained",
+        amount = amount,
+        source = source,
+        totalExperience = self.playerExperience[player.UserId],
+        level = self.playerLevels[player.UserId],
+        timestamp = tick()
+    })
+end
+
+function ExperienceSystem:fireLevelUpEvent(player, oldLevel, newLevel)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "LevelUp",
+        oldLevel = oldLevel,
+        newLevel = newLevel,
+        totalExperience = self.playerExperience[player.UserId],
+        timestamp = tick()
+    })
+end
+
+function ExperienceSystem:fireStatsUpdateEvent(player, stats)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("ExperienceEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "ExperienceEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = "StatsUpdate",
+        stats = stats,
+        timestamp = tick()
+    })
+end
+
+-- 3. INVENTORY & ITEM SYSTEM
+print("\\n3. DEMONSTRATING INVENTORY & ITEM SYSTEM...")
+
+local InventorySystem = {}
+InventorySystem.__index = InventorySystem
+
+-- Inventory configuration
+local MAX_INVENTORY_SLOTS = 50
+local MAX_BANK_SLOTS = 100
+local MAX_STACK_SIZE = 99
+
+-- Item rarities
+local ITEM_RARITIES = {
+    COMMON = "Common",
+    UNCOMMON = "Uncommon",
+    RARE = "Rare",
+    EPIC = "Epic",
+    LEGENDARY = "Legendary"
+}
+
+-- Item categories
+local ITEM_CATEGORIES = {
+    WEAPON = "Weapon",
+    ARMOR = "Armor",
+    CONSUMABLE = "Consumable",
+    MATERIAL = "Material",
+    TOOL = "Tool",
+    MISC = "Misc"
+}
+
+-- Item rarity colors
+local RARITY_COLORS = {
+    [ITEM_RARITIES.COMMON] = Color3.fromRGB(255, 255, 255),
+    [ITEM_RARITIES.UNCOMMON] = Color3.fromRGB(0, 255, 0),
+    [ITEM_RARITIES.RARE] = Color3.fromRGB(0, 0, 255),
+    [ITEM_RARITIES.EPIC] = Color3.fromRGB(128, 0, 128),
+    [ITEM_RARITIES.LEGENDARY] = Color3.fromRGB(255, 165, 0)
+}
+
+function InventorySystem.new()
+    local self = setmetatable({}, InventorySystem)
+    
+    -- Player inventory data
+    self.playerInventories = {}
+    self.playerBanks = {}
+    self.playerEquipment = {}
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("PlayerInventory_v1")
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function InventorySystem:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function InventorySystem:initializePlayer(player)
+    -- Load player data
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        self.playerInventories[player.UserId] = data.inventory or {}
+        self.playerBanks[player.UserId] = data.bank or {}
+        self.playerEquipment[player.UserId] = data.equipment or {}
+    else
+        self.playerInventories[player.UserId] = {}
+        self.playerBanks[player.UserId] = {}
+        self.playerEquipment[player.UserId] = {}
+    end
+    
+    print("Initialized inventory system for", player.Name)
+end
+
+function InventorySystem:cleanupPlayer(player)
+    self.playerInventories[player.UserId] = nil
+    self.playerBanks[player.UserId] = nil
+    self.playerEquipment[player.UserId] = nil
+end
+
+function InventorySystem:addItem(player, itemId, quantity, source)
+    local inventory = self.playerInventories[player.UserId]
+    
+    if not inventory then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(itemId)
+    if not itemData then
+        return false
+    end
+    
+    -- Check if item is stackable
+    if itemData.stackable then
+        -- Find existing stack
+        for slot, item in pairs(inventory) do
+            if item.id == itemId and item.quantity < MAX_STACK_SIZE then
+                local addAmount = math.min(quantity, MAX_STACK_SIZE - item.quantity)
+                item.quantity = item.quantity + addAmount
+                quantity = quantity - addAmount
+                
+                if quantity <= 0 then
+                    break
+                end
+            end
+        end
+    end
+    
+    -- Add remaining items to new slots
+    while quantity > 0 do
+        local emptySlot = self:findEmptySlot(inventory)
+        if not emptySlot then
+            -- Inventory full
+            break
+        end
+        
+        local addAmount = math.min(quantity, itemData.stackable and MAX_STACK_SIZE or 1)
+        inventory[emptySlot] = {
+            id = itemId,
+            quantity = addAmount,
+            acquiredAt = tick(),
+            source = source or "Unknown"
+        }
+        
+        quantity = quantity - addAmount
+    end
+    
+    -- Fire item added event
+    self:fireItemEvent(player, "ItemAdded", itemId, quantity, source)
+    
+    print("Added", quantity, "of", itemId, "to", player.Name, "inventory")
+    
+    return true
+end
+
+function InventorySystem:removeItem(player, itemId, quantity)
+    local inventory = self.playerInventories[player.UserId]
+    
+    if not inventory then
+        return false
+    end
+    
+    local removedAmount = 0
+    
+    -- Remove items from inventory
+    for slot, item in pairs(inventory) do
+        if item.id == itemId and removedAmount < quantity then
+            local removeAmount = math.min(quantity - removedAmount, item.quantity)
+            item.quantity = item.quantity - removeAmount
+            removedAmount = removedAmount + removeAmount
+            
+            if item.quantity <= 0 then
+                inventory[slot] = nil
+            end
+        end
+    end
+    
+    -- Fire item removed event
+    self:fireItemEvent(player, "ItemRemoved", itemId, removedAmount)
+    
+    print("Removed", removedAmount, "of", itemId, "from", player.Name, "inventory")
+    
+    return removedAmount > 0
+end
+
+function InventorySystem:equipItem(player, itemId, slot)
+    local inventory = self.playerInventories[player.UserId]
+    local equipment = self.playerEquipment[player.UserId]
+    
+    if not inventory or not equipment then
+        return false
+    end
+    
+    -- Find item in inventory
+    local item = self:findItemInInventory(inventory, itemId)
+    if not item then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(itemId)
+    if not itemData or not itemData.equippable then
+        return false
+    end
+    
+    -- Check if slot is valid for this item
+    if not self:isValidEquipmentSlot(itemData.category, slot) then
+        return false
+    end
+    
+    -- Unequip current item in slot
+    if equipment[slot] then
+        self:unequipItem(player, slot)
+    end
+    
+    -- Equip new item
+    equipment[slot] = {
+        id = itemId,
+        equippedAt = tick()
+    }
+    
+    -- Remove item from inventory
+    self:removeItem(player, itemId, 1)
+    
+    -- Apply item effects
+    self:applyItemEffects(player, itemData)
+    
+    -- Fire item equipped event
+    self:fireItemEvent(player, "ItemEquipped", itemId, slot)
+    
+    print("Equipped", itemId, "to", slot, "for", player.Name)
+    
+    return true
+end
+
+function InventorySystem:unequipItem(player, slot)
+    local inventory = self.playerInventories[player.UserId]
+    local equipment = self.playerEquipment[player.UserId]
+    
+    if not inventory or not equipment then
+        return false
+    end
+    
+    local equippedItem = equipment[slot]
+    if not equippedItem then
+        return false
+    end
+    
+    -- Get item data
+    local itemData = self:getItemData(equippedItem.id)
+    if itemData then
+        -- Remove item effects
+        self:removeItemEffects(player, itemData)
+    end
+    
+    -- Add item back to inventory
+    self:addItem(player, equippedItem.id, 1, "Unequipped")
+    
+    -- Remove from equipment
+    equipment[slot] = nil
+    
+    -- Fire item unequipped event
+    self:fireItemEvent(player, "ItemUnequipped", equippedItem.id, slot)
+    
+    print("Unequipped", equippedItem.id, "from", slot, "for", player.Name)
+    
+    return true
+end
+
+function InventorySystem:findEmptySlot(inventory)
+    for i = 1, MAX_INVENTORY_SLOTS do
+        if not inventory[i] then
+            return i
+        end
+    end
+    return nil
+end
+
+function InventorySystem:findItemInInventory(inventory, itemId)
+    for slot, item in pairs(inventory) do
+        if item.id == itemId then
+            return item
+        end
+    end
+    return nil
+end
+
+function InventorySystem:isValidEquipmentSlot(category, slot)
+    local validSlots = {
+        [ITEM_CATEGORIES.WEAPON] = {"MainHand", "OffHand"},
+        [ITEM_CATEGORIES.ARMOR] = {"Helmet", "Chestplate", "Leggings", "Boots"},
+        [ITEM_CATEGORIES.TOOL] = {"Tool"}
+    }
+    
+    return validSlots[category] and table.find(validSlots[category], slot) ~= nil
+end
+
+function InventorySystem:applyItemEffects(player, itemData)
+    if not itemData.effects then
+        return
+    end
+    
+    -- Apply stat bonuses
+    if itemData.effects.stats then
+        for stat, bonus in pairs(itemData.effects.stats) do
+            -- Apply stat bonus to player
+            print("Applied", stat, "bonus of", bonus, "to", player.Name)
+        end
+    end
+    
+    -- Apply special effects
+    if itemData.effects.special then
+        for effect, data in pairs(itemData.effects.special) do
+            -- Apply special effect
+            print("Applied special effect", effect, "to", player.Name)
+        end
+    end
+end
+
+function InventorySystem:removeItemEffects(player, itemData)
+    if not itemData.effects then
+        return
+    end
+    
+    -- Remove stat bonuses
+    if itemData.effects.stats then
+        for stat, bonus in pairs(itemData.effects.stats) do
+            -- Remove stat bonus from player
+            print("Removed", stat, "bonus of", bonus, "from", player.Name)
+        end
+    end
+    
+    -- Remove special effects
+    if itemData.effects.special then
+        for effect, data in pairs(itemData.effects.special) do
+            -- Remove special effect
+            print("Removed special effect", effect, "from", player.Name)
+        end
+    end
+end
+
+function InventorySystem:getItemData(itemId)
+    -- This would typically load from a database or configuration file
+    -- For now, return mock data
+    local itemDatabase = {
+        ["sword_iron"] = {
+            id = "sword_iron",
+            name = "Iron Sword",
+            description = "A sturdy iron sword",
+            category = ITEM_CATEGORIES.WEAPON,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = false,
+            equippable = true,
+            effects = {
+                stats = {
+                    damage = 15,
+                    speed = -1
+                }
+            }
+        },
+        ["potion_health"] = {
+            id = "potion_health",
+            name = "Health Potion",
+            description = "Restores 50 health",
+            category = ITEM_CATEGORIES.CONSUMABLE,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = true,
+            equippable = false,
+            effects = {
+                special = {
+                    heal = 50
+                }
+            }
+        },
+        ["armor_leather"] = {
+            id = "armor_leather",
+            name = "Leather Armor",
+            description = "Basic leather protection",
+            category = ITEM_CATEGORIES.ARMOR,
+            rarity = ITEM_RARITIES.COMMON,
+            stackable = false,
+            equippable = true,
+            effects = {
+                stats = {
+                    defense = 5
+                }
+            }
+        }
+    }
+    
+    return itemDatabase[itemId]
+end
+
+function InventorySystem:savePlayerData(player)
+    local data = {
+        inventory = self.playerInventories[player.UserId],
+        bank = self.playerBanks[player.UserId],
+        equipment = self.playerEquipment[player.UserId]
+    }
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, data)
+    end)
+    
+    if success then
+        print("Saved inventory data for", player.Name)
+    else
+        warn("Failed to save inventory data for", player.Name)
+    end
+end
+
+function InventorySystem:fireItemEvent(player, event, itemId, data)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("InventoryEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "InventoryEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    remoteEvent:FireClient(player, {
+        event = event,
+        itemId = itemId,
+        data = data,
+        timestamp = tick()
+    })
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local healthSystem = HealthSystem.new()
+local experienceSystem = ExperienceSystem.new()
+local inventorySystem = InventorySystem.new()
+
+-- Test systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Test health system
+    healthSystem:dealDamage(player, 25, DAMAGE_TYPES.PHYSICAL, "Test Damage")
+    healthSystem:addShield(player, 50, 10)
+    healthSystem:setArmor(player, "physical", 0.5)
+    healthSystem:addStatusEffect(player, "poison", 5, {damage = 2})
+    healthSystem:healPlayer(player, 30, "Test Heal")
+    
+    -- Test experience system
+    experienceSystem:addExperience(player, 50, EXPERIENCE_SOURCES.KILL)
+    experienceSystem:addExperience(player, 100, EXPERIENCE_SOURCES.QUEST)
+    experienceSystem:addExperience(player, 25, EXPERIENCE_SOURCES.EXPLORATION)
+    experienceSystem:addExperience(player, 75, EXPERIENCE_SOURCES.CRAFTING)
+    
+    -- Test inventory system
+    inventorySystem:addItem(player, "sword_iron", 1, "Starting Equipment")
+    inventorySystem:addItem(player, "potion_health", 5, "Starting Equipment")
+    inventorySystem:addItem(player, "armor_leather", 1, "Starting Equipment")
+    inventorySystem:equipItem(player, "sword_iron", "MainHand")
+    inventorySystem:equipItem(player, "armor_leather", "Chestplate")
+    
+    print("Applied all system tests to", player.Name)
+end)
+
+print("\\n=== HEALTH & DAMAGE SYSTEMS DEMO COMPLETE ===")
+print("You've learned health management, experience systems, and inventory management!")`,
+    challenge: {
+      tests: [
+        { description: 'Create health system with damage and healing', type: 'code_contains', value: 'dealDamage' },
+        { description: 'Implement experience and leveling system', type: 'code_contains', value: 'addExperience' },
+        { description: 'Build inventory system with items and equipment', type: 'code_contains', value: 'addItem' }
+      ],
+      hints: [
+        'Use humanoid.Health and humanoid.MaxHealth for health management',
+        'Create experience curves with exponential growth for leveling',
+        'Use tables to store inventory items with quantities and properties',
+        'Implement item effects that modify player stats when equipped',
+        'Use DataStoreService to persist player progression data'
+      ],
+      successMessage: 'Excellent! You now understand health systems, experience progression, and inventory management. These skills are essential for creating engaging RPG mechanics!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
