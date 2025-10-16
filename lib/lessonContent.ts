@@ -21601,6 +21601,1313 @@ print("You've learned performance optimization techniques, memory management, an
     }
   },
 
+  // === ADVANCED GUI SYSTEMS ===
+  'advanced-gui-systems': {
+    title: 'Advanced GUI Systems & Custom Components',
+    description: 'Create sophisticated user interfaces with custom components and responsive design',
+    sections: [
+      {
+        title: 'Custom GUI Components & Responsive Design',
+        content: `Advanced GUI systems enable you to create sophisticated, responsive user interfaces that adapt to different screen sizes and provide excellent user experiences.
+
+**Custom Component Architecture:**
+- **Component-Based Design**: Reusable GUI components for consistent UI
+- **Responsive Layouts**: Adapting to different screen sizes and orientations
+- **Theme Systems**: Consistent styling across your application
+- **Animation Systems**: Smooth transitions and micro-interactions
+- **Accessibility Features**: Making UI accessible to all users
+
+**Advanced GUI Techniques:**
+- **Dynamic Layouts**: Automatic positioning and sizing
+- **Custom Controls**: Building specialized input components
+- **Data Binding**: Connecting UI elements to data sources
+- **Event Systems**: Advanced event handling and propagation
+- **Performance Optimization**: Efficient GUI rendering and updates`,
+        codeExample: `-- Advanced GUI systems and custom components
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
+
+local AdvancedGUI = {}
+AdvancedGUI.__index = AdvancedGUI
+
+-- GUI configuration
+local GUI_CONFIG = {
+    THEME = {
+        PRIMARY_COLOR = Color3.fromRGB(0, 120, 215),
+        SECONDARY_COLOR = Color3.fromRGB(107, 107, 107),
+        SUCCESS_COLOR = Color3.fromRGB(16, 124, 16),
+        WARNING_COLOR = Color3.fromRGB(255, 185, 0),
+        ERROR_COLOR = Color3.fromRGB(232, 17, 35),
+        BACKGROUND_COLOR = Color3.fromRGB(30, 30, 30),
+        SURFACE_COLOR = Color3.fromRGB(40, 40, 40),
+        TEXT_COLOR = Color3.fromRGB(255, 255, 255),
+        BORDER_COLOR = Color3.fromRGB(60, 60, 60)
+    },
+    ANIMATION = {
+        DURATION = 0.3,
+        EASING_STYLE = Enum.EasingStyle.Quart,
+        EASING_DIRECTION = Enum.EasingDirection.Out
+    },
+    RESPONSIVE = {
+        BREAKPOINTS = {
+            MOBILE = 480,
+            TABLET = 768,
+            DESKTOP = 1024
+        }
+    }
+}
+
+function AdvancedGUI.new()
+    local self = setmetatable({}, AdvancedGUI)
+    
+    -- GUI systems
+    self.components = {}
+    self.themes = {}
+    self.animations = {}
+    self.responsive = {}
+    self.accessibility = {}
+    
+    -- Setup systems
+    self:setupThemeSystem()
+    self:setupAnimationSystem()
+    self:setupResponsiveSystem()
+    self:setupAccessibilitySystem()
+    
+    return self
+end
+
+function AdvancedGUI:setupThemeSystem()
+    self.themes = {
+        current = "dark",
+        themes = {
+            dark = GUI_CONFIG.THEME,
+            light = {
+                PRIMARY_COLOR = Color3.fromRGB(0, 120, 215),
+                SECONDARY_COLOR = Color3.fromRGB(107, 107, 107),
+                SUCCESS_COLOR = Color3.fromRGB(16, 124, 16),
+                WARNING_COLOR = Color3.fromRGB(255, 185, 0),
+                ERROR_COLOR = Color3.fromRGB(232, 17, 35),
+                BACKGROUND_COLOR = Color3.fromRGB(255, 255, 255),
+                SURFACE_COLOR = Color3.fromRGB(245, 245, 245),
+                TEXT_COLOR = Color3.fromRGB(0, 0, 0),
+                BORDER_COLOR = Color3.fromRGB(200, 200, 200)
+            }
+        }
+    }
+    
+    print("Theme system initialized")
+end
+
+function AdvancedGUI:setupAnimationSystem()
+    self.animations = {
+        activeTweens = {},
+        tweenQueue = {},
+        maxConcurrentTweens = 10
+    }
+    
+    print("Animation system initialized")
+end
+
+function AdvancedGUI:setupResponsiveSystem()
+    self.responsive = {
+        currentBreakpoint = "desktop",
+        screenSize = Vector2.new(1920, 1080),
+        orientation = "landscape"
+    }
+    
+    -- Monitor screen size changes
+    UserInputService:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        self:updateResponsiveLayout()
+    end)
+    
+    print("Responsive system initialized")
+end
+
+function AdvancedGUI:setupAccessibilitySystem()
+    self.accessibility = {
+        highContrast = false,
+        largeText = false,
+        screenReader = false,
+        keyboardNavigation = true
+    }
+    
+    print("Accessibility system initialized")
+end
+
+function AdvancedGUI:createCustomButton(config)
+    local button = Instance.new("TextButton")
+    button.Name = config.name or "CustomButton"
+    button.Size = config.size or UDim2.new(0, 120, 0, 40)
+    button.Position = config.position or UDim2.new(0, 0, 0, 0)
+    button.BackgroundColor3 = self:getThemeColor("PRIMARY_COLOR")
+    button.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    button.Text = config.text or "Button"
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 14
+    button.BorderSizePixel = 0
+    button.AutoButtonColor = false
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = button
+    
+    -- Add hover effects
+    self:addHoverEffects(button)
+    
+    -- Add click animation
+    self:addClickAnimation(button)
+    
+    -- Add accessibility features
+    self:addAccessibilityFeatures(button)
+    
+    return button
+end
+
+function AdvancedGUI:createCustomInput(config)
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Name = config.name or "CustomInput"
+    inputFrame.Size = config.size or UDim2.new(0, 200, 0, 40)
+    inputFrame.Position = config.position or UDim2.new(0, 0, 0, 0)
+    inputFrame.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    inputFrame.BorderSizePixel = 0
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = inputFrame
+    
+    -- Add border
+    local border = Instance.new("UIStroke")
+    border.Color = self:getThemeColor("BORDER_COLOR")
+    border.Thickness = 1
+    border.Parent = inputFrame
+    
+    -- Add text input
+    local textBox = Instance.new("TextBox")
+    textBox.Name = "TextBox"
+    textBox.Size = UDim2.new(1, -16, 1, -16)
+    textBox.Position = UDim2.new(0, 8, 0, 8)
+    textBox.BackgroundTransparency = 1
+    textBox.Text = config.placeholder or ""
+    textBox.PlaceholderText = config.placeholder or "Enter text..."
+    textBox.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    textBox.PlaceholderColor3 = self:getThemeColor("SECONDARY_COLOR")
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 14
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.Parent = inputFrame
+    
+    -- Add focus effects
+    self:addFocusEffects(inputFrame, textBox)
+    
+    return inputFrame
+end
+
+function AdvancedGUI:createCustomCard(config)
+    local card = Instance.new("Frame")
+    card.Name = config.name or "CustomCard"
+    card.Size = config.size or UDim2.new(0, 300, 0, 200)
+    card.Position = config.position or UDim2.new(0, 0, 0, 0)
+    card.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    card.BorderSizePixel = 0
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = card
+    
+    -- Add shadow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 4, 1, 4)
+    shadow.Position = UDim2.new(0, -2, 0, -2)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    shadow.ImageColor3 = Color3.new(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ZIndex = card.ZIndex - 1
+    shadow.Parent = card.Parent
+    
+    -- Add content
+    if config.title then
+        local title = Instance.new("TextLabel")
+        title.Name = "Title"
+        title.Size = UDim2.new(1, -16, 0, 24)
+        title.Position = UDim2.new(0, 8, 0, 8)
+        title.BackgroundTransparency = 1
+        title.Text = config.title
+        title.TextColor3 = self:getThemeColor("TEXT_COLOR")
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 16
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = card
+    end
+    
+    if config.content then
+        local content = Instance.new("TextLabel")
+        content.Name = "Content"
+        content.Size = UDim2.new(1, -16, 1, -40)
+        content.Position = UDim2.new(0, 8, 0, 32)
+        content.BackgroundTransparency = 1
+        content.Text = config.content
+        content.TextColor3 = self:getThemeColor("SECONDARY_COLOR")
+        content.Font = Enum.Font.Gotham
+        content.TextSize = 14
+        content.TextXAlignment = Enum.TextXAlignment.Left
+        content.TextYAlignment = Enum.TextYAlignment.Top
+        content.TextWrapped = true
+        content.Parent = card
+    end
+    
+    -- Add hover effects
+    self:addHoverEffects(card)
+    
+    return card
+end
+
+function AdvancedGUI:createCustomModal(config)
+    local modal = Instance.new("Frame")
+    modal.Name = config.name or "CustomModal"
+    modal.Size = UDim2.new(1, 0, 1, 0)
+    modal.Position = UDim2.new(0, 0, 0, 0)
+    modal.BackgroundColor3 = Color3.new(0, 0, 0)
+    modal.BackgroundTransparency = 0.5
+    modal.BorderSizePixel = 0
+    modal.ZIndex = 1000
+    
+    -- Add modal content
+    local content = Instance.new("Frame")
+    content.Name = "Content"
+    content.Size = config.size or UDim2.new(0, 400, 0, 300)
+    content.Position = UDim2.new(0.5, -200, 0.5, -150)
+    content.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    content.BorderSizePixel = 0
+    content.Parent = modal
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = content
+    
+    -- Add close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Position = UDim2.new(1, -32, 0, 8)
+    closeButton.BackgroundColor3 = self:getThemeColor("ERROR_COLOR")
+    closeButton.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    closeButton.Text = "×"
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 18
+    closeButton.BorderSizePixel = 0
+    closeButton.Parent = content
+    
+    -- Add close button corner
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 12)
+    closeCorner.Parent = closeButton
+    
+    -- Add modal content
+    if config.title then
+        local title = Instance.new("TextLabel")
+        title.Name = "Title"
+        title.Size = UDim2.new(1, -48, 0, 32)
+        title.Position = UDim2.new(0, 16, 0, 16)
+        title.BackgroundTransparency = 1
+        title.Text = config.title
+        title.TextColor3 = self:getThemeColor("TEXT_COLOR")
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 18
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = content
+    end
+    
+    -- Add close functionality
+    closeButton.MouseButton1Click:Connect(function()
+        self:closeModal(modal)
+    end)
+    
+    -- Add escape key functionality
+    local connection
+    connection = UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.Escape then
+            self:closeModal(modal)
+            connection:Disconnect()
+        end
+    end)
+    
+    -- Add entrance animation
+    self:animateModalEntrance(modal)
+    
+    return modal
+end
+
+function AdvancedGUI:addHoverEffects(element)
+    local originalColor = element.BackgroundColor3
+    local hoverColor = self:lightenColor(originalColor, 0.1)
+    
+    element.MouseEnter:Connect(function()
+        self:animateColor(element, "BackgroundColor3", hoverColor)
+    end)
+    
+    element.MouseLeave:Connect(function()
+        self:animateColor(element, "BackgroundColor3", originalColor)
+    end)
+end
+
+function AdvancedGUI:addClickAnimation(element)
+    element.MouseButton1Down:Connect(function()
+        self:animateScale(element, 0.95)
+    end)
+    
+    element.MouseButton1Up:Connect(function()
+        self:animateScale(element, 1)
+    end)
+end
+
+function AdvancedGUI:addFocusEffects(frame, textBox)
+    local originalBorderColor = frame:FindFirstChild("UIStroke").Color
+    
+    textBox.Focused:Connect(function()
+        self:animateColor(frame:FindFirstChild("UIStroke"), "Color", self:getThemeColor("PRIMARY_COLOR"))
+    end)
+    
+    textBox.FocusLost:Connect(function()
+        self:animateColor(frame:FindFirstChild("UIStroke"), "Color", originalBorderColor)
+    end)
+end
+
+function AdvancedGUI:addAccessibilityFeatures(element)
+    -- Add keyboard navigation
+    if self.accessibility.keyboardNavigation then
+        element:SetAttribute("TabOrder", 0)
+    end
+    
+    -- Add screen reader support
+    if self.accessibility.screenReader then
+        element:SetAttribute("ScreenReaderText", element.Text or element.Name)
+    end
+    
+    -- Add high contrast support
+    if self.accessibility.highContrast then
+        element.BackgroundColor3 = self:getHighContrastColor(element.BackgroundColor3)
+        element.TextColor3 = self:getHighContrastColor(element.TextColor3)
+    end
+end
+
+function AdvancedGUI:animateColor(element, property, targetColor)
+    local tween = TweenService:Create(
+        element,
+        TweenInfo.new(
+            GUI_CONFIG.ANIMATION.DURATION,
+            GUI_CONFIG.ANIMATION.EASING_STYLE,
+            GUI_CONFIG.ANIMATION.EASING_DIRECTION
+        ),
+        {[property] = targetColor}
+    )
+    
+    tween:Play()
+    return tween
+end
+
+function AdvancedGUI:animateScale(element, targetScale)
+    local tween = TweenService:Create(
+        element,
+        TweenInfo.new(
+            GUI_CONFIG.ANIMATION.DURATION * 0.5,
+            GUI_CONFIG.ANIMATION.EASING_STYLE,
+            GUI_CONFIG.ANIMATION.EASING_DIRECTION
+        ),
+        {Size = UDim2.new(element.Size.X.Scale * targetScale, element.Size.X.Offset * targetScale, element.Size.Y.Scale * targetScale, element.Size.Y.Offset * targetScale)}
+    )
+    
+    tween:Play()
+    return tween
+end
+
+function AdvancedGUI:animateModalEntrance(modal)
+    modal.BackgroundTransparency = 1
+    local content = modal:FindFirstChild("Content")
+    content.Size = UDim2.new(0, 0, 0, 0)
+    content.Position = UDim2.new(0.5, 0, 0.5, 0)
+    
+    -- Animate background
+    local backgroundTween = TweenService:Create(
+        modal,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {BackgroundTransparency = 0.5}
+    )
+    
+    -- Animate content
+    local contentTween = TweenService:Create(
+        content,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {
+            Size = UDim2.new(0, 400, 0, 300),
+            Position = UDim2.new(0.5, -200, 0.5, -150)
+        }
+    )
+    
+    backgroundTween:Play()
+    contentTween:Play()
+end
+
+function AdvancedGUI:closeModal(modal)
+    local content = modal:FindFirstChild("Content")
+    
+    -- Animate exit
+    local backgroundTween = TweenService:Create(
+        modal,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {BackgroundTransparency = 1}
+    )
+    
+    local contentTween = TweenService:Create(
+        content,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }
+    )
+    
+    backgroundTween:Play()
+    contentTween:Play()
+    
+    contentTween.Completed:Connect(function()
+        modal:Destroy()
+    end)
+end
+
+function AdvancedGUI:updateResponsiveLayout()
+    local viewportSize = UserInputService.ViewportSize
+    self.responsive.screenSize = viewportSize
+    
+    -- Determine breakpoint
+    local breakpoint = "desktop"
+    if viewportSize.X <= GUI_CONFIG.RESPONSIVE.BREAKPOINTS.MOBILE then
+        breakpoint = "mobile"
+    elseif viewportSize.X <= GUI_CONFIG.RESPONSIVE.BREAKPOINTS.TABLET then
+        breakpoint = "tablet"
+    end
+    
+    self.responsive.currentBreakpoint = breakpoint
+    
+    -- Update orientation
+    local orientation = viewportSize.X > viewportSize.Y and "landscape" or "portrait"
+    self.responsive.orientation = orientation
+    
+    -- Update all components
+    self:updateAllComponents()
+    
+    print("Responsive layout updated:", breakpoint, orientation)
+end
+
+function AdvancedGUI:updateAllComponents()
+    for _, component in pairs(self.components) do
+        if component.UpdateLayout then
+            component:UpdateLayout(self.responsive.currentBreakpoint, self.responsive.orientation)
+        end
+    end
+end
+
+function AdvancedGUI:getThemeColor(colorName)
+    return self.themes.themes[self.themes.current][colorName]
+end
+
+function AdvancedGUI:setTheme(themeName)
+    if self.themes.themes[themeName] then
+        self.themes.current = themeName
+        self:updateAllComponents()
+        print("Theme changed to:", themeName)
+    end
+end
+
+function AdvancedGUI:lightenColor(color, amount)
+    local r, g, b = color.R, color.G, color.B
+    return Color3.new(math.min(1, r + amount), math.min(1, g + amount), math.min(1, b + amount))
+end
+
+function AdvancedGUI:getHighContrastColor(color)
+    local brightness = (color.R + color.G + color.B) / 3
+    return brightness > 0.5 and Color3.new(0, 0, 0) or Color3.new(1, 1, 1)
+end
+
+function AdvancedGUI:createResponsiveGrid(config)
+    local grid = Instance.new("Frame")
+    grid.Name = config.name or "ResponsiveGrid"
+    grid.Size = config.size or UDim2.new(1, 0, 1, 0)
+    grid.Position = config.position or UDim2.new(0, 0, 0, 0)
+    grid.BackgroundTransparency = 1
+    grid.BorderSizePixel = 0
+    
+    -- Add grid layout
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = config.cellSize or UDim2.new(0, 200, 0, 150)
+    gridLayout.CellPadding = config.cellPadding or UDim2.new(0, 10, 0, 10)
+    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    gridLayout.Parent = grid
+    
+    -- Store reference for responsive updates
+    grid.UpdateLayout = function(breakpoint, orientation)
+        if breakpoint == "mobile" then
+            gridLayout.CellSize = UDim2.new(1, -20, 0, 100)
+            gridLayout.CellPadding = UDim2.new(0, 5, 0, 5)
+        elseif breakpoint == "tablet" then
+            gridLayout.CellSize = UDim2.new(0, 150, 0, 120)
+            gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+        else
+            gridLayout.CellSize = config.cellSize or UDim2.new(0, 200, 0, 150)
+            gridLayout.CellPadding = config.cellPadding or UDim2.new(0, 10, 0, 10)
+        end
+    end
+    
+    -- Register component
+    table.insert(self.components, grid)
+    
+    return grid
+end
+
+-- Example usage
+local advancedGUI = AdvancedGUI.new()
+
+-- Test GUI systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create test screen GUI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "AdvancedGUITest"
+    screenGui.Parent = playerGui
+    
+    -- Create custom button
+    local button = advancedGUI:createCustomButton({
+        name = "TestButton",
+        text = "Click Me!",
+        size = UDim2.new(0, 120, 0, 40),
+        position = UDim2.new(0, 20, 0, 20)
+    })
+    button.Parent = screenGui
+    
+    -- Create custom input
+    local input = advancedGUI:createCustomInput({
+        name = "TestInput",
+        placeholder = "Enter your name...",
+        size = UDim2.new(0, 200, 0, 40),
+        position = UDim2.new(0, 20, 0, 80)
+    })
+    input.Parent = screenGui
+    
+    -- Create custom card
+    local card = advancedGUI:createCustomCard({
+        name = "TestCard",
+        title = "Welcome!",
+        content = "This is a custom card component with advanced styling and animations.",
+        size = UDim2.new(0, 300, 0, 150),
+        position = UDim2.new(0, 20, 0, 140)
+    })
+    card.Parent = screenGui
+    
+    -- Create responsive grid
+    local grid = advancedGUI:createResponsiveGrid({
+        name = "TestGrid",
+        size = UDim2.new(0, 400, 0, 300),
+        position = UDim2.new(0, 340, 0, 20),
+        cellSize = UDim2.new(0, 120, 0, 80),
+        cellPadding = UDim2.new(0, 10, 0, 10)
+    })
+    grid.Parent = screenGui
+    
+    -- Add grid items
+    for i = 1, 6 do
+        local item = advancedGUI:createCustomCard({
+            name = "GridItem" .. i,
+            title = "Item " .. i,
+            content = "Grid item " .. i,
+            size = UDim2.new(1, 0, 1, 0)
+        })
+        item.Parent = grid
+    end
+    
+    -- Test modal
+    button.MouseButton1Click:Connect(function()
+        local modal = advancedGUI:createCustomModal({
+            name = "TestModal",
+            title = "Test Modal",
+            size = UDim2.new(0, 400, 0, 300)
+        })
+        modal.Parent = screenGui
+    end)
+    
+    print("Applied advanced GUI tests to", player.Name)
+end)
+
+print("Advanced GUI system initialized with custom components, responsive design, and accessibility features")`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced GUI Systems & Custom Components - Comprehensive Learning Example
+-- Create sophisticated user interfaces with custom components and responsive design
+
+print("=== ADVANCED GUI SYSTEMS & CUSTOM COMPONENTS DEMO ===")
+print("Learning advanced GUI systems and custom component architecture...")
+
+-- 1. CUSTOM GUI COMPONENTS & RESPONSIVE DESIGN
+print("\\n1. DEMONSTRATING CUSTOM GUI COMPONENTS & RESPONSIVE DESIGN...")
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
+
+local AdvancedGUI = {}
+AdvancedGUI.__index = AdvancedGUI
+
+-- GUI configuration
+local GUI_CONFIG = {
+    THEME = {
+        PRIMARY_COLOR = Color3.fromRGB(0, 120, 215),
+        SECONDARY_COLOR = Color3.fromRGB(107, 107, 107),
+        SUCCESS_COLOR = Color3.fromRGB(16, 124, 16),
+        WARNING_COLOR = Color3.fromRGB(255, 185, 0),
+        ERROR_COLOR = Color3.fromRGB(232, 17, 35),
+        BACKGROUND_COLOR = Color3.fromRGB(30, 30, 30),
+        SURFACE_COLOR = Color3.fromRGB(40, 40, 40),
+        TEXT_COLOR = Color3.fromRGB(255, 255, 255),
+        BORDER_COLOR = Color3.fromRGB(60, 60, 60)
+    },
+    ANIMATION = {
+        DURATION = 0.3,
+        EASING_STYLE = Enum.EasingStyle.Quart,
+        EASING_DIRECTION = Enum.EasingDirection.Out
+    },
+    RESPONSIVE = {
+        BREAKPOINTS = {
+            MOBILE = 480,
+            TABLET = 768,
+            DESKTOP = 1024
+        }
+    }
+}
+
+function AdvancedGUI.new()
+    local self = setmetatable({}, AdvancedGUI)
+    
+    -- GUI systems
+    self.components = {}
+    self.themes = {}
+    self.animations = {}
+    self.responsive = {}
+    self.accessibility = {}
+    
+    -- Setup systems
+    self:setupThemeSystem()
+    self:setupAnimationSystem()
+    self:setupResponsiveSystem()
+    self:setupAccessibilitySystem()
+    
+    return self
+end
+
+function AdvancedGUI:setupThemeSystem()
+    self.themes = {
+        current = "dark",
+        themes = {
+            dark = GUI_CONFIG.THEME,
+            light = {
+                PRIMARY_COLOR = Color3.fromRGB(0, 120, 215),
+                SECONDARY_COLOR = Color3.fromRGB(107, 107, 107),
+                SUCCESS_COLOR = Color3.fromRGB(16, 124, 16),
+                WARNING_COLOR = Color3.fromRGB(255, 185, 0),
+                ERROR_COLOR = Color3.fromRGB(232, 17, 35),
+                BACKGROUND_COLOR = Color3.fromRGB(255, 255, 255),
+                SURFACE_COLOR = Color3.fromRGB(245, 245, 245),
+                TEXT_COLOR = Color3.fromRGB(0, 0, 0),
+                BORDER_COLOR = Color3.fromRGB(200, 200, 200)
+            }
+        }
+    }
+    
+    print("Theme system initialized")
+end
+
+function AdvancedGUI:setupAnimationSystem()
+    self.animations = {
+        activeTweens = {},
+        tweenQueue = {},
+        maxConcurrentTweens = 10
+    }
+    
+    print("Animation system initialized")
+end
+
+function AdvancedGUI:setupResponsiveSystem()
+    self.responsive = {
+        currentBreakpoint = "desktop",
+        screenSize = Vector2.new(1920, 1080),
+        orientation = "landscape"
+    }
+    
+    -- Monitor screen size changes
+    UserInputService:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        self:updateResponsiveLayout()
+    end)
+    
+    print("Responsive system initialized")
+end
+
+function AdvancedGUI:setupAccessibilitySystem()
+    self.accessibility = {
+        highContrast = false,
+        largeText = false,
+        screenReader = false,
+        keyboardNavigation = true
+    }
+    
+    print("Accessibility system initialized")
+end
+
+function AdvancedGUI:createCustomButton(config)
+    local button = Instance.new("TextButton")
+    button.Name = config.name or "CustomButton"
+    button.Size = config.size or UDim2.new(0, 120, 0, 40)
+    button.Position = config.position or UDim2.new(0, 0, 0, 0)
+    button.BackgroundColor3 = self:getThemeColor("PRIMARY_COLOR")
+    button.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    button.Text = config.text or "Button"
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 14
+    button.BorderSizePixel = 0
+    button.AutoButtonColor = false
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = button
+    
+    -- Add hover effects
+    self:addHoverEffects(button)
+    
+    -- Add click animation
+    self:addClickAnimation(button)
+    
+    -- Add accessibility features
+    self:addAccessibilityFeatures(button)
+    
+    return button
+end
+
+function AdvancedGUI:createCustomInput(config)
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Name = config.name or "CustomInput"
+    inputFrame.Size = config.size or UDim2.new(0, 200, 0, 40)
+    inputFrame.Position = config.position or UDim2.new(0, 0, 0, 0)
+    inputFrame.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    inputFrame.BorderSizePixel = 0
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = inputFrame
+    
+    -- Add border
+    local border = Instance.new("UIStroke")
+    border.Color = self:getThemeColor("BORDER_COLOR")
+    border.Thickness = 1
+    border.Parent = inputFrame
+    
+    -- Add text input
+    local textBox = Instance.new("TextBox")
+    textBox.Name = "TextBox"
+    textBox.Size = UDim2.new(1, -16, 1, -16)
+    textBox.Position = UDim2.new(0, 8, 0, 8)
+    textBox.BackgroundTransparency = 1
+    textBox.Text = config.placeholder or ""
+    textBox.PlaceholderText = config.placeholder or "Enter text..."
+    textBox.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    textBox.PlaceholderColor3 = self:getThemeColor("SECONDARY_COLOR")
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 14
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.Parent = inputFrame
+    
+    -- Add focus effects
+    self:addFocusEffects(inputFrame, textBox)
+    
+    return inputFrame
+end
+
+function AdvancedGUI:createCustomCard(config)
+    local card = Instance.new("Frame")
+    card.Name = config.name or "CustomCard"
+    card.Size = config.size or UDim2.new(0, 300, 0, 200)
+    card.Position = config.position or UDim2.new(0, 0, 0, 0)
+    card.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    card.BorderSizePixel = 0
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = card
+    
+    -- Add shadow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, 4, 1, 4)
+    shadow.Position = UDim2.new(0, -2, 0, -2)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    shadow.ImageColor3 = Color3.new(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ZIndex = card.ZIndex - 1
+    shadow.Parent = card.Parent
+    
+    -- Add content
+    if config.title then
+        local title = Instance.new("TextLabel")
+        title.Name = "Title"
+        title.Size = UDim2.new(1, -16, 0, 24)
+        title.Position = UDim2.new(0, 8, 0, 8)
+        title.BackgroundTransparency = 1
+        title.Text = config.title
+        title.TextColor3 = self:getThemeColor("TEXT_COLOR")
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 16
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = card
+    end
+    
+    if config.content then
+        local content = Instance.new("TextLabel")
+        content.Name = "Content"
+        content.Size = UDim2.new(1, -16, 1, -40)
+        content.Position = UDim2.new(0, 8, 0, 32)
+        content.BackgroundTransparency = 1
+        content.Text = config.content
+        content.TextColor3 = self:getThemeColor("SECONDARY_COLOR")
+        content.Font = Enum.Font.Gotham
+        content.TextSize = 14
+        content.TextXAlignment = Enum.TextXAlignment.Left
+        content.TextYAlignment = Enum.TextYAlignment.Top
+        content.TextWrapped = true
+        content.Parent = card
+    end
+    
+    -- Add hover effects
+    self:addHoverEffects(card)
+    
+    return card
+end
+
+function AdvancedGUI:createCustomModal(config)
+    local modal = Instance.new("Frame")
+    modal.Name = config.name or "CustomModal"
+    modal.Size = UDim2.new(1, 0, 1, 0)
+    modal.Position = UDim2.new(0, 0, 0, 0)
+    modal.BackgroundColor3 = Color3.new(0, 0, 0)
+    modal.BackgroundTransparency = 0.5
+    modal.BorderSizePixel = 0
+    modal.ZIndex = 1000
+    
+    -- Add modal content
+    local content = Instance.new("Frame")
+    content.Name = "Content"
+    content.Size = config.size or UDim2.new(0, 400, 0, 300)
+    content.Position = UDim2.new(0.5, -200, 0.5, -150)
+    content.BackgroundColor3 = self:getThemeColor("SURFACE_COLOR")
+    content.BorderSizePixel = 0
+    content.Parent = modal
+    
+    -- Add rounded corners
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = content
+    
+    -- Add close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Position = UDim2.new(1, -32, 0, 8)
+    closeButton.BackgroundColor3 = self:getThemeColor("ERROR_COLOR")
+    closeButton.TextColor3 = self:getThemeColor("TEXT_COLOR")
+    closeButton.Text = "×"
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 18
+    closeButton.BorderSizePixel = 0
+    closeButton.Parent = content
+    
+    -- Add close button corner
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 12)
+    closeCorner.Parent = closeButton
+    
+    -- Add modal content
+    if config.title then
+        local title = Instance.new("TextLabel")
+        title.Name = "Title"
+        title.Size = UDim2.new(1, -48, 0, 32)
+        title.Position = UDim2.new(0, 16, 0, 16)
+        title.BackgroundTransparency = 1
+        title.Text = config.title
+        title.TextColor3 = self:getThemeColor("TEXT_COLOR")
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 18
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = content
+    end
+    
+    -- Add close functionality
+    closeButton.MouseButton1Click:Connect(function()
+        self:closeModal(modal)
+    end)
+    
+    -- Add escape key functionality
+    local connection
+    connection = UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.Escape then
+            self:closeModal(modal)
+            connection:Disconnect()
+        end
+    end)
+    
+    -- Add entrance animation
+    self:animateModalEntrance(modal)
+    
+    return modal
+end
+
+function AdvancedGUI:addHoverEffects(element)
+    local originalColor = element.BackgroundColor3
+    local hoverColor = self:lightenColor(originalColor, 0.1)
+    
+    element.MouseEnter:Connect(function()
+        self:animateColor(element, "BackgroundColor3", hoverColor)
+    end)
+    
+    element.MouseLeave:Connect(function()
+        self:animateColor(element, "BackgroundColor3", originalColor)
+    end)
+end
+
+function AdvancedGUI:addClickAnimation(element)
+    element.MouseButton1Down:Connect(function()
+        self:animateScale(element, 0.95)
+    end)
+    
+    element.MouseButton1Up:Connect(function()
+        self:animateScale(element, 1)
+    end)
+end
+
+function AdvancedGUI:addFocusEffects(frame, textBox)
+    local originalBorderColor = frame:FindFirstChild("UIStroke").Color
+    
+    textBox.Focused:Connect(function()
+        self:animateColor(frame:FindFirstChild("UIStroke"), "Color", self:getThemeColor("PRIMARY_COLOR"))
+    end)
+    
+    textBox.FocusLost:Connect(function()
+        self:animateColor(frame:FindFirstChild("UIStroke"), "Color", originalBorderColor)
+    end)
+end
+
+function AdvancedGUI:addAccessibilityFeatures(element)
+    -- Add keyboard navigation
+    if self.accessibility.keyboardNavigation then
+        element:SetAttribute("TabOrder", 0)
+    end
+    
+    -- Add screen reader support
+    if self.accessibility.screenReader then
+        element:SetAttribute("ScreenReaderText", element.Text or element.Name)
+    end
+    
+    -- Add high contrast support
+    if self.accessibility.highContrast then
+        element.BackgroundColor3 = self:getHighContrastColor(element.BackgroundColor3)
+        element.TextColor3 = self:getHighContrastColor(element.TextColor3)
+    end
+end
+
+function AdvancedGUI:animateColor(element, property, targetColor)
+    local tween = TweenService:Create(
+        element,
+        TweenInfo.new(
+            GUI_CONFIG.ANIMATION.DURATION,
+            GUI_CONFIG.ANIMATION.EASING_STYLE,
+            GUI_CONFIG.ANIMATION.EASING_DIRECTION
+        ),
+        {[property] = targetColor}
+    )
+    
+    tween:Play()
+    return tween
+end
+
+function AdvancedGUI:animateScale(element, targetScale)
+    local tween = TweenService:Create(
+        element,
+        TweenInfo.new(
+            GUI_CONFIG.ANIMATION.DURATION * 0.5,
+            GUI_CONFIG.ANIMATION.EASING_STYLE,
+            GUI_CONFIG.ANIMATION.EASING_DIRECTION
+        ),
+        {Size = UDim2.new(element.Size.X.Scale * targetScale, element.Size.X.Offset * targetScale, element.Size.Y.Scale * targetScale, element.Size.Y.Offset * targetScale)}
+    )
+    
+    tween:Play()
+    return tween
+end
+
+function AdvancedGUI:animateModalEntrance(modal)
+    modal.BackgroundTransparency = 1
+    local content = modal:FindFirstChild("Content")
+    content.Size = UDim2.new(0, 0, 0, 0)
+    content.Position = UDim2.new(0.5, 0, 0.5, 0)
+    
+    -- Animate background
+    local backgroundTween = TweenService:Create(
+        modal,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {BackgroundTransparency = 0.5}
+    )
+    
+    -- Animate content
+    local contentTween = TweenService:Create(
+        content,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {
+            Size = UDim2.new(0, 400, 0, 300),
+            Position = UDim2.new(0.5, -200, 0.5, -150)
+        }
+    )
+    
+    backgroundTween:Play()
+    contentTween:Play()
+end
+
+function AdvancedGUI:closeModal(modal)
+    local content = modal:FindFirstChild("Content")
+    
+    -- Animate exit
+    local backgroundTween = TweenService:Create(
+        modal,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {BackgroundTransparency = 1}
+    )
+    
+    local contentTween = TweenService:Create(
+        content,
+        TweenInfo.new(GUI_CONFIG.ANIMATION.DURATION, GUI_CONFIG.ANIMATION.EASING_STYLE, GUI_CONFIG.ANIMATION.EASING_DIRECTION),
+        {
+            Size = UDim2.new(0, 0, 0, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }
+    )
+    
+    backgroundTween:Play()
+    contentTween:Play()
+    
+    contentTween.Completed:Connect(function()
+        modal:Destroy()
+    end)
+end
+
+function AdvancedGUI:updateResponsiveLayout()
+    local viewportSize = UserInputService.ViewportSize
+    self.responsive.screenSize = viewportSize
+    
+    -- Determine breakpoint
+    local breakpoint = "desktop"
+    if viewportSize.X <= GUI_CONFIG.RESPONSIVE.BREAKPOINTS.MOBILE then
+        breakpoint = "mobile"
+    elseif viewportSize.X <= GUI_CONFIG.RESPONSIVE.BREAKPOINTS.TABLET then
+        breakpoint = "tablet"
+    end
+    
+    self.responsive.currentBreakpoint = breakpoint
+    
+    -- Update orientation
+    local orientation = viewportSize.X > viewportSize.Y and "landscape" or "portrait"
+    self.responsive.orientation = orientation
+    
+    -- Update all components
+    self:updateAllComponents()
+    
+    print("Responsive layout updated:", breakpoint, orientation)
+end
+
+function AdvancedGUI:updateAllComponents()
+    for _, component in pairs(self.components) do
+        if component.UpdateLayout then
+            component:UpdateLayout(self.responsive.currentBreakpoint, self.responsive.orientation)
+        end
+    end
+end
+
+function AdvancedGUI:getThemeColor(colorName)
+    return self.themes.themes[self.themes.current][colorName]
+end
+
+function AdvancedGUI:setTheme(themeName)
+    if self.themes.themes[themeName] then
+        self.themes.current = themeName
+        self:updateAllComponents()
+        print("Theme changed to:", themeName)
+    end
+end
+
+function AdvancedGUI:lightenColor(color, amount)
+    local r, g, b = color.R, color.G, color.B
+    return Color3.new(math.min(1, r + amount), math.min(1, g + amount), math.min(1, b + amount))
+end
+
+function AdvancedGUI:getHighContrastColor(color)
+    local brightness = (color.R + color.G + color.B) / 3
+    return brightness > 0.5 and Color3.new(0, 0, 0) or Color3.new(1, 1, 1)
+end
+
+function AdvancedGUI:createResponsiveGrid(config)
+    local grid = Instance.new("Frame")
+    grid.Name = config.name or "ResponsiveGrid"
+    grid.Size = config.size or UDim2.new(1, 0, 1, 0)
+    grid.Position = config.position or UDim2.new(0, 0, 0, 0)
+    grid.BackgroundTransparency = 1
+    grid.BorderSizePixel = 0
+    
+    -- Add grid layout
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = config.cellSize or UDim2.new(0, 200, 0, 150)
+    gridLayout.CellPadding = config.cellPadding or UDim2.new(0, 10, 0, 10)
+    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    gridLayout.Parent = grid
+    
+    -- Store reference for responsive updates
+    grid.UpdateLayout = function(breakpoint, orientation)
+        if breakpoint == "mobile" then
+            gridLayout.CellSize = UDim2.new(1, -20, 0, 100)
+            gridLayout.CellPadding = UDim2.new(0, 5, 0, 5)
+        elseif breakpoint == "tablet" then
+            gridLayout.CellSize = UDim2.new(0, 150, 0, 120)
+            gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+        else
+            gridLayout.CellSize = config.cellSize or UDim2.new(0, 200, 0, 150)
+            gridLayout.CellPadding = config.cellPadding or UDim2.new(0, 10, 0, 10)
+        end
+    end
+    
+    -- Register component
+    table.insert(self.components, grid)
+    
+    return grid
+end
+
+-- 2. DEMO THE SYSTEMS
+print("\\n2. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local advancedGUI = AdvancedGUI.new()
+
+-- Test GUI systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create test screen GUI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "AdvancedGUITest"
+    screenGui.Parent = playerGui
+    
+    -- Create custom button
+    local button = advancedGUI:createCustomButton({
+        name = "TestButton",
+        text = "Click Me!",
+        size = UDim2.new(0, 120, 0, 40),
+        position = UDim2.new(0, 20, 0, 20)
+    })
+    button.Parent = screenGui
+    
+    -- Create custom input
+    local input = advancedGUI:createCustomInput({
+        name = "TestInput",
+        placeholder = "Enter your name...",
+        size = UDim2.new(0, 200, 0, 40),
+        position = UDim2.new(0, 20, 0, 80)
+    })
+    input.Parent = screenGui
+    
+    -- Create custom card
+    local card = advancedGUI:createCustomCard({
+        name = "TestCard",
+        title = "Welcome!",
+        content = "This is a custom card component with advanced styling and animations.",
+        size = UDim2.new(0, 300, 0, 150),
+        position = UDim2.new(0, 20, 0, 140)
+    })
+    card.Parent = screenGui
+    
+    -- Create responsive grid
+    local grid = advancedGUI:createResponsiveGrid({
+        name = "TestGrid",
+        size = UDim2.new(0, 400, 0, 300),
+        position = UDim2.new(0, 340, 0, 20),
+        cellSize = UDim2.new(0, 120, 0, 80),
+        cellPadding = UDim2.new(0, 10, 0, 10)
+    })
+    grid.Parent = screenGui
+    
+    -- Add grid items
+    for i = 1, 6 do
+        local item = advancedGUI:createCustomCard({
+            name = "GridItem" .. i,
+            title = "Item " .. i,
+            content = "Grid item " .. i,
+            size = UDim2.new(1, 0, 1, 0)
+        })
+        item.Parent = grid
+    end
+    
+    -- Test modal
+    button.MouseButton1Click:Connect(function()
+        local modal = advancedGUI:createCustomModal({
+            name = "TestModal",
+            title = "Test Modal",
+            size = UDim2.new(0, 400, 0, 300)
+        })
+        modal.Parent = screenGui
+    end)
+    
+    print("Applied advanced GUI tests to", player.Name)
+end)
+
+print("\\n=== ADVANCED GUI SYSTEMS & CUSTOM COMPONENTS DEMO COMPLETE ===")
+print("You've learned advanced GUI systems, custom components, and responsive design!")`,
+    challenge: {
+      tests: [
+        { description: 'Create advanced GUI system with custom components', type: 'code_contains', value: 'createCustomButton' },
+        { description: 'Implement responsive design and theme system', type: 'code_contains', value: 'setupResponsiveSystem' },
+        { description: 'Build accessibility features and animations', type: 'code_contains', value: 'addAccessibilityFeatures' }
+      ],
+      hints: [
+        'Use TweenService for smooth animations and transitions',
+        'Implement responsive design with breakpoints for different screen sizes',
+        'Create reusable components with consistent styling and behavior',
+        'Add accessibility features like keyboard navigation and screen reader support',
+        'Use theme systems for consistent colors and styling across your application'
+      ],
+      successMessage: 'Excellent! You now understand advanced GUI systems, custom components, responsive design, and accessibility features. These skills are essential for creating professional, user-friendly interfaces!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
