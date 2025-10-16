@@ -143,6 +143,7 @@ BEGIN
     (module_networking_id, 'datastores-and-persistence', 'DataStores & Data Persistence', '/content/lessons/datastores-and-persistence.mdx', '/content/challenges/datastores-and-persistence.json', 2),
     (module_networking_id, 'advanced-datastores-persistence', 'Advanced DataStores & Persistence', '/content/lessons/advanced-datastores-persistence.mdx', '/content/challenges/advanced-datastores-persistence.json', 3),
     (module_networking_id, 'networking-architecture-patterns', 'Networking Architecture & Patterns', '/content/lessons/networking-architecture-patterns.mdx', '/content/challenges/networking-architecture-patterns.json', 4),
+    (module_networking_id, 'advanced-networking-systems', 'Advanced Networking & Replication', '/content/lessons/advanced-networking-systems.mdx', '/content/challenges/advanced-networking-systems.json', 5),
     (module_data_security_id, 'data-encryption-security', 'Data Encryption & Security', '/content/lessons/data-encryption-security.mdx', '/content/challenges/data-encryption-security.json', 1),
     (module_data_security_id, 'performance-optimization-advanced', 'Advanced Performance Optimization', '/content/lessons/performance-optimization-advanced.mdx', '/content/challenges/performance-optimization-advanced.json', 2)
   ON CONFLICT (module_id, slug) DO UPDATE SET

@@ -19401,6 +19401,921 @@ print("You've learned ModuleScript design patterns, code organization, and versi
     }
   },
 
+  // === ADVANCED NETWORKING ===
+  'advanced-networking-systems': {
+    title: 'Advanced Networking & Replication',
+    description: 'Master advanced networking concepts, replication, and bandwidth optimization',
+    sections: [
+      {
+        title: 'Replication & Bandwidth Optimization',
+        content: `Advanced networking systems control how data flows between server and clients, ensuring smooth multiplayer experiences while minimizing bandwidth usage.
+
+**Replication Concepts:**
+- **Property Replication**: Automatic synchronization of object properties
+- **Event Replication**: Broadcasting events to specific clients or all clients
+- **Custom Replication**: Manual control over what gets replicated
+- **Replication Filters**: Controlling which clients receive specific data
+- **Bandwidth Optimization**: Reducing network traffic through smart replication
+
+**Advanced Networking Features:**
+- **Lag Compensation**: Handling network latency in real-time games
+- **Prediction Systems**: Client-side prediction for responsive gameplay
+- **Interpolation**: Smooth movement between network updates
+- **Compression**: Reducing data size for network transmission
+- **Rate Limiting**: Controlling update frequency to prevent spam`,
+        codeExample: `-- Advanced networking and replication system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local AdvancedNetworking = {}
+AdvancedNetworking.__index = AdvancedNetworking
+
+-- Networking configuration
+local NETWORK_CONFIG = {
+    UPDATE_RATE = 1/30, -- 30 FPS
+    MAX_BANDWIDTH = 1024 * 1024, -- 1MB per second
+    COMPRESSION_THRESHOLD = 100, -- Compress data larger than 100 bytes
+    PREDICTION_ENABLED = true,
+    INTERPOLATION_ENABLED = true
+}
+
+-- Replication types
+local REPLICATION_TYPES = {
+    ALL = "All",
+    OWNER = "Owner",
+    FILTERED = "Filtered",
+    CUSTOM = "Custom"
+}
+
+function AdvancedNetworking.new()
+    local self = setmetatable({}, AdvancedNetworking)
+    
+    -- Networking data
+    self.replicationQueue = {}
+    self.bandwidthUsage = {}
+    self.predictionData = {}
+    self.interpolationData = {}
+    
+    -- Remote events and functions
+    self.remoteEvents = {}
+    self.remoteFunctions = {}
+    
+    -- Setup networking
+    self:setupNetworking()
+    
+    return self
+end
+
+function AdvancedNetworking:setupNetworking()
+    -- Create remote events
+    self:createRemoteEvent("ReplicationEvent")
+    self:createRemoteEvent("PredictionEvent")
+    self:createRemoteEvent("BandwidthEvent")
+    
+    -- Create remote functions
+    self:createRemoteFunction("RequestData")
+    self:createRemoteFunction("ValidateAction")
+    
+    -- Setup bandwidth monitoring
+    self:setupBandwidthMonitoring()
+    
+    print("Advanced networking system initialized")
+end
+
+function AdvancedNetworking:createRemoteEvent(name)
+    local remoteEvent = ReplicatedStorage:FindFirstChild(name)
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = name
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    self.remoteEvents[name] = remoteEvent
+    return remoteEvent
+end
+
+function AdvancedNetworking:createRemoteFunction(name)
+    local remoteFunction = ReplicatedStorage:FindFirstChild(name)
+    if not remoteFunction then
+        remoteFunction = Instance.new("RemoteFunction")
+        remoteFunction.Name = name
+        remoteFunction.Parent = ReplicatedStorage
+    end
+    
+    self.remoteFunctions[name] = remoteFunction
+    return remoteFunction
+end
+
+function AdvancedNetworking:replicateData(data, replicationType, targetPlayers)
+    local replicationData = {
+        data = data,
+        type = replicationType,
+        timestamp = tick(),
+        compressed = false
+    }
+    
+    -- Compress data if needed
+    if self:shouldCompress(data) then
+        replicationData.data = self:compressData(data)
+        replicationData.compressed = true
+    end
+    
+    -- Add to replication queue
+    table.insert(self.replicationQueue, replicationData)
+    
+    -- Send to appropriate clients
+    if replicationType == REPLICATION_TYPES.ALL then
+        self:sendToAllClients(replicationData)
+    elseif replicationType == REPLICATION_TYPES.OWNER then
+        self:sendToOwner(replicationData, data.owner)
+    elseif replicationType == REPLICATION_TYPES.FILTERED then
+        self:sendToFilteredClients(replicationData, targetPlayers)
+    end
+    
+    -- Update bandwidth usage
+    self:updateBandwidthUsage(replicationData)
+end
+
+function AdvancedNetworking:sendToAllClients(replicationData)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent then
+        remoteEvent:FireAllClients(replicationData)
+    end
+end
+
+function AdvancedNetworking:sendToOwner(replicationData, owner)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent and owner then
+        remoteEvent:FireClient(owner, replicationData)
+    end
+end
+
+function AdvancedNetworking:sendToFilteredClients(replicationData, targetPlayers)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent and targetPlayers then
+        for _, player in ipairs(targetPlayers) do
+            remoteEvent:FireClient(player, replicationData)
+        end
+    end
+end
+
+function AdvancedNetworking:shouldCompress(data)
+    local dataSize = self:calculateDataSize(data)
+    return dataSize > NETWORK_CONFIG.COMPRESSION_THRESHOLD
+end
+
+function AdvancedNetworking:calculateDataSize(data)
+    -- Simple size calculation (in real implementation, use proper serialization)
+    local serialized = tostring(data)
+    return #serialized
+end
+
+function AdvancedNetworking:compressData(data)
+    -- Simple compression (in real implementation, use proper compression)
+    local serialized = tostring(data)
+    return "COMPRESSED:" .. serialized
+end
+
+function AdvancedNetworking:decompressData(compressedData)
+    -- Simple decompression (in real implementation, use proper decompression)
+    if string.sub(compressedData, 1, 11) == "COMPRESSED:" then
+        return string.sub(compressedData, 12)
+    end
+    return compressedData
+end
+
+function AdvancedNetworking:updateBandwidthUsage(replicationData)
+    local dataSize = self:calculateDataSize(replicationData.data)
+    local currentTime = tick()
+    
+    if not self.bandwidthUsage[currentTime] then
+        self.bandwidthUsage[currentTime] = 0
+    end
+    
+    self.bandwidthUsage[currentTime] = self.bandwidthUsage[currentTime] + dataSize
+end
+
+function AdvancedNetworking:setupBandwidthMonitoring()
+    RunService.Heartbeat:Connect(function()
+        self:monitorBandwidth()
+    end)
+end
+
+function AdvancedNetworking:monitorBandwidth()
+    local currentTime = tick()
+    local totalBandwidth = 0
+    
+    -- Calculate total bandwidth usage
+    for time, usage in pairs(self.bandwidthUsage) do
+        if currentTime - time <= 1 then -- Last second
+            totalBandwidth = totalBandwidth + usage
+        else
+            self.bandwidthUsage[time] = nil -- Clean up old data
+        end
+    end
+    
+    -- Check if bandwidth limit exceeded
+    if totalBandwidth > NETWORK_CONFIG.MAX_BANDWIDTH then
+        self:handleBandwidthLimitExceeded(totalBandwidth)
+    end
+end
+
+function AdvancedNetworking:handleBandwidthLimitExceeded(currentUsage)
+    warn(string.format("Bandwidth limit exceeded: %d bytes/sec (limit: %d)", 
+        currentUsage, NETWORK_CONFIG.MAX_BANDWIDTH))
+    
+    -- Implement bandwidth throttling
+    self:throttleBandwidth()
+end
+
+function AdvancedNetworking:throttleBandwidth()
+    -- Reduce update rate temporarily
+    NETWORK_CONFIG.UPDATE_RATE = NETWORK_CONFIG.UPDATE_RATE * 1.5
+    
+    -- Notify clients about bandwidth issues
+    local remoteEvent = self.remoteEvents["BandwidthEvent"]
+    if remoteEvent then
+        remoteEvent:FireAllClients({
+            type = "BandwidthThrottle",
+            newUpdateRate = NETWORK_CONFIG.UPDATE_RATE
+        })
+    end
+end
+
+function AdvancedNetworking:enablePrediction(player, object)
+    if not NETWORK_CONFIG.PREDICTION_ENABLED then
+        return
+    end
+    
+    self.predictionData[player.UserId] = {
+        object = object,
+        lastPosition = object.Position,
+        lastVelocity = object.Velocity,
+        predictedPosition = object.Position,
+        predictionTime = tick()
+    }
+    
+    print("Enabled prediction for", player.Name)
+end
+
+function AdvancedNetworking:updatePrediction(player, newPosition, newVelocity)
+    local predictionData = self.predictionData[player.UserId]
+    if not predictionData then
+        return
+    end
+    
+    local currentTime = tick()
+    local deltaTime = currentTime - predictionData.predictionTime
+    
+    -- Predict future position
+    local predictedPosition = newPosition + (newVelocity * deltaTime)
+    
+    predictionData.lastPosition = newPosition
+    predictionData.lastVelocity = newVelocity
+    predictionData.predictedPosition = predictedPosition
+    predictionData.predictionTime = currentTime
+    
+    -- Send prediction to client
+    local remoteEvent = self.remoteEvents["PredictionEvent"]
+    if remoteEvent then
+        remoteEvent:FireClient(player, {
+            predictedPosition = predictedPosition,
+            deltaTime = deltaTime
+        })
+    end
+end
+
+function AdvancedNetworking:enableInterpolation(player, object)
+    if not NETWORK_CONFIG.INTERPOLATION_ENABLED then
+        return
+    end
+    
+    self.interpolationData[player.UserId] = {
+        object = object,
+        targetPosition = object.Position,
+        currentPosition = object.Position,
+        interpolationSpeed = 10,
+        isInterpolating = false
+    }
+    
+    print("Enabled interpolation for", player.Name)
+end
+
+function AdvancedNetworking:updateInterpolation(player, targetPosition)
+    local interpolationData = self.interpolationData[player.UserId]
+    if not interpolationData then
+        return
+    end
+    
+    interpolationData.targetPosition = targetPosition
+    interpolationData.isInterpolating = true
+    
+    -- Smooth interpolation
+    local tween = TweenService:Create(
+        interpolationData.object,
+        TweenInfo.new(1/interpolationData.interpolationSpeed, Enum.EasingStyle.Linear),
+        {Position = targetPosition}
+    )
+    
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        interpolationData.isInterpolating = false
+    end)
+end
+
+function AdvancedNetworking:validateClientAction(player, action, data)
+    local remoteFunction = self.remoteFunctions["ValidateAction"]
+    if not remoteFunction then
+        return false
+    end
+    
+    local success, result = pcall(function()
+        return remoteFunction:InvokeClient(player, action, data)
+    end)
+    
+    if success then
+        return result
+    else
+        warn("Failed to validate client action:", result)
+        return false
+    end
+end
+
+function AdvancedNetworking:requestDataFromClient(player, dataType)
+    local remoteFunction = self.remoteFunctions["RequestData"]
+    if not remoteFunction then
+        return nil
+    end
+    
+    local success, result = pcall(function()
+        return remoteFunction:InvokeClient(player, dataType)
+    end)
+    
+    if success then
+        return result
+    else
+        warn("Failed to request data from client:", result)
+        return nil
+    end
+end
+
+function AdvancedNetworking:setupLagCompensation()
+    -- Implement lag compensation for real-time games
+    local function compensateForLag(player, action, timestamp)
+        local playerPing = player:GetNetworkPing() * 1000 -- Convert to milliseconds
+        local compensationTime = timestamp - (playerPing / 1000)
+        
+        -- Rewind game state to compensation time
+        self:rewindGameState(compensationTime)
+        
+        -- Process action
+        local result = self:processAction(action)
+        
+        -- Restore game state
+        self:restoreGameState()
+        
+        return result
+    end
+    
+    return compensateForLag
+end
+
+function AdvancedNetworking:rewindGameState(timestamp)
+    -- Implement game state rewinding
+    print("Rewinding game state to", timestamp)
+end
+
+function AdvancedNetworking:restoreGameState()
+    -- Implement game state restoration
+    print("Restoring game state")
+end
+
+function AdvancedNetworking:processAction(action)
+    -- Process the action
+    print("Processing action:", action)
+    return true
+end
+
+function AdvancedNetworking:getNetworkStatistics()
+    local stats = {
+        totalBandwidth = 0,
+        averageBandwidth = 0,
+        activeConnections = #Players:GetPlayers(),
+        replicationQueueSize = #self.replicationQueue,
+        predictionEnabled = NETWORK_CONFIG.PREDICTION_ENABLED,
+        interpolationEnabled = NETWORK_CONFIG.INTERPOLATION_ENABLED
+    }
+    
+    -- Calculate bandwidth statistics
+    for _, usage in pairs(self.bandwidthUsage) do
+        stats.totalBandwidth = stats.totalBandwidth + usage
+    end
+    
+    local bandwidthCount = 0
+    for _ in pairs(self.bandwidthUsage) do
+        bandwidthCount = bandwidthCount + 1
+    end
+    
+    if bandwidthCount > 0 then
+        stats.averageBandwidth = stats.totalBandwidth / bandwidthCount
+    end
+    
+    return stats
+end
+
+-- Example usage
+local advancedNetworking = AdvancedNetworking.new()
+
+-- Test networking systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Enable prediction and interpolation
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        advancedNetworking:enablePrediction(player, player.Character.HumanoidRootPart)
+        advancedNetworking:enableInterpolation(player, player.Character.HumanoidRootPart)
+    end
+    
+    -- Test data replication
+    local testData = {
+        playerId = player.UserId,
+        position = Vector3.new(0, 10, 0),
+        health = 100,
+        timestamp = tick()
+    }
+    
+    advancedNetworking:replicateData(testData, REPLICATION_TYPES.ALL)
+    
+    print("Applied advanced networking tests to", player.Name)
+end)
+
+print("Advanced networking system initialized with replication, prediction, and interpolation")`,
+        color: 'blue'
+      }
+    ],
+    defaultCode: `-- Advanced Networking & Replication - Comprehensive Learning Example
+-- Master advanced networking concepts, replication, and bandwidth optimization
+
+print("=== ADVANCED NETWORKING & REPLICATION DEMO ===")
+print("Learning advanced networking concepts and replication systems...")
+
+-- 1. REPLICATION & BANDWIDTH OPTIMIZATION
+print("\\n1. DEMONSTRATING REPLICATION & BANDWIDTH OPTIMIZATION...")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local AdvancedNetworking = {}
+AdvancedNetworking.__index = AdvancedNetworking
+
+-- Networking configuration
+local NETWORK_CONFIG = {
+    UPDATE_RATE = 1/30, -- 30 FPS
+    MAX_BANDWIDTH = 1024 * 1024, -- 1MB per second
+    COMPRESSION_THRESHOLD = 100, -- Compress data larger than 100 bytes
+    PREDICTION_ENABLED = true,
+    INTERPOLATION_ENABLED = true
+}
+
+-- Replication types
+local REPLICATION_TYPES = {
+    ALL = "All",
+    OWNER = "Owner",
+    FILTERED = "Filtered",
+    CUSTOM = "Custom"
+}
+
+function AdvancedNetworking.new()
+    local self = setmetatable({}, AdvancedNetworking)
+    
+    -- Networking data
+    self.replicationQueue = {}
+    self.bandwidthUsage = {}
+    self.predictionData = {}
+    self.interpolationData = {}
+    
+    -- Remote events and functions
+    self.remoteEvents = {}
+    self.remoteFunctions = {}
+    
+    -- Setup networking
+    self:setupNetworking()
+    
+    return self
+end
+
+function AdvancedNetworking:setupNetworking()
+    -- Create remote events
+    self:createRemoteEvent("ReplicationEvent")
+    self:createRemoteEvent("PredictionEvent")
+    self:createRemoteEvent("BandwidthEvent")
+    
+    -- Create remote functions
+    self:createRemoteFunction("RequestData")
+    self:createRemoteFunction("ValidateAction")
+    
+    -- Setup bandwidth monitoring
+    self:setupBandwidthMonitoring()
+    
+    print("Advanced networking system initialized")
+end
+
+function AdvancedNetworking:createRemoteEvent(name)
+    local remoteEvent = ReplicatedStorage:FindFirstChild(name)
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = name
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    self.remoteEvents[name] = remoteEvent
+    return remoteEvent
+end
+
+function AdvancedNetworking:createRemoteFunction(name)
+    local remoteFunction = ReplicatedStorage:FindFirstChild(name)
+    if not remoteFunction then
+        remoteFunction = Instance.new("RemoteFunction")
+        remoteFunction.Name = name
+        remoteFunction.Parent = ReplicatedStorage
+    end
+    
+    self.remoteFunctions[name] = remoteFunction
+    return remoteFunction
+end
+
+function AdvancedNetworking:replicateData(data, replicationType, targetPlayers)
+    local replicationData = {
+        data = data,
+        type = replicationType,
+        timestamp = tick(),
+        compressed = false
+    }
+    
+    -- Compress data if needed
+    if self:shouldCompress(data) then
+        replicationData.data = self:compressData(data)
+        replicationData.compressed = true
+    end
+    
+    -- Add to replication queue
+    table.insert(self.replicationQueue, replicationData)
+    
+    -- Send to appropriate clients
+    if replicationType == REPLICATION_TYPES.ALL then
+        self:sendToAllClients(replicationData)
+    elseif replicationType == REPLICATION_TYPES.OWNER then
+        self:sendToOwner(replicationData, data.owner)
+    elseif replicationType == REPLICATION_TYPES.FILTERED then
+        self:sendToFilteredClients(replicationData, targetPlayers)
+    end
+    
+    -- Update bandwidth usage
+    self:updateBandwidthUsage(replicationData)
+end
+
+function AdvancedNetworking:sendToAllClients(replicationData)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent then
+        remoteEvent:FireAllClients(replicationData)
+    end
+end
+
+function AdvancedNetworking:sendToOwner(replicationData, owner)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent and owner then
+        remoteEvent:FireClient(owner, replicationData)
+    end
+end
+
+function AdvancedNetworking:sendToFilteredClients(replicationData, targetPlayers)
+    local remoteEvent = self.remoteEvents["ReplicationEvent"]
+    if remoteEvent and targetPlayers then
+        for _, player in ipairs(targetPlayers) do
+            remoteEvent:FireClient(player, replicationData)
+        end
+    end
+end
+
+function AdvancedNetworking:shouldCompress(data)
+    local dataSize = self:calculateDataSize(data)
+    return dataSize > NETWORK_CONFIG.COMPRESSION_THRESHOLD
+end
+
+function AdvancedNetworking:calculateDataSize(data)
+    -- Simple size calculation (in real implementation, use proper serialization)
+    local serialized = tostring(data)
+    return #serialized
+end
+
+function AdvancedNetworking:compressData(data)
+    -- Simple compression (in real implementation, use proper compression)
+    local serialized = tostring(data)
+    return "COMPRESSED:" .. serialized
+end
+
+function AdvancedNetworking:decompressData(compressedData)
+    -- Simple decompression (in real implementation, use proper decompression)
+    if string.sub(compressedData, 1, 11) == "COMPRESSED:" then
+        return string.sub(compressedData, 12)
+    end
+    return compressedData
+end
+
+function AdvancedNetworking:updateBandwidthUsage(replicationData)
+    local dataSize = self:calculateDataSize(replicationData.data)
+    local currentTime = tick()
+    
+    if not self.bandwidthUsage[currentTime] then
+        self.bandwidthUsage[currentTime] = 0
+    end
+    
+    self.bandwidthUsage[currentTime] = self.bandwidthUsage[currentTime] + dataSize
+end
+
+function AdvancedNetworking:setupBandwidthMonitoring()
+    RunService.Heartbeat:Connect(function()
+        self:monitorBandwidth()
+    end)
+end
+
+function AdvancedNetworking:monitorBandwidth()
+    local currentTime = tick()
+    local totalBandwidth = 0
+    
+    -- Calculate total bandwidth usage
+    for time, usage in pairs(self.bandwidthUsage) do
+        if currentTime - time <= 1 then -- Last second
+            totalBandwidth = totalBandwidth + usage
+        else
+            self.bandwidthUsage[time] = nil -- Clean up old data
+        end
+    end
+    
+    -- Check if bandwidth limit exceeded
+    if totalBandwidth > NETWORK_CONFIG.MAX_BANDWIDTH then
+        self:handleBandwidthLimitExceeded(totalBandwidth)
+    end
+end
+
+function AdvancedNetworking:handleBandwidthLimitExceeded(currentUsage)
+    warn(string.format("Bandwidth limit exceeded: %d bytes/sec (limit: %d)", 
+        currentUsage, NETWORK_CONFIG.MAX_BANDWIDTH))
+    
+    -- Implement bandwidth throttling
+    self:throttleBandwidth()
+end
+
+function AdvancedNetworking:throttleBandwidth()
+    -- Reduce update rate temporarily
+    NETWORK_CONFIG.UPDATE_RATE = NETWORK_CONFIG.UPDATE_RATE * 1.5
+    
+    -- Notify clients about bandwidth issues
+    local remoteEvent = self.remoteEvents["BandwidthEvent"]
+    if remoteEvent then
+        remoteEvent:FireAllClients({
+            type = "BandwidthThrottle",
+            newUpdateRate = NETWORK_CONFIG.UPDATE_RATE
+        })
+    end
+end
+
+function AdvancedNetworking:enablePrediction(player, object)
+    if not NETWORK_CONFIG.PREDICTION_ENABLED then
+        return
+    end
+    
+    self.predictionData[player.UserId] = {
+        object = object,
+        lastPosition = object.Position,
+        lastVelocity = object.Velocity,
+        predictedPosition = object.Position,
+        predictionTime = tick()
+    }
+    
+    print("Enabled prediction for", player.Name)
+end
+
+function AdvancedNetworking:updatePrediction(player, newPosition, newVelocity)
+    local predictionData = self.predictionData[player.UserId]
+    if not predictionData then
+        return
+    end
+    
+    local currentTime = tick()
+    local deltaTime = currentTime - predictionData.predictionTime
+    
+    -- Predict future position
+    local predictedPosition = newPosition + (newVelocity * deltaTime)
+    
+    predictionData.lastPosition = newPosition
+    predictionData.lastVelocity = newVelocity
+    predictionData.predictedPosition = predictedPosition
+    predictionData.predictionTime = currentTime
+    
+    -- Send prediction to client
+    local remoteEvent = self.remoteEvents["PredictionEvent"]
+    if remoteEvent then
+        remoteEvent:FireClient(player, {
+            predictedPosition = predictedPosition,
+            deltaTime = deltaTime
+        })
+    end
+end
+
+function AdvancedNetworking:enableInterpolation(player, object)
+    if not NETWORK_CONFIG.INTERPOLATION_ENABLED then
+        return
+    end
+    
+    self.interpolationData[player.UserId] = {
+        object = object,
+        targetPosition = object.Position,
+        currentPosition = object.Position,
+        interpolationSpeed = 10,
+        isInterpolating = false
+    }
+    
+    print("Enabled interpolation for", player.Name)
+end
+
+function AdvancedNetworking:updateInterpolation(player, targetPosition)
+    local interpolationData = self.interpolationData[player.UserId]
+    if not interpolationData then
+        return
+    end
+    
+    interpolationData.targetPosition = targetPosition
+    interpolationData.isInterpolating = true
+    
+    -- Smooth interpolation
+    local tween = TweenService:Create(
+        interpolationData.object,
+        TweenInfo.new(1/interpolationData.interpolationSpeed, Enum.EasingStyle.Linear),
+        {Position = targetPosition}
+    )
+    
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        interpolationData.isInterpolating = false
+    end)
+end
+
+function AdvancedNetworking:validateClientAction(player, action, data)
+    local remoteFunction = self.remoteFunctions["ValidateAction"]
+    if not remoteFunction then
+        return false
+    end
+    
+    local success, result = pcall(function()
+        return remoteFunction:InvokeClient(player, action, data)
+    end)
+    
+    if success then
+        return result
+    else
+        warn("Failed to validate client action:", result)
+        return false
+    end
+end
+
+function AdvancedNetworking:requestDataFromClient(player, dataType)
+    local remoteFunction = self.remoteFunctions["RequestData"]
+    if not remoteFunction then
+        return nil
+    end
+    
+    local success, result = pcall(function()
+        return remoteFunction:InvokeClient(player, dataType)
+    end)
+    
+    if success then
+        return result
+    else
+        warn("Failed to request data from client:", result)
+        return nil
+    end
+end
+
+function AdvancedNetworking:setupLagCompensation()
+    -- Implement lag compensation for real-time games
+    local function compensateForLag(player, action, timestamp)
+        local playerPing = player:GetNetworkPing() * 1000 -- Convert to milliseconds
+        local compensationTime = timestamp - (playerPing / 1000)
+        
+        -- Rewind game state to compensation time
+        self:rewindGameState(compensationTime)
+        
+        -- Process action
+        local result = self:processAction(action)
+        
+        -- Restore game state
+        self:restoreGameState()
+        
+        return result
+    end
+    
+    return compensateForLag
+end
+
+function AdvancedNetworking:rewindGameState(timestamp)
+    -- Implement game state rewinding
+    print("Rewinding game state to", timestamp)
+end
+
+function AdvancedNetworking:restoreGameState()
+    -- Implement game state restoration
+    print("Restoring game state")
+end
+
+function AdvancedNetworking:processAction(action)
+    -- Process the action
+    print("Processing action:", action)
+    return true
+end
+
+function AdvancedNetworking:getNetworkStatistics()
+    local stats = {
+        totalBandwidth = 0,
+        averageBandwidth = 0,
+        activeConnections = #Players:GetPlayers(),
+        replicationQueueSize = #self.replicationQueue,
+        predictionEnabled = NETWORK_CONFIG.PREDICTION_ENABLED,
+        interpolationEnabled = NETWORK_CONFIG.INTERPOLATION_ENABLED
+    }
+    
+    -- Calculate bandwidth statistics
+    for _, usage in pairs(self.bandwidthUsage) do
+        stats.totalBandwidth = stats.totalBandwidth + usage
+    end
+    
+    local bandwidthCount = 0
+    for _ in pairs(self.bandwidthUsage) do
+        bandwidthCount = bandwidthCount + 1
+    end
+    
+    if bandwidthCount > 0 then
+        stats.averageBandwidth = stats.totalBandwidth / bandwidthCount
+    end
+    
+    return stats
+end
+
+-- 2. DEMO THE SYSTEMS
+print("\\n2. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local advancedNetworking = AdvancedNetworking.new()
+
+-- Test networking systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Enable prediction and interpolation
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        advancedNetworking:enablePrediction(player, player.Character.HumanoidRootPart)
+        advancedNetworking:enableInterpolation(player, player.Character.HumanoidRootPart)
+    end
+    
+    -- Test data replication
+    local testData = {
+        playerId = player.UserId,
+        position = Vector3.new(0, 10, 0),
+        health = 100,
+        timestamp = tick()
+    }
+    
+    advancedNetworking:replicateData(testData, REPLICATION_TYPES.ALL)
+    
+    print("Applied advanced networking tests to", player.Name)
+end)
+
+print("\\n=== ADVANCED NETWORKING & REPLICATION DEMO COMPLETE ===")
+print("You've learned advanced networking concepts, replication, and bandwidth optimization!")`,
+    challenge: {
+      tests: [
+        { description: 'Create advanced networking system with replication', type: 'code_contains', value: 'replicateData' },
+        { description: 'Implement bandwidth monitoring and optimization', type: 'code_contains', value: 'monitorBandwidth' },
+        { description: 'Build prediction and interpolation systems', type: 'code_contains', value: 'enablePrediction' }
+      ],
+      hints: [
+        'Use RemoteEvents and RemoteFunctions for client-server communication',
+        'Implement bandwidth monitoring to prevent network overload',
+        'Use prediction for responsive gameplay and interpolation for smooth movement',
+        'Compress large data before sending over the network',
+        'Implement lag compensation for real-time multiplayer games'
+      ],
+      successMessage: 'Excellent! You now understand advanced networking concepts, replication systems, and bandwidth optimization. These skills are essential for creating smooth multiplayer experiences!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
