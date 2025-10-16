@@ -8948,6 +8948,1102 @@ print("You've learned post-processing effects and visual enhancement!")`,
     }
   },
 
+  // === TOOL & WEAPON SYSTEMS ===
+  'tool-basics': {
+    title: 'Tool Basics & Creation',
+    description: 'Master tool creation, equipping, and basic tool mechanics in Roblox',
+    sections: [
+      {
+        title: 'Understanding Tools',
+        content: `Tools are objects that players can equip and use in Roblox. They're essential for creating interactive gameplay elements like weapons, building tools, and utilities.
+
+**Tool Properties:**
+- **RequiresHandle**: Whether the tool needs a handle part
+- **CanBeDropped**: Whether players can drop the tool
+- **Enabled**: Whether the tool is currently active
+- **Grip**: How the tool is held (Right, Left, etc.)
+- **GripForward**: Forward direction of grip
+- **GripPos**: Position of grip relative to handle
+- **GripRight**: Right direction of grip
+- **GripUp**: Up direction of grip
+
+**Tool Events:**
+- **Activated**: Fired when tool is used
+- **Deactivated**: Fired when tool is stopped
+- **Equipped**: Fired when tool is equipped
+- **Unequipped**: Fired when tool is unequipped`,
+        codeExample: `-- Basic tool creation and setup
+
+local Tool = Instance.new("Tool")
+Tool.Name = "Basic Tool"
+Tool.RequiresHandle = true
+Tool.CanBeDropped = true
+Tool.Enabled = true
+Tool.Grip = Enum.R15Grip.Right
+Tool.Parent = game.StarterPack
+
+-- Create handle
+local Handle = Instance.new("Part")
+Handle.Name = "Handle"
+Handle.Size = Vector3.new(1, 4, 0.2)
+Handle.Material = Enum.Material.Wood
+Handle.Color = Color3.fromRGB(139, 69, 19)
+Handle.Parent = Tool
+
+-- Tool events
+Tool.Activated:Connect(function()
+    print("Tool activated!")
+end)
+
+Tool.Deactivated:Connect(function()
+    print("Tool deactivated!")
+end)
+
+Tool.Equipped:Connect(function()
+    print("Tool equipped!")
+end)
+
+Tool.Unequipped:Connect(function()
+    print("Tool unequipped!")
+end)
+
+print("Basic tool created!")`,
+        color: 'blue'
+      },
+      {
+        title: 'Advanced Tool Mechanics',
+        content: `Create sophisticated tools with custom behaviors, animations, and interactions.
+
+**Advanced Tool Features:**
+- **Custom Animations**: Tool-specific animations
+- **Cooldown Systems**: Prevent spam usage
+- **Resource Management**: Ammo, durability, etc.
+- **Multi-Stage Tools**: Tools with multiple modes
+- **Tool Combinations**: Multiple tools working together
+
+**Tool Interaction Systems:**
+- **Raycasting**: Detect what the tool hits
+- **Damage Systems**: Apply damage to targets
+- **Effect Systems**: Visual and audio effects
+- **State Management**: Track tool states and modes`,
+        codeExample: `-- Advanced tool system
+
+local AdvancedTool = {}
+AdvancedTool.__index = AdvancedTool
+
+function AdvancedTool.new(toolName, toolData)
+    local self = setmetatable({}, AdvancedTool)
+    self.tool = Instance.new("Tool")
+    self.tool.Name = toolName
+    self.tool.RequiresHandle = true
+    self.tool.CanBeDropped = true
+    self.tool.Enabled = true
+    self.tool.Parent = game.StarterPack
+    
+    -- Tool data
+    self.data = toolData or {}
+    self.cooldown = self.data.cooldown or 1
+    self.ammo = self.data.ammo or 10
+    self.maxAmmo = self.data.maxAmmo or 10
+    self.durability = self.data.durability or 100
+    self.maxDurability = self.data.maxDurability or 100
+    
+    -- State
+    self.isOnCooldown = false
+    self.currentMode = 1
+    self.modes = self.data.modes or {"primary"}
+    
+    self:createHandle()
+    self:setupEvents()
+    
+    return self
+end
+
+function AdvancedTool:createHandle()
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 4, 0.2)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(100, 100, 100)
+    handle.Parent = self.tool
+    
+    -- Add selection box
+    local selectionBox = Instance.new("SelectionBox")
+    selectionBox.Adornee = handle
+    selectionBox.Color3 = Color3.fromRGB(0, 255, 0)
+    selectionBox.Transparency = 0.5
+    selectionBox.Parent = handle
+end
+
+function AdvancedTool:setupEvents()
+    self.tool.Activated:Connect(function()
+        self:onActivated()
+    end)
+    
+    self.tool.Equipped:Connect(function()
+        self:onEquipped()
+    end)
+    
+    self.tool.Unequipped:Connect(function()
+        self:onUnequipped()
+    end)
+end
+
+function AdvancedTool:onActivated()
+    if self.isOnCooldown or self.ammo <= 0 or self.durability <= 0 then
+        return
+    end
+    
+    self:startCooldown()
+    self:useAmmo()
+    self:reduceDurability()
+    
+    local mode = self.modes[self.currentMode]
+    if mode == "primary" then
+        self:primaryAction()
+    elseif mode == "secondary" then
+        self:secondaryAction()
+    elseif mode == "tertiary" then
+        self:tertiaryAction()
+    end
+    
+    print("Tool used! Ammo:", self.ammo, "Durability:", self.durability)
+end
+
+function AdvancedTool:onEquipped()
+    print("Tool equipped!")
+    self:updateToolState()
+end
+
+function AdvancedTool:onUnequipped()
+    print("Tool unequipped!")
+end
+
+function AdvancedTool:startCooldown()
+    self.isOnCooldown = true
+    self.tool.Enabled = false
+    
+    wait(self.cooldown)
+    
+    self.isOnCooldown = false
+    self.tool.Enabled = true
+end
+
+function AdvancedTool:useAmmo()
+    if self.ammo > 0 then
+        self.ammo = self.ammo - 1
+    end
+end
+
+function AdvancedTool:reduceDurability()
+    if self.durability > 0 then
+        self.durability = self.durability - 1
+    end
+end
+
+function AdvancedTool:reload()
+    self.ammo = self.maxAmmo
+    print("Tool reloaded!")
+end
+
+function AdvancedTool:repair()
+    self.durability = self.maxDurability
+    print("Tool repaired!")
+end
+
+function AdvancedTool:switchMode()
+    self.currentMode = self.currentMode + 1
+    if self.currentMode > #self.modes then
+        self.currentMode = 1
+    end
+    
+    local mode = self.modes[self.currentMode]
+    print("Mode switched to:", mode)
+end
+
+function AdvancedTool:primaryAction()
+    print("Primary action executed!")
+    -- Implement primary action
+end
+
+function AdvancedTool:secondaryAction()
+    print("Secondary action executed!")
+    -- Implement secondary action
+end
+
+function AdvancedTool:tertiaryAction()
+    print("Tertiary action executed!")
+    -- Implement tertiary action
+end
+
+function AdvancedTool:updateToolState()
+    -- Update tool appearance based on state
+    local handle = self.tool:FindFirstChild("Handle")
+    if handle then
+        if self.ammo <= 0 then
+            handle.Color = Color3.fromRGB(255, 0, 0)  -- Red when out of ammo
+        elseif self.durability <= 20 then
+            handle.Color = Color3.fromRGB(255, 165, 0)  -- Orange when low durability
+        else
+            handle.Color = Color3.fromRGB(100, 100, 100)  -- Normal color
+        end
+    end
+end
+
+-- Example usage
+local toolData = {
+    cooldown = 0.5,
+    ammo = 15,
+    maxAmmo = 15,
+    durability = 100,
+    maxDurability = 100,
+    modes = {"primary", "secondary", "tertiary"}
+}
+
+local advancedTool = AdvancedTool.new("Advanced Tool", toolData)`,
+        color: 'green'
+      },
+      {
+        title: 'Weapon Systems',
+        content: `Create comprehensive weapon systems with damage, effects, and combat mechanics.
+
+**Weapon System Features:**
+- **Damage Calculation**: Different damage types and amounts
+- **Range Systems**: Melee vs ranged weapons
+- **Accuracy Systems**: Hit chance and spread
+- **Critical Hits**: Chance for extra damage
+- **Status Effects**: Poison, burn, freeze, etc.
+- **Weapon Modifications**: Attachments and upgrades
+
+**Combat Integration:**
+- **Hit Detection**: Raycasting and collision detection
+- **Damage Application**: Apply damage to targets
+- **Effect Systems**: Visual and audio feedback
+- **Combat Logging**: Track combat events`,
+        codeExample: `-- Comprehensive weapon system
+
+local WeaponSystem = {}
+WeaponSystem.__index = WeaponSystem
+
+function WeaponSystem.new(weaponName, weaponData)
+    local self = setmetatable({}, WeaponSystem)
+    self.tool = Instance.new("Tool")
+    self.tool.Name = weaponName
+    self.tool.RequiresHandle = true
+    self.tool.CanBeDropped = true
+    self.tool.Enabled = true
+    self.tool.Parent = game.StarterPack
+    
+    -- Weapon data
+    self.data = weaponData or {}
+    self.damage = self.data.damage or 25
+    self.range = self.data.range or 100
+    self.accuracy = self.data.accuracy or 0.9
+    self.criticalChance = self.data.criticalChance or 0.1
+    self.criticalMultiplier = self.data.criticalMultiplier or 2
+    self.fireRate = self.data.fireRate or 1
+    self.ammo = self.data.ammo or 30
+    self.maxAmmo = self.data.maxAmmo or 30
+    self.reloadTime = self.data.reloadTime or 2
+    
+    -- State
+    self.isReloading = false
+    self.lastFireTime = 0
+    
+    self:createWeaponModel()
+    self:setupEvents()
+    
+    return self
+end
+
+function WeaponSystem:createWeaponModel()
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(0.5, 1, 3)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(50, 50, 50)
+    handle.Parent = self.tool
+    
+    -- Add muzzle flash effect
+    local muzzleFlash = Instance.new("Part")
+    muzzleFlash.Name = "MuzzleFlash"
+    muzzleFlash.Size = Vector3.new(0.2, 0.2, 0.2)
+    muzzleFlash.Material = Enum.Material.Neon
+    muzzleFlash.Color = Color3.fromRGB(255, 255, 0)
+    muzzleFlash.Transparency = 1
+    muzzleFlash.CFrame = handle.CFrame * CFrame.new(0, 0, 2)
+    muzzleFlash.Parent = handle
+    
+    -- Add sound
+    local sound = Instance.new("Sound")
+    sound.Name = "FireSound"
+    sound.SoundId = "rbxasset://sounds/electronicpingshort.wav"
+    sound.Volume = 0.5
+    sound.Parent = handle
+end
+
+function WeaponSystem:setupEvents()
+    self.tool.Activated:Connect(function()
+        self:fire()
+    end)
+    
+    self.tool.Equipped:Connect(function()
+        self:onEquipped()
+    end)
+    
+    self.tool.Unequipped:Connect(function()
+        self:onUnequipped()
+    end)
+end
+
+function WeaponSystem:fire()
+    if self.isReloading or self.ammo <= 0 then
+        return
+    end
+    
+    local currentTime = tick()
+    if currentTime - self.lastFireTime < self.fireRate then
+        return
+    end
+    
+    self.lastFireTime = currentTime
+    self.ammo = self.ammo - 1
+    
+    -- Create muzzle flash
+    self:createMuzzleFlash()
+    
+    -- Play sound
+    local handle = self.tool:FindFirstChild("Handle")
+    local sound = handle:FindFirstChild("FireSound")
+    if sound then
+        sound:Play()
+    end
+    
+    -- Raycast for hit detection
+    self:performRaycast()
+    
+    print("Weapon fired! Ammo remaining:", self.ammo)
+    
+    -- Auto-reload if out of ammo
+    if self.ammo <= 0 then
+        self:reload()
+    end
+end
+
+function WeaponSystem:performRaycast()
+    local handle = self.tool:FindFirstChild("Handle")
+    if not handle then return end
+    
+    local character = self.tool.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    local camera = workspace.CurrentCamera
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    
+    -- Calculate ray direction
+    local rayOrigin = handle.Position
+    local rayDirection = (mouse.Hit.Position - rayOrigin).Unit * self.range
+    
+    -- Add accuracy spread
+    local spread = (1 - self.accuracy) * 0.1
+    rayDirection = rayDirection + Vector3.new(
+        (math.random() - 0.5) * spread,
+        (math.random() - 0.5) * spread,
+        (math.random() - 0.5) * spread
+    )
+    
+    -- Perform raycast
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {character}
+    
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+    
+    if raycastResult then
+        self:handleHit(raycastResult)
+    else
+        print("Shot missed!")
+    end
+end
+
+function WeaponSystem:handleHit(raycastResult)
+    local hit = raycastResult.Instance
+    local hitPosition = raycastResult.Position
+    
+    print("Hit:", hit.Name, "at position:", hitPosition)
+    
+    -- Check if hit a character
+    local character = hit.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    
+    if humanoid then
+        -- Calculate damage
+        local damage = self:calculateDamage()
+        
+        -- Apply damage
+        humanoid:TakeDamage(damage)
+        
+        print("Dealt", damage, "damage to", character.Name)
+        
+        -- Create hit effect
+        self:createHitEffect(hitPosition)
+    else
+        -- Hit environment
+        self:createImpactEffect(hitPosition)
+    end
+end
+
+function WeaponSystem:calculateDamage()
+    local baseDamage = self.damage
+    
+    -- Check for critical hit
+    if math.random() < self.criticalChance then
+        baseDamage = baseDamage * self.criticalMultiplier
+        print("Critical hit!")
+    end
+    
+    return baseDamage
+end
+
+function WeaponSystem:createMuzzleFlash()
+    local handle = self.tool:FindFirstChild("Handle")
+    local muzzleFlash = handle:FindFirstChild("MuzzleFlash")
+    
+    if muzzleFlash then
+        muzzleFlash.Transparency = 0
+        
+        -- Fade out
+        local tween = game:GetService("TweenService"):Create(muzzleFlash,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Transparency = 1}
+        )
+        tween:Play()
+    end
+end
+
+function WeaponSystem:createHitEffect(position)
+    local effect = Instance.new("Part")
+    effect.Size = Vector3.new(0.5, 0.5, 0.5)
+    effect.Material = Enum.Material.Neon
+    effect.Color = Color3.fromRGB(255, 0, 0)
+    effect.CFrame = CFrame.new(position)
+    effect.Anchored = true
+    effect.Parent = workspace
+    
+    -- Fade out and destroy
+    local tween = game:GetService("TweenService"):Create(effect,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Transparency = 1, Size = Vector3.new(2, 2, 2)}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+function WeaponSystem:createImpactEffect(position)
+    local effect = Instance.new("Part")
+    effect.Size = Vector3.new(0.3, 0.3, 0.3)
+    effect.Material = Enum.Material.Neon
+    effect.Color = Color3.fromRGB(255, 255, 0)
+    effect.CFrame = CFrame.new(position)
+    effect.Anchored = true
+    effect.Parent = workspace
+    
+    -- Fade out and destroy
+    local tween = game:GetService("TweenService"):Create(effect,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Transparency = 1}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+function WeaponSystem:reload()
+    if self.isReloading or self.ammo >= self.maxAmmo then
+        return
+    end
+    
+    self.isReloading = true
+    self.tool.Enabled = false
+    
+    print("Reloading...")
+    
+    wait(self.reloadTime)
+    
+    self.ammo = self.maxAmmo
+    self.isReloading = false
+    self.tool.Enabled = true
+    
+    print("Reload complete!")
+end
+
+function WeaponSystem:onEquipped()
+    print("Weapon equipped!")
+end
+
+function WeaponSystem:onUnequipped()
+    print("Weapon unequipped!")
+end
+
+-- Example usage
+local weaponData = {
+    damage = 35,
+    range = 150,
+    accuracy = 0.85,
+    criticalChance = 0.15,
+    criticalMultiplier = 2.5,
+    fireRate = 0.8,
+    ammo = 25,
+    maxAmmo = 25,
+    reloadTime = 2.5
+}
+
+local weapon = WeaponSystem.new("Assault Rifle", weaponData)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Tool Basics & Creation - Comprehensive Learning Example
+-- Master tool creation and weapon systems in Roblox
+
+print("=== TOOL BASICS & CREATION DEMO ===")
+print("Learning tool creation and weapon systems...")
+
+-- 1. BASIC TOOL CREATION
+print("\\n1. DEMONSTRATING BASIC TOOL CREATION...")
+
+local function createBasicTool()
+    local Tool = Instance.new("Tool")
+    Tool.Name = "Basic Tool"
+    Tool.RequiresHandle = true
+    Tool.CanBeDropped = true
+    Tool.Enabled = true
+    Tool.Grip = Enum.R15Grip.Right
+    Tool.Parent = game.StarterPack
+    
+    -- Create handle
+    local Handle = Instance.new("Part")
+    Handle.Name = "Handle"
+    Handle.Size = Vector3.new(1, 4, 0.2)
+    Handle.Material = Enum.Material.Wood
+    Handle.Color = Color3.fromRGB(139, 69, 19)
+    Handle.Parent = Tool
+    
+    -- Tool events
+    Tool.Activated:Connect(function()
+        print("Tool activated!")
+    end)
+    
+    Tool.Deactivated:Connect(function()
+        print("Tool deactivated!")
+    end)
+    
+    Tool.Equipped:Connect(function()
+        print("Tool equipped!")
+    end)
+    
+    Tool.Unequipped:Connect(function()
+        print("Tool unequipped!")
+    end)
+    
+    print("Basic tool created!")
+    return Tool
+end
+
+-- 2. ADVANCED TOOL SYSTEM
+print("\\n2. DEMONSTRATING ADVANCED TOOL SYSTEM...")
+
+local AdvancedTool = {}
+AdvancedTool.__index = AdvancedTool
+
+function AdvancedTool.new(toolName, toolData)
+    local self = setmetatable({}, AdvancedTool)
+    self.tool = Instance.new("Tool")
+    self.tool.Name = toolName
+    self.tool.RequiresHandle = true
+    self.tool.CanBeDropped = true
+    self.tool.Enabled = true
+    self.tool.Parent = game.StarterPack
+    
+    -- Tool data
+    self.data = toolData or {}
+    self.cooldown = self.data.cooldown or 1
+    self.ammo = self.data.ammo or 10
+    self.maxAmmo = self.data.maxAmmo or 10
+    self.durability = self.data.durability or 100
+    self.maxDurability = self.data.maxDurability or 100
+    
+    -- State
+    self.isOnCooldown = false
+    self.currentMode = 1
+    self.modes = self.data.modes or {"primary"}
+    
+    self:createHandle()
+    self:setupEvents()
+    
+    return self
+end
+
+function AdvancedTool:createHandle()
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 4, 0.2)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(100, 100, 100)
+    handle.Parent = self.tool
+    
+    -- Add selection box
+    local selectionBox = Instance.new("SelectionBox")
+    selectionBox.Adornee = handle
+    selectionBox.Color3 = Color3.fromRGB(0, 255, 0)
+    selectionBox.Transparency = 0.5
+    selectionBox.Parent = handle
+end
+
+function AdvancedTool:setupEvents()
+    self.tool.Activated:Connect(function()
+        self:onActivated()
+    end)
+    
+    self.tool.Equipped:Connect(function()
+        self:onEquipped()
+    end)
+    
+    self.tool.Unequipped:Connect(function()
+        self:onUnequipped()
+    end)
+end
+
+function AdvancedTool:onActivated()
+    if self.isOnCooldown or self.ammo <= 0 or self.durability <= 0 then
+        return
+    end
+    
+    self:startCooldown()
+    self:useAmmo()
+    self:reduceDurability()
+    
+    local mode = self.modes[self.currentMode]
+    if mode == "primary" then
+        self:primaryAction()
+    elseif mode == "secondary" then
+        self:secondaryAction()
+    elseif mode == "tertiary" then
+        self:tertiaryAction()
+    end
+    
+    print("Tool used! Ammo:", self.ammo, "Durability:", self.durability)
+end
+
+function AdvancedTool:onEquipped()
+    print("Tool equipped!")
+    self:updateToolState()
+end
+
+function AdvancedTool:onUnequipped()
+    print("Tool unequipped!")
+end
+
+function AdvancedTool:startCooldown()
+    self.isOnCooldown = true
+    self.tool.Enabled = false
+    
+    wait(self.cooldown)
+    
+    self.isOnCooldown = false
+    self.tool.Enabled = true
+end
+
+function AdvancedTool:useAmmo()
+    if self.ammo > 0 then
+        self.ammo = self.ammo - 1
+    end
+end
+
+function AdvancedTool:reduceDurability()
+    if self.durability > 0 then
+        self.durability = self.durability - 1
+    end
+end
+
+function AdvancedTool:reload()
+    self.ammo = self.maxAmmo
+    print("Tool reloaded!")
+end
+
+function AdvancedTool:repair()
+    self.durability = self.maxDurability
+    print("Tool repaired!")
+end
+
+function AdvancedTool:switchMode()
+    self.currentMode = self.currentMode + 1
+    if self.currentMode > #self.modes then
+        self.currentMode = 1
+    end
+    
+    local mode = self.modes[self.currentMode]
+    print("Mode switched to:", mode)
+end
+
+function AdvancedTool:primaryAction()
+    print("Primary action executed!")
+    -- Implement primary action
+end
+
+function AdvancedTool:secondaryAction()
+    print("Secondary action executed!")
+    -- Implement secondary action
+end
+
+function AdvancedTool:tertiaryAction()
+    print("Tertiary action executed!")
+    -- Implement tertiary action
+end
+
+function AdvancedTool:updateToolState()
+    -- Update tool appearance based on state
+    local handle = self.tool:FindFirstChild("Handle")
+    if handle then
+        if self.ammo <= 0 then
+            handle.Color = Color3.fromRGB(255, 0, 0)  -- Red when out of ammo
+        elseif self.durability <= 20 then
+            handle.Color = Color3.fromRGB(255, 165, 0)  -- Orange when low durability
+        else
+            handle.Color = Color3.fromRGB(100, 100, 100)  -- Normal color
+        end
+    end
+end
+
+-- 3. WEAPON SYSTEM
+print("\\n3. DEMONSTRATING WEAPON SYSTEM...")
+
+local WeaponSystem = {}
+WeaponSystem.__index = WeaponSystem
+
+function WeaponSystem.new(weaponName, weaponData)
+    local self = setmetatable({}, WeaponSystem)
+    self.tool = Instance.new("Tool")
+    self.tool.Name = weaponName
+    self.tool.RequiresHandle = true
+    self.tool.CanBeDropped = true
+    self.tool.Enabled = true
+    self.tool.Parent = game.StarterPack
+    
+    -- Weapon data
+    self.data = weaponData or {}
+    self.damage = self.data.damage or 25
+    self.range = self.data.range or 100
+    self.accuracy = self.data.accuracy or 0.9
+    self.criticalChance = self.data.criticalChance or 0.1
+    self.criticalMultiplier = self.data.criticalMultiplier or 2
+    self.fireRate = self.data.fireRate or 1
+    self.ammo = self.data.ammo or 30
+    self.maxAmmo = self.data.maxAmmo or 30
+    self.reloadTime = self.data.reloadTime or 2
+    
+    -- State
+    self.isReloading = false
+    self.lastFireTime = 0
+    
+    self:createWeaponModel()
+    self:setupEvents()
+    
+    return self
+end
+
+function WeaponSystem:createWeaponModel()
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(0.5, 1, 3)
+    handle.Material = Enum.Material.Metal
+    handle.Color = Color3.fromRGB(50, 50, 50)
+    handle.Parent = self.tool
+    
+    -- Add muzzle flash effect
+    local muzzleFlash = Instance.new("Part")
+    muzzleFlash.Name = "MuzzleFlash"
+    muzzleFlash.Size = Vector3.new(0.2, 0.2, 0.2)
+    muzzleFlash.Material = Enum.Material.Neon
+    muzzleFlash.Color = Color3.fromRGB(255, 255, 0)
+    muzzleFlash.Transparency = 1
+    muzzleFlash.CFrame = handle.CFrame * CFrame.new(0, 0, 2)
+    muzzleFlash.Parent = handle
+    
+    -- Add sound
+    local sound = Instance.new("Sound")
+    sound.Name = "FireSound"
+    sound.SoundId = "rbxasset://sounds/electronicpingshort.wav"
+    sound.Volume = 0.5
+    sound.Parent = handle
+end
+
+function WeaponSystem:setupEvents()
+    self.tool.Activated:Connect(function()
+        self:fire()
+    end)
+    
+    self.tool.Equipped:Connect(function()
+        self:onEquipped()
+    end)
+    
+    self.tool.Unequipped:Connect(function()
+        self:onUnequipped()
+    end)
+end
+
+function WeaponSystem:fire()
+    if self.isReloading or self.ammo <= 0 then
+        return
+    end
+    
+    local currentTime = tick()
+    if currentTime - self.lastFireTime < self.fireRate then
+        return
+    end
+    
+    self.lastFireTime = currentTime
+    self.ammo = self.ammo - 1
+    
+    -- Create muzzle flash
+    self:createMuzzleFlash()
+    
+    -- Play sound
+    local handle = self.tool:FindFirstChild("Handle")
+    local sound = handle:FindFirstChild("FireSound")
+    if sound then
+        sound:Play()
+    end
+    
+    -- Raycast for hit detection
+    self:performRaycast()
+    
+    print("Weapon fired! Ammo remaining:", self.ammo)
+    
+    -- Auto-reload if out of ammo
+    if self.ammo <= 0 then
+        self:reload()
+    end
+end
+
+function WeaponSystem:performRaycast()
+    local handle = self.tool:FindFirstChild("Handle")
+    if not handle then return end
+    
+    local character = self.tool.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    local camera = workspace.CurrentCamera
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    
+    -- Calculate ray direction
+    local rayOrigin = handle.Position
+    local rayDirection = (mouse.Hit.Position - rayOrigin).Unit * self.range
+    
+    -- Add accuracy spread
+    local spread = (1 - self.accuracy) * 0.1
+    rayDirection = rayDirection + Vector3.new(
+        (math.random() - 0.5) * spread,
+        (math.random() - 0.5) * spread,
+        (math.random() - 0.5) * spread
+    )
+    
+    -- Perform raycast
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {character}
+    
+    local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+    
+    if raycastResult then
+        self:handleHit(raycastResult)
+    else
+        print("Shot missed!")
+    end
+end
+
+function WeaponSystem:handleHit(raycastResult)
+    local hit = raycastResult.Instance
+    local hitPosition = raycastResult.Position
+    
+    print("Hit:", hit.Name, "at position:", hitPosition)
+    
+    -- Check if hit a character
+    local character = hit.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    
+    if humanoid then
+        -- Calculate damage
+        local damage = self:calculateDamage()
+        
+        -- Apply damage
+        humanoid:TakeDamage(damage)
+        
+        print("Dealt", damage, "damage to", character.Name)
+        
+        -- Create hit effect
+        self:createHitEffect(hitPosition)
+    else
+        -- Hit environment
+        self:createImpactEffect(hitPosition)
+    end
+end
+
+function WeaponSystem:calculateDamage()
+    local baseDamage = self.damage
+    
+    -- Check for critical hit
+    if math.random() < self.criticalChance then
+        baseDamage = baseDamage * self.criticalMultiplier
+        print("Critical hit!")
+    end
+    
+    return baseDamage
+end
+
+function WeaponSystem:createMuzzleFlash()
+    local handle = self.tool:FindFirstChild("Handle")
+    local muzzleFlash = handle:FindFirstChild("MuzzleFlash")
+    
+    if muzzleFlash then
+        muzzleFlash.Transparency = 0
+        
+        -- Fade out
+        local tween = game:GetService("TweenService"):Create(muzzleFlash,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Transparency = 1}
+        )
+        tween:Play()
+    end
+end
+
+function WeaponSystem:createHitEffect(position)
+    local effect = Instance.new("Part")
+    effect.Size = Vector3.new(0.5, 0.5, 0.5)
+    effect.Material = Enum.Material.Neon
+    effect.Color = Color3.fromRGB(255, 0, 0)
+    effect.CFrame = CFrame.new(position)
+    effect.Anchored = true
+    effect.Parent = workspace
+    
+    -- Fade out and destroy
+    local tween = game:GetService("TweenService"):Create(effect,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Transparency = 1, Size = Vector3.new(2, 2, 2)}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+function WeaponSystem:createImpactEffect(position)
+    local effect = Instance.new("Part")
+    effect.Size = Vector3.new(0.3, 0.3, 0.3)
+    effect.Material = Enum.Material.Neon
+    effect.Color = Color3.fromRGB(255, 255, 0)
+    effect.CFrame = CFrame.new(position)
+    effect.Anchored = true
+    effect.Parent = workspace
+    
+    -- Fade out and destroy
+    local tween = game:GetService("TweenService"):Create(effect,
+        TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Transparency = 1}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+function WeaponSystem:reload()
+    if self.isReloading or self.ammo >= self.maxAmmo then
+        return
+    end
+    
+    self.isReloading = true
+    self.tool.Enabled = false
+    
+    print("Reloading...")
+    
+    wait(self.reloadTime)
+    
+    self.ammo = self.maxAmmo
+    self.isReloading = false
+    self.tool.Enabled = true
+    
+    print("Reload complete!")
+end
+
+function WeaponSystem:onEquipped()
+    print("Weapon equipped!")
+end
+
+function WeaponSystem:onUnequipped()
+    print("Weapon unequipped!")
+end
+
+-- 4. DEMO THE TOOL SYSTEMS
+print("\\n4. RUNNING TOOL SYSTEM DEMONSTRATIONS...")
+
+-- Create basic tool
+local basicTool = createBasicTool()
+
+-- Create advanced tool
+local toolData = {
+    cooldown = 0.5,
+    ammo = 15,
+    maxAmmo = 15,
+    durability = 100,
+    maxDurability = 100,
+    modes = {"primary", "secondary", "tertiary"}
+}
+
+local advancedTool = AdvancedTool.new("Advanced Tool", toolData)
+
+-- Create weapon
+local weaponData = {
+    damage = 35,
+    range = 150,
+    accuracy = 0.85,
+    criticalChance = 0.15,
+    criticalMultiplier = 2.5,
+    fireRate = 0.8,
+    ammo = 25,
+    maxAmmo = 25,
+    reloadTime = 2.5
+}
+
+local weapon = WeaponSystem.new("Assault Rifle", weaponData)
+
+print("\\n=== TOOL BASICS & CREATION DEMO COMPLETE ===")
+print("You've learned tool creation and weapon systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Create a Tool with a Handle part', type: 'code_contains', value: 'Tool' },
+        { description: 'Connect to tool events like Activated', type: 'code_contains', value: 'Activated' },
+        { description: 'Use raycasting for hit detection', type: 'code_contains', value: 'Raycast' }
+      ],
+      hints: [
+        'Use Instance.new("Tool") to create tools',
+        'Connect to tool.Activated, tool.Equipped, etc. for tool events',
+        'Use workspace:Raycast() for hit detection in weapons',
+        'Use tool.Enabled to control tool availability',
+        'Use tool.RequiresHandle = true for tools that need handles'
+      ],
+      successMessage: 'Excellent! You now understand tool creation and weapon systems. These skills are essential for creating interactive gameplay elements!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
