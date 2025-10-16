@@ -22908,6 +22908,1399 @@ print("You've learned advanced GUI systems, custom components, and responsive de
     }
   },
 
+  // === MOBILE DEVELOPMENT ===
+  'mobile-development-optimization': {
+    title: 'Mobile Development & Cross-Platform Optimization',
+    description: 'Optimize your Roblox games for mobile devices and cross-platform compatibility',
+    sections: [
+      {
+        title: 'Mobile UI & Touch Controls',
+        content: `Mobile development requires special considerations for touch interfaces, performance optimization, and cross-platform compatibility to ensure your Roblox games work seamlessly across all devices.
+
+**Mobile-Specific Challenges:**
+- **Touch Controls**: Designing intuitive touch interfaces for mobile devices
+- **Screen Sizes**: Adapting UI for various mobile screen sizes and orientations
+- **Performance**: Optimizing for lower-end mobile devices
+- **Battery Life**: Minimizing battery drain through efficient code
+- **Network Conditions**: Handling poor network connectivity on mobile
+
+**Cross-Platform Considerations:**
+- **Input Methods**: Supporting both touch and keyboard/mouse inputs
+- **UI Scaling**: Responsive design for different screen resolutions
+- **Performance Scaling**: Automatic quality adjustment based on device capabilities
+- **Platform-Specific Features**: Utilizing platform-specific capabilities when available
+- **Testing**: Comprehensive testing across different devices and platforms`,
+        codeExample: `-- Mobile development and cross-platform optimization
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local MobileOptimizer = {}
+MobileOptimizer.__index = MobileOptimizer
+
+-- Mobile configuration
+local MOBILE_CONFIG = {
+    TOUCH_SENSITIVITY = 1.0,
+    MIN_TOUCH_SIZE = 44, -- Minimum touch target size in pixels
+    PERFORMANCE_LEVELS = {
+        LOW = 1,
+        MEDIUM = 2,
+        HIGH = 3
+    },
+    SCREEN_SIZES = {
+        MOBILE = {width = 480, height = 854},
+        TABLET = {width = 768, height = 1024},
+        DESKTOP = {width = 1920, height = 1080}
+    }
+}
+
+function MobileOptimizer.new()
+    local self = setmetatable({}, MobileOptimizer)
+    
+    -- Mobile systems
+    self.touchControls = {}
+    self.performanceManager = {}
+    self.uiScaler = {}
+    self.inputHandler = {}
+    self.deviceInfo = {}
+    
+    -- Setup systems
+    self:setupDeviceDetection()
+    self:setupTouchControls()
+    self:setupPerformanceManager()
+    self:setupUIScaler()
+    self:setupInputHandler()
+    
+    return self
+end
+
+function MobileOptimizer:setupDeviceDetection()
+    self.deviceInfo = {
+        platform = UserInputService:GetPlatform(),
+        isMobile = UserInputService.TouchEnabled,
+        isTablet = false,
+        screenSize = GuiService:GetGuiInset(),
+        performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM
+    }
+    
+    -- Detect tablet
+    local viewportSize = UserInputService.ViewportSize
+    if viewportSize.X > 600 and viewportSize.Y > 600 then
+        self.deviceInfo.isTablet = true
+    end
+    
+    -- Determine performance level based on device
+    self:determinePerformanceLevel()
+    
+    print("Device detected:", self.deviceInfo.platform, "Mobile:", self.deviceInfo.isMobile, "Tablet:", self.deviceInfo.isTablet)
+end
+
+function MobileOptimizer:determinePerformanceLevel()
+    local viewportSize = UserInputService.ViewportSize
+    local screenArea = viewportSize.X * viewportSize.Y
+    
+    if screenArea < 500000 then -- Low-end mobile
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW
+    elseif screenArea < 1000000 then -- Mid-range mobile/tablet
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM
+    else -- High-end device
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.HIGH
+    end
+    
+    print("Performance level determined:", self.deviceInfo.performanceLevel)
+end
+
+function MobileOptimizer:setupTouchControls()
+    self.touchControls = {
+        activeTouches = {},
+        touchTargets = {},
+        gestureRecognizers = {}
+    }
+    
+    -- Setup touch input handling
+    UserInputService.TouchStarted:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchStarted(touch)
+        end
+    end)
+    
+    UserInputService.TouchMoved:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchMoved(touch)
+        end
+    end)
+    
+    UserInputService.TouchEnded:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchEnded(touch)
+        end
+    end)
+    
+    print("Touch controls initialized")
+end
+
+function MobileOptimizer:handleTouchStarted(touch)
+    self.touchControls.activeTouches[touch] = {
+        startPosition = touch.Position,
+        startTime = tick(),
+        target = self:findTouchTarget(touch.Position)
+    }
+    
+    -- Handle touch target
+    local touchData = self.touchControls.activeTouches[touch]
+    if touchData.target then
+        self:activateTouchTarget(touchData.target, touch)
+    end
+    
+    print("Touch started at:", touch.Position)
+end
+
+function MobileOptimizer:handleTouchMoved(touch)
+    local touchData = self.touchControls.activeTouches[touch]
+    if not touchData then return end
+    
+    -- Update touch position
+    touchData.currentPosition = touch.Position
+    touchData.distance = (touch.Position - touchData.startPosition).Magnitude
+    
+    -- Handle drag gestures
+    if touchData.distance > 10 then -- Minimum drag distance
+        self:handleDragGesture(touch, touchData)
+    end
+end
+
+function MobileOptimizer:handleTouchEnded(touch)
+    local touchData = self.touchControls.activeTouches[touch]
+    if not touchData then return end
+    
+    local touchDuration = tick() - touchData.startTime
+    local touchDistance = touchData.distance or 0
+    
+    -- Determine gesture type
+    if touchDistance < 10 and touchDuration < 0.5 then
+        self:handleTapGesture(touch, touchData)
+    elseif touchDistance > 50 then
+        self:handleSwipeGesture(touch, touchData)
+    end
+    
+    -- Clean up touch data
+    self.touchControls.activeTouches[touch] = nil
+    
+    print("Touch ended after:", touchDuration, "seconds, distance:", touchDistance)
+end
+
+function MobileOptimizer:findTouchTarget(position)
+    for _, target in pairs(self.touchControls.touchTargets) do
+        if target.guiObject and target.guiObject.Parent then
+            local absolutePosition = target.guiObject.AbsolutePosition
+            local absoluteSize = target.guiObject.AbsoluteSize
+            
+            if position.X >= absolutePosition.X and position.X <= absolutePosition.X + absoluteSize.X and
+               position.Y >= absolutePosition.Y and position.Y <= absolutePosition.Y + absoluteSize.Y then
+                return target
+            end
+        end
+    end
+    return nil
+end
+
+function MobileOptimizer:registerTouchTarget(guiObject, callback, options)
+    local target = {
+        guiObject = guiObject,
+        callback = callback,
+        options = options or {},
+        minSize = options and options.minSize or MOBILE_CONFIG.MIN_TOUCH_SIZE
+    }
+    
+    -- Ensure minimum touch target size
+    self:ensureMinimumTouchSize(guiObject, target.minSize)
+    
+    table.insert(self.touchControls.touchTargets, target)
+    
+    print("Touch target registered:", guiObject.Name)
+    return target
+end
+
+function MobileOptimizer:ensureMinimumTouchSize(guiObject, minSize)
+    local currentSize = guiObject.AbsoluteSize
+    
+    if currentSize.X < minSize or currentSize.Y < minSize then
+        local scaleFactor = math.max(minSize / currentSize.X, minSize / currentSize.Y)
+        guiObject.Size = UDim2.new(
+            guiObject.Size.X.Scale * scaleFactor,
+            guiObject.Size.X.Offset * scaleFactor,
+            guiObject.Size.Y.Scale * scaleFactor,
+            guiObject.Size.Y.Offset * scaleFactor
+        )
+    end
+end
+
+function MobileOptimizer:activateTouchTarget(target, touch)
+    if target.callback then
+        target.callback(touch, target)
+    end
+    
+    -- Add visual feedback
+    self:addTouchFeedback(target.guiObject)
+end
+
+function MobileOptimizer:addTouchFeedback(guiObject)
+    -- Add touch feedback animation
+    local originalSize = guiObject.Size
+    local feedbackSize = UDim2.new(
+        originalSize.X.Scale * 0.95,
+        originalSize.X.Offset * 0.95,
+        originalSize.Y.Scale * 0.95,
+        originalSize.Y.Offset * 0.95
+    )
+    
+    local tween = TweenService:Create(
+        guiObject,
+        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = feedbackSize}
+    )
+    
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        local returnTween = TweenService:Create(
+            guiObject,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = originalSize}
+        )
+        returnTween:Play()
+    end)
+end
+
+function MobileOptimizer:handleTapGesture(touch, touchData)
+    print("Tap gesture detected")
+    
+    -- Handle tap on touch target
+    if touchData.target then
+        self:activateTouchTarget(touchData.target, touch)
+    end
+end
+
+function MobileOptimizer:handleSwipeGesture(touch, touchData)
+    local direction = (touch.Position - touchData.startPosition).Unit
+    local distance = touchData.distance
+    
+    print("Swipe gesture detected:", direction, "distance:", distance)
+    
+    -- Determine swipe direction
+    local swipeDirection = "unknown"
+    if math.abs(direction.X) > math.abs(direction.Y) then
+        swipeDirection = direction.X > 0 and "right" or "left"
+    else
+        swipeDirection = direction.Y > 0 and "down" or "up"
+    end
+    
+    -- Handle swipe gesture
+    self:processSwipeGesture(swipeDirection, distance, touch)
+end
+
+function MobileOptimizer:handleDragGesture(touch, touchData)
+    -- Handle drag operations
+    if touchData.target and touchData.target.options.draggable then
+        self:handleDragOperation(touch, touchData)
+    end
+end
+
+function MobileOptimizer:processSwipeGesture(direction, distance, touch)
+    -- Process swipe gestures (e.g., navigation, menu switching)
+    print("Processing swipe:", direction, "distance:", distance)
+end
+
+function MobileOptimizer:handleDragOperation(touch, touchData)
+    -- Handle drag operations
+    print("Drag operation:", touch.Position)
+end
+
+function MobileOptimizer:setupPerformanceManager()
+    self.performanceManager = {
+        currentLevel = self.deviceInfo.performanceLevel,
+        qualitySettings = {},
+        frameRateTarget = 30,
+        memoryLimit = 50 -- MB
+    }
+    
+    -- Setup quality settings based on performance level
+    self:setupQualitySettings()
+    
+    -- Monitor performance
+    self:setupPerformanceMonitoring()
+    
+    print("Performance manager initialized")
+end
+
+function MobileOptimizer:setupQualitySettings()
+    local level = self.deviceInfo.performanceLevel
+    
+    if level == MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW then
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 1,
+            shadowQuality = 0,
+            textureQuality = 1,
+            particleQuality = 1,
+            maxParticles = 50,
+            frameRateTarget = 30
+        }
+    elseif level == MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM then
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 2,
+            shadowQuality = 1,
+            textureQuality = 2,
+            particleQuality = 2,
+            maxParticles = 100,
+            frameRateTarget = 45
+        }
+    else -- HIGH
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 3,
+            shadowQuality = 2,
+            textureQuality = 3,
+            particleQuality = 3,
+            maxParticles = 200,
+            frameRateTarget = 60
+        }
+    end
+    
+    -- Apply quality settings
+    self:applyQualitySettings()
+end
+
+function MobileOptimizer:applyQualitySettings()
+    local settings = self.performanceManager.qualitySettings
+    
+    -- Apply lighting settings
+    game.Lighting.GlobalShadows = settings.shadowQuality > 0
+    game.Lighting.ShadowSoftness = settings.shadowQuality * 0.5
+    
+    -- Apply graphics settings
+    game.Lighting.Brightness = settings.graphicsQuality * 0.5
+    
+    print("Quality settings applied:", settings.graphicsQuality, "level")
+end
+
+function MobileOptimizer:setupPerformanceMonitoring()
+    local lastFrameTime = tick()
+    local frameCount = 0
+    local frameRate = 0
+    
+    RunService.Heartbeat:Connect(function()
+        local currentTime = tick()
+        local deltaTime = currentTime - lastFrameTime
+        
+        frameCount = frameCount + 1
+        frameRate = 1 / deltaTime
+        
+        -- Check if performance is below target
+        if frameRate < self.performanceManager.frameRateTarget * 0.8 then
+            self:handlePerformanceDrop()
+        end
+        
+        lastFrameTime = currentTime
+    end)
+end
+
+function MobileOptimizer:handlePerformanceDrop()
+    print("Performance drop detected, adjusting quality...")
+    
+    -- Reduce quality settings
+    if self.deviceInfo.performanceLevel > MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW then
+        self.deviceInfo.performanceLevel = self.deviceInfo.performanceLevel - 1
+        self:setupQualitySettings()
+    end
+end
+
+function MobileOptimizer:setupUIScaler()
+    self.uiScaler = {
+        baseResolution = Vector2.new(1920, 1080),
+        currentResolution = UserInputService.ViewportSize,
+        scaleFactor = 1
+    }
+    
+    -- Calculate scale factor
+    self:calculateScaleFactor()
+    
+    -- Monitor resolution changes
+    UserInputService:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        self:updateUIScale()
+    end)
+    
+    print("UI scaler initialized")
+end
+
+function MobileOptimizer:calculateScaleFactor()
+    local currentRes = UserInputService.ViewportSize
+    local baseRes = self.uiScaler.baseResolution
+    
+    -- Calculate scale factor based on smaller dimension
+    local scaleX = currentRes.X / baseRes.X
+    local scaleY = currentRes.Y / baseRes.Y
+    self.uiScaler.scaleFactor = math.min(scaleX, scaleY)
+    
+    print("UI scale factor:", self.uiScaler.scaleFactor)
+end
+
+function MobileOptimizer:updateUIScale()
+    self.uiScaler.currentResolution = UserInputService.ViewportSize
+    self:calculateScaleFactor()
+    
+    -- Update all UI elements
+    self:updateAllUIElements()
+end
+
+function MobileOptimizer:updateAllUIElements()
+    -- Update UI elements based on new scale factor
+    for _, player in pairs(Players:GetPlayers()) do
+        local playerGui = player:FindFirstChild("PlayerGui")
+        if playerGui then
+            self:scalePlayerGUI(playerGui)
+        end
+    end
+end
+
+function MobileOptimizer:scalePlayerGUI(playerGui)
+    -- Scale GUI elements for mobile
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            self:scaleScreenGUI(gui)
+        end
+    end
+end
+
+function MobileOptimizer:scaleScreenGUI(screenGui)
+    -- Scale screen GUI elements
+    for _, element in pairs(screenGui:GetChildren()) do
+        if element:IsA("GuiObject") then
+            self:scaleGUIElement(element)
+        end
+    end
+end
+
+function MobileOptimizer:scaleGUIElement(element)
+    -- Scale individual GUI elements
+    local scaleFactor = self.uiScaler.scaleFactor
+    
+    -- Adjust size and position
+    element.Size = UDim2.new(
+        element.Size.X.Scale,
+        element.Size.X.Offset * scaleFactor,
+        element.Size.Y.Scale,
+        element.Size.Y.Offset * scaleFactor
+    )
+    
+    element.Position = UDim2.new(
+        element.Position.X.Scale,
+        element.Position.X.Offset * scaleFactor,
+        element.Position.Y.Scale,
+        element.Position.Y.Offset * scaleFactor
+    )
+    
+    -- Adjust text size
+    if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+        element.TextSize = element.TextSize * scaleFactor
+    end
+end
+
+function MobileOptimizer:setupInputHandler()
+    self.inputHandler = {
+        virtualJoystick = nil,
+        virtualButtons = {},
+        inputMode = "auto"
+    }
+    
+    -- Setup virtual controls for mobile
+    if self.deviceInfo.isMobile then
+        self:setupVirtualControls()
+    end
+    
+    print("Input handler initialized")
+end
+
+function MobileOptimizer:setupVirtualControls()
+    -- Create virtual joystick for movement
+    self:createVirtualJoystick()
+    
+    -- Create virtual buttons for actions
+    self:createVirtualButtons()
+end
+
+function MobileOptimizer:createVirtualJoystick()
+    -- Create virtual joystick for mobile movement
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "VirtualJoystick"
+    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local joystickFrame = Instance.new("Frame")
+    joystickFrame.Name = "JoystickFrame"
+    joystickFrame.Size = UDim2.new(0, 120, 0, 120)
+    joystickFrame.Position = UDim2.new(0, 20, 1, -140)
+    joystickFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    joystickFrame.BackgroundTransparency = 0.5
+    joystickFrame.BorderSizePixel = 0
+    joystickFrame.Parent = screenGui
+    
+    local joystickCorner = Instance.new("UICorner")
+    joystickCorner.CornerRadius = UDim.new(0, 60)
+    joystickCorner.Parent = joystickFrame
+    
+    local joystickKnob = Instance.new("Frame")
+    joystickKnob.Name = "JoystickKnob"
+    joystickKnob.Size = UDim2.new(0, 60, 0, 60)
+    joystickKnob.Position = UDim2.new(0.5, -30, 0.5, -30)
+    joystickKnob.BackgroundColor3 = Color3.new(1, 1, 1)
+    joystickKnob.BackgroundTransparency = 0.3
+    joystickKnob.BorderSizePixel = 0
+    joystickKnob.Parent = joystickFrame
+    
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(0, 30)
+    knobCorner.Parent = joystickKnob
+    
+    self.inputHandler.virtualJoystick = {
+        frame = joystickFrame,
+        knob = joystickKnob,
+        isActive = false,
+        centerPosition = Vector2.new(60, 60)
+    }
+    
+    print("Virtual joystick created")
+end
+
+function MobileOptimizer:createVirtualButtons()
+    -- Create virtual buttons for mobile actions
+    local screenGui = Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("VirtualJoystick")
+    if not screenGui then return end
+    
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "VirtualButtons"
+    buttonFrame.Size = UDim2.new(0, 200, 0, 100)
+    buttonFrame.Position = UDim2.new(1, -220, 1, -110)
+    buttonFrame.BackgroundTransparency = 1
+    buttonFrame.Parent = screenGui
+    
+    -- Create jump button
+    local jumpButton = Instance.new("TextButton")
+    jumpButton.Name = "JumpButton"
+    jumpButton.Size = UDim2.new(0, 80, 0, 80)
+    jumpButton.Position = UDim2.new(0, 0, 0, 0)
+    jumpButton.BackgroundColor3 = Color3.new(0, 1, 0)
+    jumpButton.BackgroundTransparency = 0.3
+    jumpButton.Text = "JUMP"
+    jumpButton.TextColor3 = Color3.new(1, 1, 1)
+    jumpButton.Font = Enum.Font.GothamBold
+    jumpButton.TextSize = 16
+    jumpButton.BorderSizePixel = 0
+    jumpButton.Parent = buttonFrame
+    
+    local jumpCorner = Instance.new("UICorner")
+    jumpCorner.CornerRadius = UDim.new(0, 40)
+    jumpCorner.Parent = jumpButton
+    
+    -- Create action button
+    local actionButton = Instance.new("TextButton")
+    actionButton.Name = "ActionButton"
+    actionButton.Size = UDim2.new(0, 80, 0, 80)
+    actionButton.Position = UDim2.new(0, 100, 0, 0)
+    actionButton.BackgroundColor3 = Color3.new(1, 0, 0)
+    actionButton.BackgroundTransparency = 0.3
+    actionButton.Text = "ACTION"
+    actionButton.TextColor3 = Color3.new(1, 1, 1)
+    actionButton.Font = Enum.Font.GothamBold
+    actionButton.TextSize = 16
+    actionButton.BorderSizePixel = 0
+    actionButton.Parent = buttonFrame
+    
+    local actionCorner = Instance.new("UICorner")
+    actionCorner.CornerRadius = UDim.new(0, 40)
+    actionCorner.Parent = actionButton
+    
+    -- Register touch targets
+    self:registerTouchTarget(jumpButton, function(touch, target)
+        print("Jump button pressed")
+        -- Handle jump action
+    end)
+    
+    self:registerTouchTarget(actionButton, function(touch, target)
+        print("Action button pressed")
+        -- Handle action
+    end)
+    
+    print("Virtual buttons created")
+end
+
+function MobileOptimizer:getDeviceInfo()
+    return self.deviceInfo
+end
+
+function MobileOptimizer:getPerformanceLevel()
+    return self.deviceInfo.performanceLevel
+end
+
+function MobileOptimizer:isMobile()
+    return self.deviceInfo.isMobile
+end
+
+function MobileOptimizer:isTablet()
+    return self.deviceInfo.isTablet
+end
+
+function MobileOptimizer:getScaleFactor()
+    return self.uiScaler.scaleFactor
+end
+
+-- Example usage
+local mobileOptimizer = MobileOptimizer.new()
+
+-- Test mobile systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create test mobile UI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MobileTestUI"
+    screenGui.Parent = playerGui
+    
+    -- Create mobile-optimized button
+    local testButton = Instance.new("TextButton")
+    testButton.Name = "TestButton"
+    testButton.Size = UDim2.new(0, 100, 0, 50)
+    testButton.Position = UDim2.new(0.5, -50, 0.5, -25)
+    testButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    testButton.Text = "Test"
+    testButton.TextColor3 = Color3.new(1, 1, 1)
+    testButton.Font = Enum.Font.Gotham
+    testButton.TextSize = 18
+    testButton.BorderSizePixel = 0
+    testButton.Parent = screenGui
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = testButton
+    
+    -- Register touch target
+    mobileOptimizer:registerTouchTarget(testButton, function(touch, target)
+        print("Test button pressed on mobile!")
+    end)
+    
+    -- Test button click
+    testButton.MouseButton1Click:Connect(function()
+        print("Test button clicked!")
+    end)
+    
+    print("Applied mobile optimization tests to", player.Name)
+    print("Device info:", mobileOptimizer:getDeviceInfo())
+end)
+
+print("Mobile development and cross-platform optimization system initialized")`,
+        color: 'orange'
+      }
+    ],
+    defaultCode: `-- Mobile Development & Cross-Platform Optimization - Comprehensive Learning Example
+-- Optimize your Roblox games for mobile devices and cross-platform compatibility
+
+print("=== MOBILE DEVELOPMENT & CROSS-PLATFORM OPTIMIZATION DEMO ===")
+print("Learning mobile development and cross-platform optimization...")
+
+-- 1. MOBILE UI & TOUCH CONTROLS
+print("\\n1. DEMONSTRATING MOBILE UI & TOUCH CONTROLS...")
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local MobileOptimizer = {}
+MobileOptimizer.__index = MobileOptimizer
+
+-- Mobile configuration
+local MOBILE_CONFIG = {
+    TOUCH_SENSITIVITY = 1.0,
+    MIN_TOUCH_SIZE = 44, -- Minimum touch target size in pixels
+    PERFORMANCE_LEVELS = {
+        LOW = 1,
+        MEDIUM = 2,
+        HIGH = 3
+    },
+    SCREEN_SIZES = {
+        MOBILE = {width = 480, height = 854},
+        TABLET = {width = 768, height = 1024},
+        DESKTOP = {width = 1920, height = 1080}
+    }
+}
+
+function MobileOptimizer.new()
+    local self = setmetatable({}, MobileOptimizer)
+    
+    -- Mobile systems
+    self.touchControls = {}
+    self.performanceManager = {}
+    self.uiScaler = {}
+    self.inputHandler = {}
+    self.deviceInfo = {}
+    
+    -- Setup systems
+    self:setupDeviceDetection()
+    self:setupTouchControls()
+    self:setupPerformanceManager()
+    self:setupUIScaler()
+    self:setupInputHandler()
+    
+    return self
+end
+
+function MobileOptimizer:setupDeviceDetection()
+    self.deviceInfo = {
+        platform = UserInputService:GetPlatform(),
+        isMobile = UserInputService.TouchEnabled,
+        isTablet = false,
+        screenSize = GuiService:GetGuiInset(),
+        performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM
+    }
+    
+    -- Detect tablet
+    local viewportSize = UserInputService.ViewportSize
+    if viewportSize.X > 600 and viewportSize.Y > 600 then
+        self.deviceInfo.isTablet = true
+    end
+    
+    -- Determine performance level based on device
+    self:determinePerformanceLevel()
+    
+    print("Device detected:", self.deviceInfo.platform, "Mobile:", self.deviceInfo.isMobile, "Tablet:", self.deviceInfo.isTablet)
+end
+
+function MobileOptimizer:determinePerformanceLevel()
+    local viewportSize = UserInputService.ViewportSize
+    local screenArea = viewportSize.X * viewportSize.Y
+    
+    if screenArea < 500000 then -- Low-end mobile
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW
+    elseif screenArea < 1000000 then -- Mid-range mobile/tablet
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM
+    else -- High-end device
+        self.deviceInfo.performanceLevel = MOBILE_CONFIG.PERFORMANCE_LEVELS.HIGH
+    end
+    
+    print("Performance level determined:", self.deviceInfo.performanceLevel)
+end
+
+function MobileOptimizer:setupTouchControls()
+    self.touchControls = {
+        activeTouches = {},
+        touchTargets = {},
+        gestureRecognizers = {}
+    }
+    
+    -- Setup touch input handling
+    UserInputService.TouchStarted:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchStarted(touch)
+        end
+    end)
+    
+    UserInputService.TouchMoved:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchMoved(touch)
+        end
+    end)
+    
+    UserInputService.TouchEnded:Connect(function(touch, gameProcessed)
+        if not gameProcessed then
+            self:handleTouchEnded(touch)
+        end
+    end)
+    
+    print("Touch controls initialized")
+end
+
+function MobileOptimizer:handleTouchStarted(touch)
+    self.touchControls.activeTouches[touch] = {
+        startPosition = touch.Position,
+        startTime = tick(),
+        target = self:findTouchTarget(touch.Position)
+    }
+    
+    -- Handle touch target
+    local touchData = self.touchControls.activeTouches[touch]
+    if touchData.target then
+        self:activateTouchTarget(touchData.target, touch)
+    end
+    
+    print("Touch started at:", touch.Position)
+end
+
+function MobileOptimizer:handleTouchMoved(touch)
+    local touchData = self.touchControls.activeTouches[touch]
+    if not touchData then return end
+    
+    -- Update touch position
+    touchData.currentPosition = touch.Position
+    touchData.distance = (touch.Position - touchData.startPosition).Magnitude
+    
+    -- Handle drag gestures
+    if touchData.distance > 10 then -- Minimum drag distance
+        self:handleDragGesture(touch, touchData)
+    end
+end
+
+function MobileOptimizer:handleTouchEnded(touch)
+    local touchData = self.touchControls.activeTouches[touch]
+    if not touchData then return end
+    
+    local touchDuration = tick() - touchData.startTime
+    local touchDistance = touchData.distance or 0
+    
+    -- Determine gesture type
+    if touchDistance < 10 and touchDuration < 0.5 then
+        self:handleTapGesture(touch, touchData)
+    elseif touchDistance > 50 then
+        self:handleSwipeGesture(touch, touchData)
+    end
+    
+    -- Clean up touch data
+    self.touchControls.activeTouches[touch] = nil
+    
+    print("Touch ended after:", touchDuration, "seconds, distance:", touchDistance)
+end
+
+function MobileOptimizer:findTouchTarget(position)
+    for _, target in pairs(self.touchControls.touchTargets) do
+        if target.guiObject and target.guiObject.Parent then
+            local absolutePosition = target.guiObject.AbsolutePosition
+            local absoluteSize = target.guiObject.AbsoluteSize
+            
+            if position.X >= absolutePosition.X and position.X <= absolutePosition.X + absoluteSize.X and
+               position.Y >= absolutePosition.Y and position.Y <= absolutePosition.Y + absoluteSize.Y then
+                return target
+            end
+        end
+    end
+    return nil
+end
+
+function MobileOptimizer:registerTouchTarget(guiObject, callback, options)
+    local target = {
+        guiObject = guiObject,
+        callback = callback,
+        options = options or {},
+        minSize = options and options.minSize or MOBILE_CONFIG.MIN_TOUCH_SIZE
+    }
+    
+    -- Ensure minimum touch target size
+    self:ensureMinimumTouchSize(guiObject, target.minSize)
+    
+    table.insert(self.touchControls.touchTargets, target)
+    
+    print("Touch target registered:", guiObject.Name)
+    return target
+end
+
+function MobileOptimizer:ensureMinimumTouchSize(guiObject, minSize)
+    local currentSize = guiObject.AbsoluteSize
+    
+    if currentSize.X < minSize or currentSize.Y < minSize then
+        local scaleFactor = math.max(minSize / currentSize.X, minSize / currentSize.Y)
+        guiObject.Size = UDim2.new(
+            guiObject.Size.X.Scale * scaleFactor,
+            guiObject.Size.X.Offset * scaleFactor,
+            guiObject.Size.Y.Scale * scaleFactor,
+            guiObject.Size.Y.Offset * scaleFactor
+        )
+    end
+end
+
+function MobileOptimizer:activateTouchTarget(target, touch)
+    if target.callback then
+        target.callback(touch, target)
+    end
+    
+    -- Add visual feedback
+    self:addTouchFeedback(target.guiObject)
+end
+
+function MobileOptimizer:addTouchFeedback(guiObject)
+    -- Add touch feedback animation
+    local originalSize = guiObject.Size
+    local feedbackSize = UDim2.new(
+        originalSize.X.Scale * 0.95,
+        originalSize.X.Offset * 0.95,
+        originalSize.Y.Scale * 0.95,
+        originalSize.Y.Offset * 0.95
+    )
+    
+    local tween = TweenService:Create(
+        guiObject,
+        TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = feedbackSize}
+    )
+    
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        local returnTween = TweenService:Create(
+            guiObject,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = originalSize}
+        )
+        returnTween:Play()
+    end)
+end
+
+function MobileOptimizer:handleTapGesture(touch, touchData)
+    print("Tap gesture detected")
+    
+    -- Handle tap on touch target
+    if touchData.target then
+        self:activateTouchTarget(touchData.target, touch)
+    end
+end
+
+function MobileOptimizer:handleSwipeGesture(touch, touchData)
+    local direction = (touch.Position - touchData.startPosition).Unit
+    local distance = touchData.distance
+    
+    print("Swipe gesture detected:", direction, "distance:", distance)
+    
+    -- Determine swipe direction
+    local swipeDirection = "unknown"
+    if math.abs(direction.X) > math.abs(direction.Y) then
+        swipeDirection = direction.X > 0 and "right" or "left"
+    else
+        swipeDirection = direction.Y > 0 and "down" or "up"
+    end
+    
+    -- Handle swipe gesture
+    self:processSwipeGesture(swipeDirection, distance, touch)
+end
+
+function MobileOptimizer:handleDragGesture(touch, touchData)
+    -- Handle drag operations
+    if touchData.target and touchData.target.options.draggable then
+        self:handleDragOperation(touch, touchData)
+    end
+end
+
+function MobileOptimizer:processSwipeGesture(direction, distance, touch)
+    -- Process swipe gestures (e.g., navigation, menu switching)
+    print("Processing swipe:", direction, "distance:", distance)
+end
+
+function MobileOptimizer:handleDragOperation(touch, touchData)
+    -- Handle drag operations
+    print("Drag operation:", touch.Position)
+end
+
+function MobileOptimizer:setupPerformanceManager()
+    self.performanceManager = {
+        currentLevel = self.deviceInfo.performanceLevel,
+        qualitySettings = {},
+        frameRateTarget = 30,
+        memoryLimit = 50 -- MB
+    }
+    
+    -- Setup quality settings based on performance level
+    self:setupQualitySettings()
+    
+    -- Monitor performance
+    self:setupPerformanceMonitoring()
+    
+    print("Performance manager initialized")
+end
+
+function MobileOptimizer:setupQualitySettings()
+    local level = self.deviceInfo.performanceLevel
+    
+    if level == MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW then
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 1,
+            shadowQuality = 0,
+            textureQuality = 1,
+            particleQuality = 1,
+            maxParticles = 50,
+            frameRateTarget = 30
+        }
+    elseif level == MOBILE_CONFIG.PERFORMANCE_LEVELS.MEDIUM then
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 2,
+            shadowQuality = 1,
+            textureQuality = 2,
+            particleQuality = 2,
+            maxParticles = 100,
+            frameRateTarget = 45
+        }
+    else -- HIGH
+        self.performanceManager.qualitySettings = {
+            graphicsQuality = 3,
+            shadowQuality = 2,
+            textureQuality = 3,
+            particleQuality = 3,
+            maxParticles = 200,
+            frameRateTarget = 60
+        }
+    end
+    
+    -- Apply quality settings
+    self:applyQualitySettings()
+end
+
+function MobileOptimizer:applyQualitySettings()
+    local settings = self.performanceManager.qualitySettings
+    
+    -- Apply lighting settings
+    game.Lighting.GlobalShadows = settings.shadowQuality > 0
+    game.Lighting.ShadowSoftness = settings.shadowQuality * 0.5
+    
+    -- Apply graphics settings
+    game.Lighting.Brightness = settings.graphicsQuality * 0.5
+    
+    print("Quality settings applied:", settings.graphicsQuality, "level")
+end
+
+function MobileOptimizer:setupPerformanceMonitoring()
+    local lastFrameTime = tick()
+    local frameCount = 0
+    local frameRate = 0
+    
+    RunService.Heartbeat:Connect(function()
+        local currentTime = tick()
+        local deltaTime = currentTime - lastFrameTime
+        
+        frameCount = frameCount + 1
+        frameRate = 1 / deltaTime
+        
+        -- Check if performance is below target
+        if frameRate < self.performanceManager.frameRateTarget * 0.8 then
+            self:handlePerformanceDrop()
+        end
+        
+        lastFrameTime = currentTime
+    end)
+end
+
+function MobileOptimizer:handlePerformanceDrop()
+    print("Performance drop detected, adjusting quality...")
+    
+    -- Reduce quality settings
+    if self.deviceInfo.performanceLevel > MOBILE_CONFIG.PERFORMANCE_LEVELS.LOW then
+        self.deviceInfo.performanceLevel = self.deviceInfo.performanceLevel - 1
+        self:setupQualitySettings()
+    end
+end
+
+function MobileOptimizer:setupUIScaler()
+    self.uiScaler = {
+        baseResolution = Vector2.new(1920, 1080),
+        currentResolution = UserInputService.ViewportSize,
+        scaleFactor = 1
+    }
+    
+    -- Calculate scale factor
+    self:calculateScaleFactor()
+    
+    -- Monitor resolution changes
+    UserInputService:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+        self:updateUIScale()
+    end)
+    
+    print("UI scaler initialized")
+end
+
+function MobileOptimizer:calculateScaleFactor()
+    local currentRes = UserInputService.ViewportSize
+    local baseRes = self.uiScaler.baseResolution
+    
+    -- Calculate scale factor based on smaller dimension
+    local scaleX = currentRes.X / baseRes.X
+    local scaleY = currentRes.Y / baseRes.Y
+    self.uiScaler.scaleFactor = math.min(scaleX, scaleY)
+    
+    print("UI scale factor:", self.uiScaler.scaleFactor)
+end
+
+function MobileOptimizer:updateUIScale()
+    self.uiScaler.currentResolution = UserInputService.ViewportSize
+    self:calculateScaleFactor()
+    
+    -- Update all UI elements
+    self:updateAllUIElements()
+end
+
+function MobileOptimizer:updateAllUIElements()
+    -- Update UI elements based on new scale factor
+    for _, player in pairs(Players:GetPlayers()) do
+        local playerGui = player:FindFirstChild("PlayerGui")
+        if playerGui then
+            self:scalePlayerGUI(playerGui)
+        end
+    end
+end
+
+function MobileOptimizer:scalePlayerGUI(playerGui)
+    -- Scale GUI elements for mobile
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            self:scaleScreenGUI(gui)
+        end
+    end
+end
+
+function MobileOptimizer:scaleScreenGUI(screenGui)
+    -- Scale screen GUI elements
+    for _, element in pairs(screenGui:GetChildren()) do
+        if element:IsA("GuiObject") then
+            self:scaleGUIElement(element)
+        end
+    end
+end
+
+function MobileOptimizer:scaleGUIElement(element)
+    -- Scale individual GUI elements
+    local scaleFactor = self.uiScaler.scaleFactor
+    
+    -- Adjust size and position
+    element.Size = UDim2.new(
+        element.Size.X.Scale,
+        element.Size.X.Offset * scaleFactor,
+        element.Size.Y.Scale,
+        element.Size.Y.Offset * scaleFactor
+    )
+    
+    element.Position = UDim2.new(
+        element.Position.X.Scale,
+        element.Position.X.Offset * scaleFactor,
+        element.Position.Y.Scale,
+        element.Position.Y.Offset * scaleFactor
+    )
+    
+    -- Adjust text size
+    if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+        element.TextSize = element.TextSize * scaleFactor
+    end
+end
+
+function MobileOptimizer:setupInputHandler()
+    self.inputHandler = {
+        virtualJoystick = nil,
+        virtualButtons = {},
+        inputMode = "auto"
+    }
+    
+    -- Setup virtual controls for mobile
+    if self.deviceInfo.isMobile then
+        self:setupVirtualControls()
+    end
+    
+    print("Input handler initialized")
+end
+
+function MobileOptimizer:setupVirtualControls()
+    -- Create virtual joystick for movement
+    self:createVirtualJoystick()
+    
+    -- Create virtual buttons for actions
+    self:createVirtualButtons()
+end
+
+function MobileOptimizer:createVirtualJoystick()
+    -- Create virtual joystick for mobile movement
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "VirtualJoystick"
+    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local joystickFrame = Instance.new("Frame")
+    joystickFrame.Name = "JoystickFrame"
+    joystickFrame.Size = UDim2.new(0, 120, 0, 120)
+    joystickFrame.Position = UDim2.new(0, 20, 1, -140)
+    joystickFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    joystickFrame.BackgroundTransparency = 0.5
+    joystickFrame.BorderSizePixel = 0
+    joystickFrame.Parent = screenGui
+    
+    local joystickCorner = Instance.new("UICorner")
+    joystickCorner.CornerRadius = UDim.new(0, 60)
+    joystickCorner.Parent = joystickFrame
+    
+    local joystickKnob = Instance.new("Frame")
+    joystickKnob.Name = "JoystickKnob"
+    joystickKnob.Size = UDim2.new(0, 60, 0, 60)
+    joystickKnob.Position = UDim2.new(0.5, -30, 0.5, -30)
+    joystickKnob.BackgroundColor3 = Color3.new(1, 1, 1)
+    joystickKnob.BackgroundTransparency = 0.3
+    joystickKnob.BorderSizePixel = 0
+    joystickKnob.Parent = joystickFrame
+    
+    local knobCorner = Instance.new("UICorner")
+    knobCorner.CornerRadius = UDim.new(0, 30)
+    knobCorner.Parent = joystickKnob
+    
+    self.inputHandler.virtualJoystick = {
+        frame = joystickFrame,
+        knob = joystickKnob,
+        isActive = false,
+        centerPosition = Vector2.new(60, 60)
+    }
+    
+    print("Virtual joystick created")
+end
+
+function MobileOptimizer:createVirtualButtons()
+    -- Create virtual buttons for mobile actions
+    local screenGui = Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("VirtualJoystick")
+    if not screenGui then return end
+    
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "VirtualButtons"
+    buttonFrame.Size = UDim2.new(0, 200, 0, 100)
+    buttonFrame.Position = UDim2.new(1, -220, 1, -110)
+    buttonFrame.BackgroundTransparency = 1
+    buttonFrame.Parent = screenGui
+    
+    -- Create jump button
+    local jumpButton = Instance.new("TextButton")
+    jumpButton.Name = "JumpButton"
+    jumpButton.Size = UDim2.new(0, 80, 0, 80)
+    jumpButton.Position = UDim2.new(0, 0, 0, 0)
+    jumpButton.BackgroundColor3 = Color3.new(0, 1, 0)
+    jumpButton.BackgroundTransparency = 0.3
+    jumpButton.Text = "JUMP"
+    jumpButton.TextColor3 = Color3.new(1, 1, 1)
+    jumpButton.Font = Enum.Font.GothamBold
+    jumpButton.TextSize = 16
+    jumpButton.BorderSizePixel = 0
+    jumpButton.Parent = buttonFrame
+    
+    local jumpCorner = Instance.new("UICorner")
+    jumpCorner.CornerRadius = UDim.new(0, 40)
+    jumpCorner.Parent = jumpButton
+    
+    -- Create action button
+    local actionButton = Instance.new("TextButton")
+    actionButton.Name = "ActionButton"
+    actionButton.Size = UDim2.new(0, 80, 0, 80)
+    actionButton.Position = UDim2.new(0, 100, 0, 0)
+    actionButton.BackgroundColor3 = Color3.new(1, 0, 0)
+    actionButton.BackgroundTransparency = 0.3
+    actionButton.Text = "ACTION"
+    actionButton.TextColor3 = Color3.new(1, 1, 1)
+    actionButton.Font = Enum.Font.GothamBold
+    actionButton.TextSize = 16
+    actionButton.BorderSizePixel = 0
+    actionButton.Parent = buttonFrame
+    
+    local actionCorner = Instance.new("UICorner")
+    actionCorner.CornerRadius = UDim.new(0, 40)
+    actionCorner.Parent = actionButton
+    
+    -- Register touch targets
+    self:registerTouchTarget(jumpButton, function(touch, target)
+        print("Jump button pressed")
+        -- Handle jump action
+    end)
+    
+    self:registerTouchTarget(actionButton, function(touch, target)
+        print("Action button pressed")
+        -- Handle action
+    end)
+    
+    print("Virtual buttons created")
+end
+
+function MobileOptimizer:getDeviceInfo()
+    return self.deviceInfo
+end
+
+function MobileOptimizer:getPerformanceLevel()
+    return self.deviceInfo.performanceLevel
+end
+
+function MobileOptimizer:isMobile()
+    return self.deviceInfo.isMobile
+end
+
+function MobileOptimizer:isTablet()
+    return self.deviceInfo.isTablet
+end
+
+function MobileOptimizer:getScaleFactor()
+    return self.uiScaler.scaleFactor
+end
+
+-- 2. DEMO THE SYSTEMS
+print("\\n2. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local mobileOptimizer = MobileOptimizer.new()
+
+-- Test mobile systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Create test mobile UI
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MobileTestUI"
+    screenGui.Parent = playerGui
+    
+    -- Create mobile-optimized button
+    local testButton = Instance.new("TextButton")
+    testButton.Name = "TestButton"
+    testButton.Size = UDim2.new(0, 100, 0, 50)
+    testButton.Position = UDim2.new(0.5, -50, 0.5, -25)
+    testButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    testButton.Text = "Test"
+    testButton.TextColor3 = Color3.new(1, 1, 1)
+    testButton.Font = Enum.Font.Gotham
+    testButton.TextSize = 18
+    testButton.BorderSizePixel = 0
+    testButton.Parent = screenGui
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = testButton
+    
+    -- Register touch target
+    mobileOptimizer:registerTouchTarget(testButton, function(touch, target)
+        print("Test button pressed on mobile!")
+    end)
+    
+    -- Test button click
+    testButton.MouseButton1Click:Connect(function()
+        print("Test button clicked!")
+    end)
+    
+    print("Applied mobile optimization tests to", player.Name)
+    print("Device info:", mobileOptimizer:getDeviceInfo())
+end)
+
+print("\\n=== MOBILE DEVELOPMENT & CROSS-PLATFORM OPTIMIZATION DEMO COMPLETE ===")
+print("You've learned mobile development, touch controls, and cross-platform optimization!")`,
+    challenge: {
+      tests: [
+        { description: 'Create mobile optimization system with device detection', type: 'code_contains', value: 'setupDeviceDetection' },
+        { description: 'Implement touch controls and gesture recognition', type: 'code_contains', value: 'setupTouchControls' },
+        { description: 'Build performance management and UI scaling', type: 'code_contains', value: 'setupPerformanceManager' }
+      ],
+      hints: [
+        'Use UserInputService to detect touch input and device capabilities',
+        'Implement minimum touch target sizes for better mobile usability',
+        'Create responsive UI that scales appropriately for different screen sizes',
+        'Monitor performance and automatically adjust quality settings for mobile devices',
+        'Use virtual controls like joysticks and buttons for mobile gameplay'
+      ],
+      successMessage: 'Excellent! You now understand mobile development, touch controls, performance optimization, and cross-platform compatibility. These skills are essential for creating games that work seamlessly across all devices!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
