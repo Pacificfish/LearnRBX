@@ -175,11 +175,9 @@ export default function LearnPage() {
                                         <div className="font-medium text-sm group-hover:text-primary transition-colors">
                                           {lesson.title}
                                         </div>
-                                        {lesson.description && (
-                                          <div className="text-xs text-muted-foreground line-clamp-1">
-                                            {lesson.description}
-                                          </div>
-                                        )}
+                                        <div className="text-xs text-muted-foreground">
+                                          Lesson {index + 1}
+                                        </div>
                                       </div>
                                       {isLocked && (
                                         <Lock className="w-4 h-4 text-muted-foreground" />
