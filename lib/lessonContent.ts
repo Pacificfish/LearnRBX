@@ -3454,6 +3454,3317 @@ print("You've learned essential data structures for complex Roblox games!")`,
     }
   },
 
+  // === HUMANOID & CHARACTER SYSTEMS ===
+  'humanoid-character-basics': {
+    title: 'Humanoid & Character Basics',
+    description: 'Master character control, humanoid properties, and basic character systems in Roblox',
+    sections: [
+      {
+        title: 'Understanding Humanoids',
+        content: `The Humanoid object is the heart of character control in Roblox. It handles movement, health, animations, and character behavior.
+
+**Key Humanoid Properties:**
+- **WalkSpeed**: How fast the character moves (default: 16)
+- **JumpPower**: How high the character can jump (default: 50)
+- **Health**: Current health points (default: 100)
+- **MaxHealth**: Maximum health points (default: 100)
+- **HipHeight**: How high the character floats above ground
+- **AutoRotate**: Whether character automatically faces movement direction
+
+**Important Humanoid Methods:**
+- **MoveTo()**: Move character to a specific position
+- **Jump()**: Make character jump
+- **TakeDamage()**: Apply damage to character
+- **ChangeState()**: Change character state (climbing, sitting, etc.)`,
+        codeExample: `-- Basic humanoid manipulation
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Wait for character to load
+player.CharacterAdded:Connect(function(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Modify humanoid properties
+    humanoid.WalkSpeed = 32  -- Double speed
+    humanoid.JumpPower = 100 -- Double jump power
+    humanoid.MaxHealth = 200 -- Double health
+    humanoid.Health = 200    -- Set current health
+    
+    -- Make character move to a position
+    humanoid:MoveTo(Vector3.new(0, 5, 0))
+    
+    -- Make character jump
+    humanoid.Jump = true
+    
+    print("Character setup complete!")
+    print("Walk Speed:", humanoid.WalkSpeed)
+    print("Jump Power:", humanoid.JumpPower)
+    print("Health:", humanoid.Health, "/", humanoid.MaxHealth)
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'Character Health & Damage',
+        content: `Health systems are essential for most games. Learn to create robust health and damage systems.
+
+**Health Management:**
+- **Health Property**: Current health value
+- **MaxHealth Property**: Maximum possible health
+- **HealthChanged Event**: Fires when health changes
+- **Died Event**: Fires when character dies
+- **TakeDamage() Method**: Apply damage to character
+
+**Damage Types:**
+- **Direct Damage**: Immediate health reduction
+- **Damage Over Time**: Gradual health reduction
+- **Healing**: Health restoration
+- **Shield/Armor**: Damage reduction systems`,
+        codeExample: `-- Advanced health and damage system
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local HealthSystem = {}
+HealthSystem.__index = HealthSystem
+
+function HealthSystem.new(character)
+    local self = setmetatable({}, HealthSystem)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.maxHealth = 100
+    self.armor = 0  -- Damage reduction
+    self.regeneration = 0  -- Health per second
+    self.regenerationTimer = 0
+    
+    -- Set up health
+    self.humanoid.MaxHealth = self.maxHealth
+    self.humanoid.Health = self.maxHealth
+    
+    -- Connect events
+    self.humanoid.HealthChanged:Connect(function(health)
+        self:onHealthChanged(health)
+    end)
+    
+    self.humanoid.Died:Connect(function()
+        self:onDied()
+    end)
+    
+    return self
+end
+
+function HealthSystem:takeDamage(amount, damageType)
+    damageType = damageType or "normal"
+    
+    -- Apply armor reduction
+    local actualDamage = amount * (1 - self.armor)
+    
+    -- Apply damage
+    self.humanoid:TakeDamage(actualDamage)
+    
+    print("Took", actualDamage, "damage of type:", damageType)
+end
+
+function HealthSystem:heal(amount)
+    local newHealth = math.min(self.humanoid.Health + amount, self.maxHealth)
+    self.humanoid.Health = newHealth
+    print("Healed for", amount, "health")
+end
+
+function HealthSystem:setArmor(armorValue)
+    self.armor = math.clamp(armorValue, 0, 0.9)  -- Max 90% reduction
+    print("Armor set to:", self.armor * 100, "%")
+end
+
+function HealthSystem:setRegeneration(regenerationRate)
+    self.regeneration = regenerationRate
+    print("Regeneration set to:", regenerationRate, "health/second")
+end
+
+function HealthSystem:onHealthChanged(health)
+    print("Health changed to:", health)
+    
+    -- Low health warning
+    if health < self.maxHealth * 0.25 then
+        print("WARNING: Low health!")
+    end
+end
+
+function HealthSystem:onDied()
+    print("Character died!")
+    -- Handle death logic here
+end
+
+function HealthSystem:update(deltaTime)
+    -- Handle regeneration
+    if self.regeneration > 0 and self.humanoid.Health < self.maxHealth then
+        self.regenerationTimer = self.regenerationTimer + deltaTime
+        if self.regenerationTimer >= 1 then
+            self:heal(self.regeneration)
+            self.regenerationTimer = 0
+        end
+    end
+end
+
+-- Example usage
+player.CharacterAdded:Connect(function(character)
+    local healthSystem = HealthSystem.new(character)
+    
+    -- Test the system
+    wait(2)
+    healthSystem:takeDamage(25, "fire")
+    
+    wait(2)
+    healthSystem:setArmor(0.5)  -- 50% damage reduction
+    healthSystem:takeDamage(40, "normal")
+    
+    wait(2)
+    healthSystem:heal(30)
+    
+    wait(2)
+    healthSystem:setRegeneration(5)  -- 5 health per second
+end)`,
+        color: 'green'
+      },
+      {
+        title: 'Character States & Movement',
+        content: `Characters can be in different states and have various movement capabilities. Understanding these is crucial for game mechanics.
+
+**Character States:**
+- **RunningState**: Character is running
+- **JumpingState**: Character is jumping
+- **FallingState**: Character is falling
+- **ClimbingState**: Character is climbing
+- **SittingState**: Character is sitting
+- **PlatformStandingState**: Character is on a platform
+
+**Movement Control:**
+- **MoveTo()**: Move to specific position
+- **Jump()**: Make character jump
+- **ChangeState()**: Change character state
+- **PlatformStand**: Enable/disable platform standing`,
+        codeExample: `-- Character state and movement system
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local CharacterController = {}
+CharacterController.__index = CharacterController
+
+function CharacterController.new(character)
+    local self = setmetatable({}, CharacterController)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.rootPart = character:WaitForChild("HumanoidRootPart")
+    self.currentState = "idle"
+    self.movementSpeed = 16
+    self.jumpPower = 50
+    
+    -- Connect to state changes
+    self.humanoid.StateChanged:Connect(function(oldState, newState)
+        self:onStateChanged(oldState, newState)
+    end)
+    
+    return self
+end
+
+function CharacterController:onStateChanged(oldState, newState)
+    print("State changed from", oldState, "to", newState)
+    self.currentState = newState.Name
+    
+    -- Handle different states
+    if newState == Enum.HumanoidStateType.Running then
+        self:onRunning()
+    elseif newState == Enum.HumanoidStateType.Jumping then
+        self:onJumping()
+    elseif newState == Enum.HumanoidStateType.Falling then
+        self:onFalling()
+    elseif newState == Enum.HumanoidStateType.Climbing then
+        self:onClimbing()
+    end
+end
+
+function CharacterController:onRunning()
+    print("Character is running!")
+    -- Increase movement speed while running
+    self.humanoid.WalkSpeed = self.movementSpeed * 1.5
+end
+
+function CharacterController:onJumping()
+    print("Character is jumping!")
+    -- Increase jump power
+    self.humanoid.JumpPower = self.jumpPower * 1.2
+end
+
+function CharacterController:onFalling()
+    print("Character is falling!")
+    -- Reduce movement speed while falling
+    self.humanoid.WalkSpeed = self.movementSpeed * 0.5
+end
+
+function CharacterController:onClimbing()
+    print("Character is climbing!")
+    -- Special climbing behavior
+    self.humanoid.WalkSpeed = self.movementSpeed * 0.8
+end
+
+function CharacterController:moveTo(position)
+    self.humanoid:MoveTo(position)
+    print("Moving to:", position)
+end
+
+function CharacterController:jump()
+    self.humanoid.Jump = true
+    print("Jumping!")
+end
+
+function CharacterController:setMovementSpeed(speed)
+    self.movementSpeed = speed
+    self.humanoid.WalkSpeed = speed
+    print("Movement speed set to:", speed)
+end
+
+function CharacterController:setJumpPower(power)
+    self.jumpPower = power
+    self.humanoid.JumpPower = power
+    print("Jump power set to:", power)
+end
+
+function CharacterController:enablePlatformStanding(enabled)
+    self.humanoid.PlatformStand = enabled
+    print("Platform standing:", enabled and "enabled" or "disabled")
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    local controller = CharacterController.new(character)
+    
+    -- Test movement
+    wait(2)
+    controller:moveTo(Vector3.new(10, 0, 0))
+    
+    wait(2)
+    controller:jump()
+    
+    wait(2)
+    controller:setMovementSpeed(32)
+    
+    wait(2)
+    controller:setJumpPower(100)
+    
+    wait(2)
+    controller:enablePlatformStanding(true)
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Humanoid & Character Basics - Comprehensive Learning Example
+-- Master character control and humanoid systems in Roblox
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+print("=== HUMANOID & CHARACTER BASICS DEMO ===")
+print("Learning character control and humanoid systems...")
+
+-- 1. BASIC HUMANOID MANIPULATION
+print("\\n1. DEMONSTRATING BASIC HUMANOID PROPERTIES...")
+
+local function setupBasicHumanoid(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Modify basic properties
+    humanoid.WalkSpeed = 24  -- Faster movement
+    humanoid.JumpPower = 75  -- Higher jumps
+    humanoid.MaxHealth = 150 -- More health
+    humanoid.Health = 150    -- Set current health
+    humanoid.HipHeight = 2   -- Float higher
+    
+    print("Basic humanoid setup complete!")
+    print("Walk Speed:", humanoid.WalkSpeed)
+    print("Jump Power:", humanoid.JumpPower)
+    print("Health:", humanoid.Health, "/", humanoid.MaxHealth)
+    print("Hip Height:", humanoid.HipHeight)
+end
+
+-- 2. ADVANCED HEALTH SYSTEM
+print("\\n2. DEMONSTRATING ADVANCED HEALTH SYSTEM...")
+
+local AdvancedHealthSystem = {}
+AdvancedHealthSystem.__index = AdvancedHealthSystem
+
+function AdvancedHealthSystem.new(character)
+    local self = setmetatable({}, AdvancedHealthSystem)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.maxHealth = 200
+    self.armor = 0
+    self.regeneration = 0
+    self.regenerationTimer = 0
+    self.damageOverTime = {}
+    
+    -- Set up health
+    self.humanoid.MaxHealth = self.maxHealth
+    self.humanoid.Health = self.maxHealth
+    
+    -- Connect events
+    self.humanoid.HealthChanged:Connect(function(health)
+        self:onHealthChanged(health)
+    end)
+    
+    self.humanoid.Died:Connect(function()
+        self:onDied()
+    end)
+    
+    return self
+end
+
+function AdvancedHealthSystem:takeDamage(amount, damageType, source)
+    damageType = damageType or "normal"
+    source = source or "unknown"
+    
+    -- Apply armor reduction
+    local actualDamage = amount * (1 - self.armor)
+    
+    -- Apply damage
+    self.humanoid:TakeDamage(actualDamage)
+    
+    print("Took", actualDamage, "damage of type:", damageType, "from:", source)
+    
+    -- Create damage indicator
+    self:createDamageIndicator(actualDamage, damageType)
+end
+
+function AdvancedHealthSystem:heal(amount, source)
+    source = source or "unknown"
+    local newHealth = math.min(self.humanoid.Health + amount, self.maxHealth)
+    local actualHealing = newHealth - self.humanoid.Health
+    self.humanoid.Health = newHealth
+    
+    if actualHealing > 0 then
+        print("Healed for", actualHealing, "health from:", source)
+        self:createHealIndicator(actualHealing)
+    end
+end
+
+function AdvancedHealthSystem:setArmor(armorValue)
+    self.armor = math.clamp(armorValue, 0, 0.95)  -- Max 95% reduction
+    print("Armor set to:", math.floor(self.armor * 100), "% damage reduction")
+end
+
+function AdvancedHealthSystem:setRegeneration(regenerationRate)
+    self.regeneration = regenerationRate
+    print("Regeneration set to:", regenerationRate, "health/second")
+end
+
+function AdvancedHealthSystem:addDamageOverTime(damage, duration, interval, damageType)
+    local dot = {
+        damage = damage,
+        duration = duration,
+        interval = interval or 1,
+        damageType = damageType or "dot",
+        startTime = tick(),
+        lastTick = 0
+    }
+    
+    table.insert(self.damageOverTime, dot)
+    print("Added damage over time:", damage, "every", interval, "seconds for", duration, "seconds")
+end
+
+function AdvancedHealthSystem:createDamageIndicator(damage, damageType)
+    -- Create a simple damage indicator
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Parent = self.character.Head
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "-" .. math.floor(damage)
+    label.TextColor3 = Color3.fromRGB(255, 0, 0)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboardGui
+    
+    -- Animate the indicator
+    local tween = game:GetService("TweenService"):Create(label,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {TextTransparency = 1, Position = UDim2.new(0, 0, -1, 0)}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        billboardGui:Destroy()
+    end)
+end
+
+function AdvancedHealthSystem:createHealIndicator(healing)
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Parent = self.character.Head
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "+" .. math.floor(healing)
+    label.TextColor3 = Color3.fromRGB(0, 255, 0)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboardGui
+    
+    local tween = game:GetService("TweenService"):Create(label,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {TextTransparency = 1, Position = UDim2.new(0, 0, -1, 0)}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        billboardGui:Destroy()
+    end)
+end
+
+function AdvancedHealthSystem:onHealthChanged(health)
+    local healthPercent = (health / self.maxHealth) * 100
+    print("Health:", math.floor(health), "(", math.floor(healthPercent), "%)")
+    
+    -- Health warnings
+    if healthPercent <= 25 then
+        print("CRITICAL: Low health!")
+    elseif healthPercent <= 50 then
+        print("WARNING: Health below 50%")
+    end
+end
+
+function AdvancedHealthSystem:onDied()
+    print("Character died!")
+    -- Clear all damage over time effects
+    self.damageOverTime = {}
+end
+
+function AdvancedHealthSystem:update(deltaTime)
+    -- Handle regeneration
+    if self.regeneration > 0 and self.humanoid.Health < self.maxHealth then
+        self.regenerationTimer = self.regenerationTimer + deltaTime
+        if self.regenerationTimer >= 1 then
+            self:heal(self.regeneration, "regeneration")
+            self.regenerationTimer = 0
+        end
+    end
+    
+    -- Handle damage over time
+    local currentTime = tick()
+    for i = #self.damageOverTime, 1, -1 do
+        local dot = self.damageOverTime[i]
+        local elapsed = currentTime - dot.startTime
+        
+        if elapsed >= dot.duration then
+            table.remove(self.damageOverTime, i)
+        else
+            if currentTime - dot.lastTick >= dot.interval then
+                self:takeDamage(dot.damage, dot.damageType, "damage over time")
+                dot.lastTick = currentTime
+            end
+        end
+    end
+end
+
+-- 3. CHARACTER STATE MANAGEMENT
+print("\\n3. DEMONSTRATING CHARACTER STATE MANAGEMENT...")
+
+local CharacterStateManager = {}
+CharacterStateManager.__index = CharacterStateManager
+
+function CharacterStateManager.new(character)
+    local self = setmetatable({}, CharacterStateManager)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.rootPart = character:WaitForChild("HumanoidRootPart")
+    self.currentState = "idle"
+    self.stateHistory = {}
+    self.movementSpeed = 16
+    self.jumpPower = 50
+    
+    -- Connect to state changes
+    self.humanoid.StateChanged:Connect(function(oldState, newState)
+        self:onStateChanged(oldState, newState)
+    end)
+    
+    return self
+end
+
+function CharacterStateManager:onStateChanged(oldState, newState)
+    local stateName = newState.Name
+    print("State changed from", oldState.Name, "to", stateName)
+    
+    -- Record state change
+    table.insert(self.stateHistory, {
+        from = oldState.Name,
+        to = stateName,
+        time = tick()
+    })
+    
+    self.currentState = stateName
+    
+    -- Handle state-specific logic
+    if stateName == "Running" then
+        self:onRunning()
+    elseif stateName == "Jumping" then
+        self:onJumping()
+    elseif stateName == "Falling" then
+        self:onFalling()
+    elseif stateName == "Climbing" then
+        self:onClimbing()
+    elseif stateName == "Sitting" then
+        self:onSitting()
+    elseif stateName == "PlatformStanding" then
+        self:onPlatformStanding()
+    end
+end
+
+function CharacterStateManager:onRunning()
+    print("Character is running - increasing speed!")
+    self.humanoid.WalkSpeed = self.movementSpeed * 1.5
+end
+
+function CharacterStateManager:onJumping()
+    print("Character is jumping - boosting jump power!")
+    self.humanoid.JumpPower = self.jumpPower * 1.3
+end
+
+function CharacterStateManager:onFalling()
+    print("Character is falling - reducing control!")
+    self.humanoid.WalkSpeed = self.movementSpeed * 0.3
+end
+
+function CharacterStateManager:onClimbing()
+    print("Character is climbing - special movement!")
+    self.humanoid.WalkSpeed = self.movementSpeed * 0.8
+end
+
+function CharacterStateManager:onSitting()
+    print("Character is sitting - movement disabled!")
+    self.humanoid.WalkSpeed = 0
+end
+
+function CharacterStateManager:onPlatformStanding()
+    print("Character is platform standing!")
+    -- Platform standing behavior
+end
+
+function CharacterStateManager:moveTo(position)
+    self.humanoid:MoveTo(position)
+    print("Moving to:", position)
+end
+
+function CharacterStateManager:jump()
+    self.humanoid.Jump = true
+    print("Jumping!")
+end
+
+function CharacterStateManager:setMovementSpeed(speed)
+    self.movementSpeed = speed
+    if self.currentState ~= "Sitting" then
+        self.humanoid.WalkSpeed = speed
+    end
+    print("Movement speed set to:", speed)
+end
+
+function CharacterStateManager:setJumpPower(power)
+    self.jumpPower = power
+    self.humanoid.JumpPower = power
+    print("Jump power set to:", power)
+end
+
+function CharacterStateManager:enablePlatformStanding(enabled)
+    self.humanoid.PlatformStand = enabled
+    print("Platform standing:", enabled and "enabled" or "disabled")
+end
+
+function CharacterStateManager:getStateHistory()
+    return self.stateHistory
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING CHARACTER SYSTEM DEMONSTRATIONS...")
+
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    -- Setup basic humanoid
+    setupBasicHumanoid(character)
+    
+    -- Create advanced health system
+    local healthSystem = AdvancedHealthSystem.new(character)
+    
+    -- Create state manager
+    local stateManager = CharacterStateManager.new(character)
+    
+    -- Test health system
+    wait(2)
+    print("\\n--- Testing Health System ---")
+    healthSystem:takeDamage(30, "fire", "fireball")
+    
+    wait(2)
+    healthSystem:setArmor(0.6)  -- 60% damage reduction
+    healthSystem:takeDamage(50, "normal", "sword")
+    
+    wait(2)
+    healthSystem:heal(25, "potion")
+    
+    wait(2)
+    healthSystem:setRegeneration(3)  -- 3 health per second
+    healthSystem:addDamageOverTime(5, 10, 2, "poison")  -- 5 damage every 2 seconds for 10 seconds
+    
+    -- Test movement system
+    wait(2)
+    print("\\n--- Testing Movement System ---")
+    stateManager:moveTo(Vector3.new(10, 0, 0))
+    
+    wait(2)
+    stateManager:jump()
+    
+    wait(2)
+    stateManager:setMovementSpeed(32)
+    
+    wait(2)
+    stateManager:setJumpPower(100)
+    
+    wait(2)
+    stateManager:enablePlatformStanding(true)
+    
+    -- Update systems
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        healthSystem:update(deltaTime)
+    end)
+    
+    -- Clean up on character removal
+    character.AncestryChanged:Connect(function()
+        if not character.Parent then
+            connection:Disconnect()
+        end
+    end)
+end)
+
+print("\\n=== HUMANOID & CHARACTER BASICS DEMO COMPLETE ===")
+print("You've learned essential character control and humanoid systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Modify humanoid properties like WalkSpeed and JumpPower', type: 'code_contains', value: 'WalkSpeed' },
+        { description: 'Use TakeDamage method to apply damage', type: 'code_contains', value: 'TakeDamage' },
+        { description: 'Connect to humanoid state changes', type: 'code_contains', value: 'StateChanged' }
+      ],
+      hints: [
+        'Use humanoid.WalkSpeed and humanoid.JumpPower to control movement',
+        'Use humanoid:TakeDamage() to apply damage to characters',
+        'Connect to humanoid.StateChanged to detect state changes',
+        'Use humanoid:MoveTo() to move characters to specific positions',
+        'Use humanoid.Jump = true to make characters jump'
+      ],
+      successMessage: 'Excellent! You now understand humanoid and character systems. These are essential for creating engaging character-based games!'
+    }
+  },
+
+  'character-animation-systems': {
+    title: 'Character Animation Systems',
+    description: 'Master character animations, animation objects, and dynamic animation systems',
+    sections: [
+      {
+        title: 'Animation Objects & Animator',
+        content: `Animations bring characters to life in Roblox. Understanding how to create and control animations is crucial for game development.
+
+**Animation System Components:**
+- **Animation Object**: Contains animation data
+- **Animator**: Controls animation playback
+- **AnimationTrack**: Individual animation instance
+- **AnimationPriority**: Controls which animations play
+
+**Animation Properties:**
+- **AnimationId**: The asset ID of the animation
+- **Priority**: Animation priority (Idle, Movement, Action, Core)
+- **Length**: Duration of the animation
+- **IsLoaded**: Whether animation is ready to play
+
+**Animation Methods:**
+- **LoadAnimation()**: Load an animation onto the animator
+- **Play()**: Start playing an animation
+- **Stop()**: Stop the animation
+- **AdjustSpeed()**: Change playback speed`,
+        codeExample: `-- Basic animation system
+
+local Players = game:GetService("Players")
+local AnimationService = game:GetService("AnimationService")
+
+local AnimationController = {}
+AnimationController.__index = AnimationController
+
+function AnimationController.new(character)
+    local self = setmetatable({}, AnimationController)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.animator = self.humanoid:WaitForChild("Animator")
+    self.animations = {}
+    self.currentAnimations = {}
+    
+    return self
+end
+
+function AnimationController:loadAnimation(name, animationId, priority)
+    priority = priority or Enum.AnimationPriority.Idle
+    
+    -- Create animation object
+    local animation = Instance.new("Animation")
+    animation.AnimationId = animationId
+    
+    -- Load animation onto animator
+    local animationTrack = self.animator:LoadAnimation(animation)
+    animationTrack.Priority = priority
+    
+    -- Store animation
+    self.animations[name] = animationTrack
+    
+    print("Loaded animation:", name)
+    return animationTrack
+end
+
+function AnimationController:playAnimation(name, fadeTime, weight, speed)
+    fadeTime = fadeTime or 0.2
+    weight = weight or 1
+    speed = speed or 1
+    
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        -- Stop current animation of same priority
+        self:stopAnimationByPriority(animationTrack.Priority)
+        
+        -- Play new animation
+        animationTrack:Play(fadeTime, weight, speed)
+        self.currentAnimations[animationTrack.Priority] = animationTrack
+        
+        print("Playing animation:", name)
+    else
+        warn("Animation not found:", name)
+    end
+end
+
+function AnimationController:stopAnimation(name, fadeTime)
+    fadeTime = fadeTime or 0.2
+    
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        animationTrack:Stop(fadeTime)
+        self.currentAnimations[animationTrack.Priority] = nil
+        print("Stopped animation:", name)
+    end
+end
+
+function AnimationController:stopAnimationByPriority(priority)
+    local currentAnimation = self.currentAnimations[priority]
+    if currentAnimation then
+        currentAnimation:Stop(0.2)
+        self.currentAnimations[priority] = nil
+    end
+end
+
+function AnimationController:adjustAnimationSpeed(name, speed)
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        animationTrack:AdjustSpeed(speed)
+        print("Adjusted speed for", name, "to", speed)
+    end
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    local animController = AnimationController.new(character)
+    
+    -- Load some basic animations (you'll need actual animation IDs)
+    -- animController:loadAnimation("idle", "rbxassetid://123456789", Enum.AnimationPriority.Idle)
+    -- animController:loadAnimation("walk", "rbxassetid://987654321", Enum.AnimationPriority.Movement)
+    -- animController:loadAnimation("jump", "rbxassetid://456789123", Enum.AnimationPriority.Action)
+    
+    -- Play animations
+    -- animController:playAnimation("idle")
+    
+    -- wait(3)
+    -- animController:playAnimation("walk")
+    
+    -- wait(3)
+    -- animController:playAnimation("jump")
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'Dynamic Animation Systems',
+        content: `Advanced games need dynamic animation systems that respond to game state and player actions.
+
+**Dynamic Animation Features:**
+- **State-Based Animations**: Different animations for different states
+- **Blend Animations**: Smooth transitions between animations
+- **Animation Events**: Trigger actions during animations
+- **Custom Animation Sequences**: Complex animation chains
+- **Animation Layers**: Multiple animations playing simultaneously
+
+**Animation Events:**
+- **KeyframeReached**: Fires when animation reaches specific keyframes
+- **Stopped**: Fires when animation stops
+- **DidLoop**: Fires when animation loops`,
+        codeExample: `-- Advanced dynamic animation system
+
+local DynamicAnimationSystem = {}
+DynamicAnimationSystem.__index = DynamicAnimationSystem
+
+function DynamicAnimationSystem.new(character)
+    local self = setmetatable({}, DynamicAnimationSystem)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.animator = self.humanoid:WaitForChild("Animator")
+    self.animations = {}
+    self.animationStates = {}
+    self.animationEvents = {}
+    self.currentState = "idle"
+    
+    -- Set up state-based animations
+    self:setupAnimationStates()
+    
+    return self
+end
+
+function DynamicAnimationSystem:setupAnimationStates()
+    self.animationStates = {
+        idle = {
+            animation = nil,  -- Will be loaded
+            priority = Enum.AnimationPriority.Idle,
+            looped = true,
+            fadeTime = 0.3
+        },
+        walking = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Movement,
+            looped = true,
+            fadeTime = 0.2
+        },
+        running = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Movement,
+            looped = true,
+            fadeTime = 0.1
+        },
+        jumping = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = false,
+            fadeTime = 0.1
+        },
+        falling = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = true,
+            fadeTime = 0.2
+        },
+        attacking = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = false,
+            fadeTime = 0.1
+        }
+    }
+end
+
+function DynamicAnimationSystem:loadStateAnimation(stateName, animationId)
+    local state = self.animationStates[stateName]
+    if state then
+        local animation = Instance.new("Animation")
+        animation.AnimationId = animationId
+        
+        local animationTrack = self.animator:LoadAnimation(animation)
+        animationTrack.Priority = state.priority
+        animationTrack.Looped = state.looped
+        
+        state.animation = animationTrack
+        self.animations[stateName] = animationTrack
+        
+        -- Set up animation events
+        self:setupAnimationEvents(animationTrack, stateName)
+        
+        print("Loaded state animation:", stateName)
+    end
+end
+
+function DynamicAnimationSystem:setupAnimationEvents(animationTrack, stateName)
+    -- Keyframe reached event
+    animationTrack.KeyframeReached:Connect(function(keyframeName)
+        self:onKeyframeReached(stateName, keyframeName)
+    end)
+    
+    -- Animation stopped event
+    animationTrack.Stopped:Connect(function()
+        self:onAnimationStopped(stateName)
+    end)
+    
+    -- Animation looped event
+    animationTrack.DidLoop:Connect(function()
+        self:onAnimationLooped(stateName)
+    end)
+end
+
+function DynamicAnimationSystem:onKeyframeReached(stateName, keyframeName)
+    print("Keyframe reached:", keyframeName, "in", stateName)
+    
+    -- Trigger custom events
+    if self.animationEvents[stateName] and self.animationEvents[stateName][keyframeName] then
+        self.animationEvents[stateName][keyframeName]()
+    end
+end
+
+function DynamicAnimationSystem:onAnimationStopped(stateName)
+    print("Animation stopped:", stateName)
+    
+    -- Handle animation completion
+    if stateName == "attacking" then
+        self:setState("idle")
+    elseif stateName == "jumping" then
+        self:setState("falling")
+    end
+end
+
+function DynamicAnimationSystem:onAnimationLooped(stateName)
+    print("Animation looped:", stateName)
+end
+
+function DynamicAnimationSystem:setState(newState)
+    if self.currentState == newState then
+        return
+    end
+    
+    local oldState = self.currentState
+    self.currentState = newState
+    
+    print("Animation state changed from", oldState, "to", newState)
+    
+    -- Play new state animation
+    self:playStateAnimation(newState)
+end
+
+function DynamicAnimationSystem:playStateAnimation(stateName)
+    local state = self.animationStates[stateName]
+    if state and state.animation then
+        -- Stop current animation of same priority
+        self:stopAnimationByPriority(state.priority)
+        
+        -- Play new animation
+        state.animation:Play(state.fadeTime)
+        
+        print("Playing state animation:", stateName)
+    end
+end
+
+function DynamicAnimationSystem:stopAnimationByPriority(priority)
+    for stateName, state in pairs(self.animationStates) do
+        if state.animation and state.priority == priority then
+            state.animation:Stop(0.1)
+        end
+    end
+end
+
+function DynamicAnimationSystem:addAnimationEvent(stateName, keyframeName, callback)
+    if not self.animationEvents[stateName] then
+        self.animationEvents[stateName] = {}
+    end
+    
+    self.animationEvents[stateName][keyframeName] = callback
+    print("Added animation event:", stateName, "->", keyframeName)
+end
+
+function DynamicAnimationSystem:blendAnimations(animation1, animation2, blendWeight, fadeTime)
+    fadeTime = fadeTime or 0.5
+    blendWeight = blendWeight or 0.5
+    
+    if self.animations[animation1] and self.animations[animation2] then
+        self.animations[animation1]:Play(fadeTime, 1 - blendWeight)
+        self.animations[animation2]:Play(fadeTime, blendWeight)
+        
+        print("Blending animations:", animation1, "and", animation2, "weight:", blendWeight)
+    end
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    local animSystem = DynamicAnimationSystem.new(character)
+    
+    -- Load state animations (you'll need actual animation IDs)
+    -- animSystem:loadStateAnimation("idle", "rbxassetid://123456789")
+    -- animSystem:loadStateAnimation("walking", "rbxassetid://987654321")
+    -- animSystem:loadStateAnimation("running", "rbxassetid://456789123")
+    -- animSystem:loadStateAnimation("jumping", "rbxassetid://789123456")
+    -- animSystem:loadStateAnimation("attacking", "rbxassetid://321654987")
+    
+    -- Add animation events
+    -- animSystem:addAnimationEvent("attacking", "hit", function()
+    --     print("Attack hit!")
+    -- end)
+    
+    -- Test state changes
+    -- animSystem:setState("idle")
+    
+    -- wait(2)
+    -- animSystem:setState("walking")
+    
+    -- wait(2)
+    -- animSystem:setState("running")
+    
+    -- wait(2)
+    -- animSystem:setState("jumping")
+end)`,
+        color: 'green'
+      },
+      {
+        title: 'Character Customization',
+        content: `Character customization allows players to personalize their avatars with accessories, clothing, and body modifications.
+
+**Character Customization Components:**
+- **Accessories**: Hats, hair, face accessories
+- **Clothing**: Shirts, pants, t-shirts
+- **Body Colors**: Skin, head, torso, left/right arm/leg colors
+- **Body Scales**: Height, width, head size, etc.
+- **Facial Features**: Face ID, head shape
+
+**Customization Methods:**
+- **SetAccessories()**: Apply accessories to character
+- **SetClothing()**: Apply clothing items
+- **SetBodyColors()**: Change body part colors
+- **SetBodyScales()**: Modify body proportions`,
+        codeExample: `-- Character customization system
+
+local CharacterCustomizer = {}
+CharacterCustomizer.__index = CharacterCustomizer
+
+function CharacterCustomizer.new(character)
+    local self = setmetatable({}, CharacterCustomizer)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.bodyColors = {}
+    self.bodyScales = {}
+    self.accessories = {}
+    self.clothing = {}
+    
+    return self
+end
+
+function CharacterCustomizer:setBodyColor(bodyPart, color)
+    self.bodyColors[bodyPart] = color
+    self.humanoid[bodyPart .. "Color"] = color
+    print("Set", bodyPart, "color to:", color)
+end
+
+function CharacterCustomizer:setAllBodyColors(colors)
+    local bodyParts = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}
+    
+    for _, part in ipairs(bodyParts) do
+        if colors[part] then
+            self:setBodyColor(part, colors[part])
+        end
+    end
+end
+
+function CharacterCustomizer:setBodyScale(scaleType, value)
+    self.bodyScales[scaleType] = value
+    self.humanoid[scaleType] = value
+    print("Set", scaleType, "to:", value)
+end
+
+function CharacterCustomizer:setAllBodyScales(scales)
+    local scaleTypes = {
+        "HeadScale", "BodyWidthScale", "BodyHeightScale", "BodyDepthScale",
+        "BodyProportionScale", "BodyTypeScale"
+    }
+    
+    for _, scaleType in ipairs(scaleTypes) do
+        if scales[scaleType] then
+            self:setBodyScale(scaleType, scales[scaleType])
+        end
+    end
+end
+
+function CharacterCustomizer:addAccessory(accessoryId, attachmentPoint)
+    attachmentPoint = attachmentPoint or "HatAttachment"
+    
+    local accessory = game:GetService("InsertService"):LoadAsset(accessoryId)
+    if accessory then
+        local accessoryObject = accessory:GetChildren()[1]
+        if accessoryObject and accessoryObject:IsA("Accessory") then
+            accessoryObject.Parent = self.character
+            self.accessories[accessoryObject.Name] = accessoryObject
+            print("Added accessory:", accessoryObject.Name)
+        end
+    end
+end
+
+function CharacterCustomizer:removeAccessory(accessoryName)
+    local accessory = self.accessories[accessoryName]
+    if accessory then
+        accessory:Destroy()
+        self.accessories[accessoryName] = nil
+        print("Removed accessory:", accessoryName)
+    end
+end
+
+function CharacterCustomizer:setClothing(clothingType, clothingId)
+    clothingType = clothingType:lower()
+    
+    if clothingType == "shirt" then
+        self.humanoid:SetShirt(clothingId)
+    elseif clothingType == "pants" then
+        self.humanoid:SetPants(clothingId)
+    elseif clothingType == "tshirt" then
+        self.humanoid:SetTShirt(clothingId)
+    end
+    
+    self.clothing[clothingType] = clothingId
+    print("Set", clothingType, "to:", clothingId)
+end
+
+function CharacterCustomizer:applyPreset(presetName)
+    if presetName == "robot" then
+        self:setAllBodyColors({
+            Head = Color3.fromRGB(200, 200, 200),
+            Torso = Color3.fromRGB(150, 150, 150),
+            LeftArm = Color3.fromRGB(200, 200, 200),
+            RightArm = Color3.fromRGB(200, 200, 200),
+            LeftLeg = Color3.fromRGB(200, 200, 200),
+            RightLeg = Color3.fromRGB(200, 200, 200)
+        })
+        
+        self:setAllBodyScales({
+            HeadScale = 1.2,
+            BodyWidthScale = 1.1,
+            BodyHeightScale = 1.1
+        })
+        
+    elseif presetName == "giant" then
+        self:setAllBodyScales({
+            HeadScale = 1.5,
+            BodyWidthScale = 1.3,
+            BodyHeightScale = 1.4,
+            BodyDepthScale = 1.2
+        })
+        
+    elseif presetName == "tiny" then
+        self:setAllBodyScales({
+            HeadScale = 0.8,
+            BodyWidthScale = 0.7,
+            BodyHeightScale = 0.6,
+            BodyDepthScale = 0.8
+        })
+    end
+    
+    print("Applied preset:", presetName)
+end
+
+function CharacterCustomizer:randomizeAppearance()
+    -- Random body colors
+    local colors = {
+        Color3.fromRGB(255, 220, 177),  -- Light skin
+        Color3.fromRGB(241, 194, 125),  -- Medium skin
+        Color3.fromRGB(198, 134, 66),   -- Dark skin
+        Color3.fromRGB(141, 85, 36),    -- Very dark skin
+        Color3.fromRGB(255, 255, 255),  -- White
+        Color3.fromRGB(0, 0, 0)         -- Black
+    }
+    
+    local bodyParts = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}
+    for _, part in ipairs(bodyParts) do
+        self:setBodyColor(part, colors[math.random(1, #colors)])
+    end
+    
+    -- Random body scales
+    self:setAllBodyScales({
+        HeadScale = math.random(80, 120) / 100,
+        BodyWidthScale = math.random(80, 120) / 100,
+        BodyHeightScale = math.random(80, 120) / 100,
+        BodyDepthScale = math.random(80, 120) / 100
+    })
+    
+    print("Randomized character appearance!")
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    local customizer = CharacterCustomizer.new(character)
+    
+    -- Test customization
+    wait(1)
+    customizer:setBodyColor("Head", Color3.fromRGB(255, 0, 0))
+    
+    wait(1)
+    customizer:setBodyScale("HeadScale", 1.5)
+    
+    wait(1)
+    customizer:applyPreset("giant")
+    
+    wait(2)
+    customizer:randomizeAppearance()
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Character Animation Systems - Comprehensive Learning Example
+-- Master character animations and customization in Roblox
+
+local Players = game:GetService("Players")
+local AnimationService = game:GetService("AnimationService")
+local InsertService = game:GetService("InsertService")
+
+print("=== CHARACTER ANIMATION SYSTEMS DEMO ===")
+print("Learning character animations and customization...")
+
+-- 1. BASIC ANIMATION SYSTEM
+print("\\n1. DEMONSTRATING BASIC ANIMATION SYSTEM...")
+
+local BasicAnimationController = {}
+BasicAnimationController.__index = BasicAnimationController
+
+function BasicAnimationController.new(character)
+    local self = setmetatable({}, BasicAnimationController)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.animator = self.humanoid:WaitForChild("Animator")
+    self.animations = {}
+    self.currentAnimations = {}
+    
+    return self
+end
+
+function BasicAnimationController:loadAnimation(name, animationId, priority)
+    priority = priority or Enum.AnimationPriority.Idle
+    
+    -- Create animation object
+    local animation = Instance.new("Animation")
+    animation.AnimationId = animationId
+    
+    -- Load animation onto animator
+    local animationTrack = self.animator:LoadAnimation(animation)
+    animationTrack.Priority = priority
+    
+    -- Store animation
+    self.animations[name] = animationTrack
+    
+    print("Loaded animation:", name, "with priority:", priority.Name)
+    return animationTrack
+end
+
+function BasicAnimationController:playAnimation(name, fadeTime, weight, speed)
+    fadeTime = fadeTime or 0.2
+    weight = weight or 1
+    speed = speed or 1
+    
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        -- Stop current animation of same priority
+        self:stopAnimationByPriority(animationTrack.Priority)
+        
+        -- Play new animation
+        animationTrack:Play(fadeTime, weight, speed)
+        self.currentAnimations[animationTrack.Priority] = animationTrack
+        
+        print("Playing animation:", name)
+    else
+        warn("Animation not found:", name)
+    end
+end
+
+function BasicAnimationController:stopAnimation(name, fadeTime)
+    fadeTime = fadeTime or 0.2
+    
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        animationTrack:Stop(fadeTime)
+        self.currentAnimations[animationTrack.Priority] = nil
+        print("Stopped animation:", name)
+    end
+end
+
+function BasicAnimationController:stopAnimationByPriority(priority)
+    local currentAnimation = self.currentAnimations[priority]
+    if currentAnimation then
+        currentAnimation:Stop(0.2)
+        self.currentAnimations[priority] = nil
+    end
+end
+
+function BasicAnimationController:adjustAnimationSpeed(name, speed)
+    local animationTrack = self.animations[name]
+    if animationTrack then
+        animationTrack:AdjustSpeed(speed)
+        print("Adjusted speed for", name, "to", speed)
+    end
+end
+
+-- 2. DYNAMIC ANIMATION SYSTEM
+print("\\n2. DEMONSTRATING DYNAMIC ANIMATION SYSTEM...")
+
+local DynamicAnimationSystem = {}
+DynamicAnimationSystem.__index = DynamicAnimationSystem
+
+function DynamicAnimationSystem.new(character)
+    local self = setmetatable({}, DynamicAnimationSystem)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.animator = self.humanoid:WaitForChild("Animator")
+    self.animations = {}
+    self.animationStates = {}
+    self.animationEvents = {}
+    self.currentState = "idle"
+    
+    -- Set up state-based animations
+    self:setupAnimationStates()
+    
+    return self
+end
+
+function DynamicAnimationSystem:setupAnimationStates()
+    self.animationStates = {
+        idle = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Idle,
+            looped = true,
+            fadeTime = 0.3
+        },
+        walking = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Movement,
+            looped = true,
+            fadeTime = 0.2
+        },
+        running = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Movement,
+            looped = true,
+            fadeTime = 0.1
+        },
+        jumping = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = false,
+            fadeTime = 0.1
+        },
+        falling = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = true,
+            fadeTime = 0.2
+        },
+        attacking = {
+            animation = nil,
+            priority = Enum.AnimationPriority.Action,
+            looped = false,
+            fadeTime = 0.1
+        }
+    }
+end
+
+function DynamicAnimationSystem:loadStateAnimation(stateName, animationId)
+    local state = self.animationStates[stateName]
+    if state then
+        local animation = Instance.new("Animation")
+        animation.AnimationId = animationId
+        
+        local animationTrack = self.animator:LoadAnimation(animation)
+        animationTrack.Priority = state.priority
+        animationTrack.Looped = state.looped
+        
+        state.animation = animationTrack
+        self.animations[stateName] = animationTrack
+        
+        -- Set up animation events
+        self:setupAnimationEvents(animationTrack, stateName)
+        
+        print("Loaded state animation:", stateName)
+    end
+end
+
+function DynamicAnimationSystem:setupAnimationEvents(animationTrack, stateName)
+    -- Keyframe reached event
+    animationTrack.KeyframeReached:Connect(function(keyframeName)
+        self:onKeyframeReached(stateName, keyframeName)
+    end)
+    
+    -- Animation stopped event
+    animationTrack.Stopped:Connect(function()
+        self:onAnimationStopped(stateName)
+    end)
+    
+    -- Animation looped event
+    animationTrack.DidLoop:Connect(function()
+        self:onAnimationLooped(stateName)
+    end)
+end
+
+function DynamicAnimationSystem:onKeyframeReached(stateName, keyframeName)
+    print("Keyframe reached:", keyframeName, "in", stateName)
+    
+    -- Trigger custom events
+    if self.animationEvents[stateName] and self.animationEvents[stateName][keyframeName] then
+        self.animationEvents[stateName][keyframeName]()
+    end
+end
+
+function DynamicAnimationSystem:onAnimationStopped(stateName)
+    print("Animation stopped:", stateName)
+    
+    -- Handle animation completion
+    if stateName == "attacking" then
+        self:setState("idle")
+    elseif stateName == "jumping" then
+        self:setState("falling")
+    end
+end
+
+function DynamicAnimationSystem:onAnimationLooped(stateName)
+    print("Animation looped:", stateName)
+end
+
+function DynamicAnimationSystem:setState(newState)
+    if self.currentState == newState then
+        return
+    end
+    
+    local oldState = self.currentState
+    self.currentState = newState
+    
+    print("Animation state changed from", oldState, "to", newState)
+    
+    -- Play new state animation
+    self:playStateAnimation(newState)
+end
+
+function DynamicAnimationSystem:playStateAnimation(stateName)
+    local state = self.animationStates[stateName]
+    if state and state.animation then
+        -- Stop current animation of same priority
+        self:stopAnimationByPriority(state.priority)
+        
+        -- Play new animation
+        state.animation:Play(state.fadeTime)
+        
+        print("Playing state animation:", stateName)
+    end
+end
+
+function DynamicAnimationSystem:stopAnimationByPriority(priority)
+    for stateName, state in pairs(self.animationStates) do
+        if state.animation and state.priority == priority then
+            state.animation:Stop(0.1)
+        end
+    end
+end
+
+function DynamicAnimationSystem:addAnimationEvent(stateName, keyframeName, callback)
+    if not self.animationEvents[stateName] then
+        self.animationEvents[stateName] = {}
+    end
+    
+    self.animationEvents[stateName][keyframeName] = callback
+    print("Added animation event:", stateName, "->", keyframeName)
+end
+
+function DynamicAnimationSystem:blendAnimations(animation1, animation2, blendWeight, fadeTime)
+    fadeTime = fadeTime or 0.5
+    blendWeight = blendWeight or 0.5
+    
+    if self.animations[animation1] and self.animations[animation2] then
+        self.animations[animation1]:Play(fadeTime, 1 - blendWeight)
+        self.animations[animation2]:Play(fadeTime, blendWeight)
+        
+        print("Blending animations:", animation1, "and", animation2, "weight:", blendWeight)
+    end
+end
+
+-- 3. CHARACTER CUSTOMIZATION SYSTEM
+print("\\n3. DEMONSTRATING CHARACTER CUSTOMIZATION...")
+
+local CharacterCustomizer = {}
+CharacterCustomizer.__index = CharacterCustomizer
+
+function CharacterCustomizer.new(character)
+    local self = setmetatable({}, CharacterCustomizer)
+    self.character = character
+    self.humanoid = character:WaitForChild("Humanoid")
+    self.bodyColors = {}
+    self.bodyScales = {}
+    self.accessories = {}
+    self.clothing = {}
+    
+    return self
+end
+
+function CharacterCustomizer:setBodyColor(bodyPart, color)
+    self.bodyColors[bodyPart] = color
+    self.humanoid[bodyPart .. "Color"] = color
+    print("Set", bodyPart, "color to:", color)
+end
+
+function CharacterCustomizer:setAllBodyColors(colors)
+    local bodyParts = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}
+    
+    for _, part in ipairs(bodyParts) do
+        if colors[part] then
+            self:setBodyColor(part, colors[part])
+        end
+    end
+end
+
+function CharacterCustomizer:setBodyScale(scaleType, value)
+    self.bodyScales[scaleType] = value
+    self.humanoid[scaleType] = value
+    print("Set", scaleType, "to:", value)
+end
+
+function CharacterCustomizer:setAllBodyScales(scales)
+    local scaleTypes = {
+        "HeadScale", "BodyWidthScale", "BodyHeightScale", "BodyDepthScale",
+        "BodyProportionScale", "BodyTypeScale"
+    }
+    
+    for _, scaleType in ipairs(scaleTypes) do
+        if scales[scaleType] then
+            self:setBodyScale(scaleType, scales[scaleType])
+        end
+    end
+end
+
+function CharacterCustomizer:addAccessory(accessoryId, attachmentPoint)
+    attachmentPoint = attachmentPoint or "HatAttachment"
+    
+    local success, accessory = pcall(function()
+        return InsertService:LoadAsset(accessoryId)
+    end)
+    
+    if success and accessory then
+        local accessoryObject = accessory:GetChildren()[1]
+        if accessoryObject and accessoryObject:IsA("Accessory") then
+            accessoryObject.Parent = self.character
+            self.accessories[accessoryObject.Name] = accessoryObject
+            print("Added accessory:", accessoryObject.Name)
+        end
+    else
+        warn("Failed to load accessory:", accessoryId)
+    end
+end
+
+function CharacterCustomizer:removeAccessory(accessoryName)
+    local accessory = self.accessories[accessoryName]
+    if accessory then
+        accessory:Destroy()
+        self.accessories[accessoryName] = nil
+        print("Removed accessory:", accessoryName)
+    end
+end
+
+function CharacterCustomizer:setClothing(clothingType, clothingId)
+    clothingType = clothingType:lower()
+    
+    if clothingType == "shirt" then
+        self.humanoid:SetShirt(clothingId)
+    elseif clothingType == "pants" then
+        self.humanoid:SetPants(clothingId)
+    elseif clothingType == "tshirt" then
+        self.humanoid:SetTShirt(clothingId)
+    end
+    
+    self.clothing[clothingType] = clothingId
+    print("Set", clothingType, "to:", clothingId)
+end
+
+function CharacterCustomizer:applyPreset(presetName)
+    if presetName == "robot" then
+        self:setAllBodyColors({
+            Head = Color3.fromRGB(200, 200, 200),
+            Torso = Color3.fromRGB(150, 150, 150),
+            LeftArm = Color3.fromRGB(200, 200, 200),
+            RightArm = Color3.fromRGB(200, 200, 200),
+            LeftLeg = Color3.fromRGB(200, 200, 200),
+            RightLeg = Color3.fromRGB(200, 200, 200)
+        })
+        
+        self:setAllBodyScales({
+            HeadScale = 1.2,
+            BodyWidthScale = 1.1,
+            BodyHeightScale = 1.1
+        })
+        
+    elseif presetName == "giant" then
+        self:setAllBodyScales({
+            HeadScale = 1.5,
+            BodyWidthScale = 1.3,
+            BodyHeightScale = 1.4,
+            BodyDepthScale = 1.2
+        })
+        
+    elseif presetName == "tiny" then
+        self:setAllBodyScales({
+            HeadScale = 0.8,
+            BodyWidthScale = 0.7,
+            BodyHeightScale = 0.6,
+            BodyDepthScale = 0.8
+        })
+    end
+    
+    print("Applied preset:", presetName)
+end
+
+function CharacterCustomizer:randomizeAppearance()
+    -- Random body colors
+    local colors = {
+        Color3.fromRGB(255, 220, 177),  -- Light skin
+        Color3.fromRGB(241, 194, 125),  -- Medium skin
+        Color3.fromRGB(198, 134, 66),   -- Dark skin
+        Color3.fromRGB(141, 85, 36),    -- Very dark skin
+        Color3.fromRGB(255, 255, 255),  -- White
+        Color3.fromRGB(0, 0, 0)         -- Black
+    }
+    
+    local bodyParts = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"}
+    for _, part in ipairs(bodyParts) do
+        self:setBodyColor(part, colors[math.random(1, #colors)])
+    end
+    
+    -- Random body scales
+    self:setAllBodyScales({
+        HeadScale = math.random(80, 120) / 100,
+        BodyWidthScale = math.random(80, 120) / 100,
+        BodyHeightScale = math.random(80, 120) / 100,
+        BodyDepthScale = math.random(80, 120) / 100
+    })
+    
+    print("Randomized character appearance!")
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING ANIMATION AND CUSTOMIZATION DEMONSTRATIONS...")
+
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    -- Create animation controller
+    local animController = BasicAnimationController.new(character)
+    
+    -- Create dynamic animation system
+    local animSystem = DynamicAnimationSystem.new(character)
+    
+    -- Create customizer
+    local customizer = CharacterCustomizer.new(character)
+    
+    -- Test basic customization
+    wait(1)
+    print("\\n--- Testing Character Customization ---")
+    customizer:setBodyColor("Head", Color3.fromRGB(255, 0, 0))
+    
+    wait(1)
+    customizer:setBodyScale("HeadScale", 1.5)
+    
+    wait(1)
+    customizer:applyPreset("giant")
+    
+    wait(2)
+    customizer:randomizeAppearance()
+    
+    -- Test animation events
+    wait(1)
+    print("\\n--- Testing Animation Events ---")
+    -- animSystem:addAnimationEvent("attacking", "hit", function()
+    --     print("Attack hit!")
+    -- end)
+    
+    -- Test state changes
+    wait(1)
+    print("\\n--- Testing Animation States ---")
+    -- animSystem:setState("idle")
+    
+    -- wait(2)
+    -- animSystem:setState("walking")
+    
+    -- wait(2)
+    -- animSystem:setState("running")
+    
+    -- wait(2)
+    -- animSystem:setState("jumping")
+    
+    print("\\nAnimation and customization systems ready!")
+    print("Note: Actual animations require valid animation IDs")
+end)
+
+print("\\n=== CHARACTER ANIMATION SYSTEMS DEMO COMPLETE ===")
+print("You've learned character animations and customization systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Load an animation using LoadAnimation', type: 'code_contains', value: 'LoadAnimation' },
+        { description: 'Play an animation with Play method', type: 'code_contains', value: 'Play' },
+        { description: 'Set character body colors', type: 'code_contains', value: 'Color' }
+      ],
+      hints: [
+        'Use animator:LoadAnimation() to load animations onto characters',
+        'Use animationTrack:Play() to start playing animations',
+        'Use humanoid.HeadColor, humanoid.TorsoColor, etc. to set body colors',
+        'Use humanoid.HeadScale, humanoid.BodyWidthScale, etc. to modify body proportions',
+        'Connect to animation events like KeyframeReached and Stopped'
+      ],
+      successMessage: 'Outstanding! You now understand character animation and customization systems. These are essential for creating engaging character-based games!'
+    }
+  },
+
+  // === CAMERA & VIEWPORT SYSTEMS ===
+  'camera-basics': {
+    title: 'Camera Basics & Control',
+    description: 'Master camera manipulation, positioning, and basic camera systems in Roblox',
+    sections: [
+      {
+        title: 'Understanding Camera Properties',
+        content: `The Camera object controls what players see in Roblox. Understanding camera properties is essential for creating engaging gameplay experiences.
+
+**Key Camera Properties:**
+- **CFrame**: Position and rotation of the camera
+- **FieldOfView**: How wide the camera's view is (default: 70)
+- **CameraType**: How the camera behaves (Scriptable, Fixed, etc.)
+- **CameraSubject**: What the camera follows (usually the character)
+- **Focus**: Where the camera looks (CFrame)
+
+**Camera Methods:**
+- **SetCFrame()**: Set camera position and rotation
+- **LookAt()**: Make camera look at a specific point
+- **Interpolate()**: Smoothly move camera between positions`,
+        codeExample: `-- Basic camera manipulation
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- Basic camera setup
+camera.CameraType = Enum.CameraType.Scriptable
+camera.FieldOfView = 80
+
+-- Set camera position
+camera.CFrame = CFrame.new(0, 10, 0) * CFrame.Angles(math.rad(-30), 0, 0)
+
+-- Make camera look at origin
+camera:SetCFrame(CFrame.lookAt(Vector3.new(0, 10, 10), Vector3.new(0, 0, 0)))
+
+print("Camera setup complete!")
+print("Camera position:", camera.CFrame.Position)
+print("Field of view:", camera.FieldOfView)`,
+        color: 'blue'
+      },
+      {
+        title: 'Camera Movement & Smooth Transitions',
+        content: `Smooth camera movements create professional-looking games. Learn to create cinematic camera effects and smooth transitions.
+
+**Camera Movement Techniques:**
+- **Tweening**: Smooth interpolation between positions
+- **Lerping**: Linear interpolation for smooth movement
+- **Orbiting**: Circular camera movement around a target
+- **Following**: Camera that follows a moving object
+
+**Advanced Camera Features:**
+- **Camera Shake**: Add screen shake effects
+- **Zoom Effects**: Dynamic field of view changes
+- **Camera Constraints**: Limit camera movement areas`,
+        codeExample: `-- Advanced camera movement system
+
+local CameraController = {}
+CameraController.__index = CameraController
+
+function CameraController.new()
+    local self = setmetatable({}, CameraController)
+    self.camera = workspace.CurrentCamera
+    self.targetPosition = Vector3.new(0, 0, 0)
+    self.targetLookAt = Vector3.new(0, 0, 0)
+    self.smoothness = 0.1
+    self.shakeIntensity = 0
+    self.shakeDuration = 0
+    self.shakeTimer = 0
+    
+    return self
+end
+
+function CameraController:setTarget(position, lookAt)
+    self.targetPosition = position
+    self.targetLookAt = lookAt or position
+end
+
+function CameraController:smoothMoveTo(position, lookAt, duration)
+    duration = duration or 2
+    
+    local startCFrame = self.camera.CFrame
+    local endCFrame = CFrame.lookAt(position, lookAt or position)
+    
+    local tween = TweenService:Create(self.camera,
+        TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {CFrame = endCFrame}
+    )
+    
+    tween:Play()
+    print("Smooth camera movement started")
+end
+
+function CameraController:orbit(target, radius, height, speed)
+    speed = speed or 1
+    local angle = 0
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        angle = angle + speed * deltaTime
+        
+        local x = target.X + math.cos(angle) * radius
+        local z = target.Z + math.sin(angle) * radius
+        local y = target.Y + height
+        
+        local position = Vector3.new(x, y, z)
+        self.camera.CFrame = CFrame.lookAt(position, target)
+    end)
+    
+    return connection
+end
+
+function CameraController:addShake(intensity, duration)
+    self.shakeIntensity = intensity
+    self.shakeDuration = duration
+    self.shakeTimer = 0
+    print("Camera shake added:", intensity, "for", duration, "seconds")
+end
+
+function CameraController:update(deltaTime)
+    -- Handle camera shake
+    if self.shakeTimer < self.shakeDuration then
+        self.shakeTimer = self.shakeTimer + deltaTime
+        
+        local shakeX = (math.random() - 0.5) * self.shakeIntensity
+        local shakeY = (math.random() - 0.5) * self.shakeIntensity
+        local shakeZ = (math.random() - 0.5) * self.shakeIntensity
+        
+        local shakeOffset = Vector3.new(shakeX, shakeY, shakeZ)
+        local currentCFrame = self.camera.CFrame
+        self.camera.CFrame = currentCFrame + shakeOffset
+    end
+    
+    -- Smooth camera following
+    if self.targetPosition then
+        local currentPosition = self.camera.CFrame.Position
+        local newPosition = currentPosition:Lerp(self.targetPosition, self.smoothness)
+        
+        if self.targetLookAt then
+            self.camera.CFrame = CFrame.lookAt(newPosition, self.targetLookAt)
+        end
+    end
+end
+
+-- Example usage
+local cameraController = CameraController.new()
+
+-- Test smooth movement
+cameraController:smoothMoveTo(Vector3.new(0, 20, 20), Vector3.new(0, 0, 0), 3)
+
+wait(4)
+
+-- Test orbiting
+local orbitConnection = cameraController:orbit(Vector3.new(0, 0, 0), 15, 10, 2)
+
+wait(5)
+orbitConnection:Disconnect()
+
+-- Test camera shake
+cameraController:addShake(2, 3)
+
+-- Update camera in heartbeat
+RunService.Heartbeat:Connect(function(deltaTime)
+    cameraController:update(deltaTime)
+end)`,
+        color: 'green'
+      },
+      {
+        title: 'Custom Camera Modes',
+        content: `Different games need different camera behaviors. Learn to create custom camera modes for various gameplay scenarios.
+
+**Camera Mode Types:**
+- **First Person**: Camera inside the character's head
+- **Third Person**: Camera behind the character
+- **Top Down**: Camera looking down from above
+- **Cinematic**: Camera for cutscenes and cinematics
+- **Free Cam**: Player-controlled camera movement
+
+**Camera Mode Features:**
+- **Mouse Look**: Camera rotation with mouse input
+- **Camera Collision**: Prevent camera from going through walls
+- **Camera Smoothing**: Reduce camera jitter and stuttering`,
+        codeExample: `-- Custom camera modes system
+
+local CameraModes = {}
+CameraModes.__index = CameraModes
+
+function CameraModes.new()
+    local self = setmetatable({}, CameraModes)
+    self.camera = workspace.CurrentCamera
+    self.currentMode = "third_person"
+    self.modes = {}
+    self.mouseSensitivity = 0.002
+    self.cameraOffset = Vector3.new(0, 2, 8)
+    self.cameraCollision = true
+    
+    self:setupModes()
+    return self
+end
+
+function CameraModes:setupModes()
+    self.modes = {
+        first_person = {
+            offset = Vector3.new(0, 1.5, 0),
+            collision = false,
+            mouseLook = true
+        },
+        third_person = {
+            offset = Vector3.new(0, 2, 8),
+            collision = true,
+            mouseLook = false
+        },
+        top_down = {
+            offset = Vector3.new(0, 20, 0),
+            collision = false,
+            mouseLook = false
+        },
+        cinematic = {
+            offset = Vector3.new(0, 5, 15),
+            collision = false,
+            mouseLook = false
+        }
+    }
+end
+
+function CameraModes:setMode(modeName)
+    if self.modes[modeName] then
+        self.currentMode = modeName
+        print("Camera mode changed to:", modeName)
+    end
+end
+
+function CameraModes:updateCamera(character)
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    local mode = self.modes[self.currentMode]
+    local targetPosition = humanoidRootPart.Position + mode.offset
+    
+    -- Handle camera collision
+    if mode.collision then
+        targetPosition = self:handleCameraCollision(humanoidRootPart.Position, targetPosition)
+    end
+    
+    -- Set camera position
+    if self.currentMode == "first_person" then
+        self.camera.CFrame = CFrame.new(targetPosition, humanoidRootPart.Position + humanoidRootPart.CFrame.LookVector * 10)
+    else
+        self.camera.CFrame = CFrame.lookAt(targetPosition, humanoidRootPart.Position)
+    end
+end
+
+function CameraModes:handleCameraCollision(characterPosition, cameraPosition)
+    local direction = (cameraPosition - characterPosition).Unit
+    local distance = (cameraPosition - characterPosition).Magnitude
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera}
+    
+    local raycastResult = workspace:Raycast(characterPosition, direction * distance, raycastParams)
+    
+    if raycastResult then
+        return raycastResult.Position - direction * 2
+    end
+    
+    return cameraPosition
+end
+
+function CameraModes:enableMouseLook(enabled)
+    local mode = self.modes[self.currentMode]
+    mode.mouseLook = enabled
+    print("Mouse look:", enabled and "enabled" or "disabled")
+end
+
+function CameraModes:setMouseSensitivity(sensitivity)
+    self.mouseSensitivity = sensitivity
+    print("Mouse sensitivity set to:", sensitivity)
+end
+
+-- Example usage
+local cameraModes = CameraModes.new()
+
+-- Test different camera modes
+cameraModes:setMode("third_person")
+
+wait(2)
+cameraModes:setMode("first_person")
+
+wait(2)
+cameraModes:setMode("top_down")
+
+wait(2)
+cameraModes:setMode("cinematic")
+
+-- Update camera
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    RunService.Heartbeat:Connect(function()
+        cameraModes:updateCamera(character)
+    end)
+end)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Camera Basics & Control - Comprehensive Learning Example
+-- Master camera manipulation and control systems in Roblox
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+print("=== CAMERA BASICS & CONTROL DEMO ===")
+print("Learning camera manipulation and control systems...")
+
+-- 1. BASIC CAMERA MANIPULATION
+print("\\n1. DEMONSTRATING BASIC CAMERA PROPERTIES...")
+
+local function setupBasicCamera()
+    local camera = workspace.CurrentCamera
+    
+    -- Basic camera setup
+    camera.CameraType = Enum.CameraType.Scriptable
+    camera.FieldOfView = 80
+    
+    -- Set camera position
+    camera.CFrame = CFrame.new(0, 10, 0) * CFrame.Angles(math.rad(-30), 0, 0)
+    
+    print("Basic camera setup complete!")
+    print("Camera position:", camera.CFrame.Position)
+    print("Field of view:", camera.FieldOfView)
+    print("Camera type:", camera.CameraType.Name)
+end
+
+-- 2. ADVANCED CAMERA MOVEMENT SYSTEM
+print("\\n2. DEMONSTRATING ADVANCED CAMERA MOVEMENT...")
+
+local AdvancedCameraController = {}
+AdvancedCameraController.__index = AdvancedCameraController
+
+function AdvancedCameraController.new()
+    local self = setmetatable({}, AdvancedCameraController)
+    self.camera = workspace.CurrentCamera
+    self.targetPosition = Vector3.new(0, 0, 0)
+    self.targetLookAt = Vector3.new(0, 0, 0)
+    self.smoothness = 0.1
+    self.shakeIntensity = 0
+    self.shakeDuration = 0
+    self.shakeTimer = 0
+    self.orbitTarget = nil
+    self.orbitRadius = 10
+    self.orbitHeight = 5
+    self.orbitSpeed = 1
+    self.orbitAngle = 0
+    self.orbitConnection = nil
+    
+    return self
+end
+
+function AdvancedCameraController:setTarget(position, lookAt)
+    self.targetPosition = position
+    self.targetLookAt = lookAt or position
+    print("Camera target set to:", position)
+end
+
+function AdvancedCameraController:smoothMoveTo(position, lookAt, duration)
+    duration = duration or 2
+    
+    local startCFrame = self.camera.CFrame
+    local endCFrame = CFrame.lookAt(position, lookAt or position)
+    
+    local tween = TweenService:Create(self.camera,
+        TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {CFrame = endCFrame}
+    )
+    
+    tween:Play()
+    print("Smooth camera movement to:", position, "over", duration, "seconds")
+end
+
+function AdvancedCameraController:orbit(target, radius, height, speed)
+    speed = speed or 1
+    self.orbitTarget = target
+    self.orbitRadius = radius
+    self.orbitHeight = height
+    self.orbitSpeed = speed
+    self.orbitAngle = 0
+    
+    if self.orbitConnection then
+        self.orbitConnection:Disconnect()
+    end
+    
+    self.orbitConnection = RunService.Heartbeat:Connect(function(deltaTime)
+        self.orbitAngle = self.orbitAngle + speed * deltaTime
+        
+        local x = target.X + math.cos(self.orbitAngle) * radius
+        local z = target.Z + math.sin(self.orbitAngle) * radius
+        local y = target.Y + height
+        
+        local position = Vector3.new(x, y, z)
+        self.camera.CFrame = CFrame.lookAt(position, target)
+    end)
+    
+    print("Camera orbiting started around:", target, "radius:", radius)
+    return self.orbitConnection
+end
+
+function AdvancedCameraController:stopOrbit()
+    if self.orbitConnection then
+        self.orbitConnection:Disconnect()
+        self.orbitConnection = nil
+        print("Camera orbiting stopped")
+    end
+end
+
+function AdvancedCameraController:addShake(intensity, duration)
+    self.shakeIntensity = intensity
+    self.shakeDuration = duration
+    self.shakeTimer = 0
+    print("Camera shake added - intensity:", intensity, "duration:", duration)
+end
+
+function AdvancedCameraController:zoom(fov, duration)
+    duration = duration or 1
+    
+    local tween = TweenService:Create(self.camera,
+        TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {FieldOfView = fov}
+    )
+    
+    tween:Play()
+    print("Camera zoom to FOV:", fov)
+end
+
+function AdvancedCameraController:update(deltaTime)
+    -- Handle camera shake
+    if self.shakeTimer < self.shakeDuration then
+        self.shakeTimer = self.shakeTimer + deltaTime
+        
+        local shakeX = (math.random() - 0.5) * self.shakeIntensity
+        local shakeY = (math.random() - 0.5) * self.shakeIntensity
+        local shakeZ = (math.random() - 0.5) * self.shakeIntensity
+        
+        local shakeOffset = Vector3.new(shakeX, shakeY, shakeZ)
+        local currentCFrame = self.camera.CFrame
+        self.camera.CFrame = currentCFrame + shakeOffset
+    end
+    
+    -- Smooth camera following (only if not orbiting)
+    if self.targetPosition and not self.orbitConnection then
+        local currentPosition = self.camera.CFrame.Position
+        local newPosition = currentPosition:Lerp(self.targetPosition, self.smoothness)
+        
+        if self.targetLookAt then
+            self.camera.CFrame = CFrame.lookAt(newPosition, self.targetLookAt)
+        end
+    end
+end
+
+-- 3. CUSTOM CAMERA MODES SYSTEM
+print("\\n3. DEMONSTRATING CUSTOM CAMERA MODES...")
+
+local CustomCameraModes = {}
+CustomCameraModes.__index = CustomCameraModes
+
+function CustomCameraModes.new()
+    local self = setmetatable({}, CustomCameraModes)
+    self.camera = workspace.CurrentCamera
+    self.currentMode = "third_person"
+    self.modes = {}
+    self.mouseSensitivity = 0.002
+    self.cameraOffset = Vector3.new(0, 2, 8)
+    self.cameraCollision = true
+    self.mouseLookEnabled = false
+    
+    self:setupModes()
+    return self
+end
+
+function CustomCameraModes:setupModes()
+    self.modes = {
+        first_person = {
+            offset = Vector3.new(0, 1.5, 0),
+            collision = false,
+            mouseLook = true,
+            fov = 70
+        },
+        third_person = {
+            offset = Vector3.new(0, 2, 8),
+            collision = true,
+            mouseLook = false,
+            fov = 80
+        },
+        top_down = {
+            offset = Vector3.new(0, 20, 0),
+            collision = false,
+            mouseLook = false,
+            fov = 60
+        },
+        cinematic = {
+            offset = Vector3.new(0, 5, 15),
+            collision = false,
+            mouseLook = false,
+            fov = 50
+        },
+        free_cam = {
+            offset = Vector3.new(0, 0, 0),
+            collision = false,
+            mouseLook = true,
+            fov = 90
+        }
+    }
+end
+
+function CustomCameraModes:setMode(modeName)
+    if self.modes[modeName] then
+        self.currentMode = modeName
+        local mode = self.modes[modeName]
+        
+        -- Set camera properties for this mode
+        self.camera.FieldOfView = mode.fov
+        self.mouseLookEnabled = mode.mouseLook
+        
+        print("Camera mode changed to:", modeName)
+        print("FOV:", mode.fov, "Mouse Look:", mode.mouseLook)
+    end
+end
+
+function CustomCameraModes:updateCamera(character)
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    local mode = self.modes[self.currentMode]
+    local targetPosition = humanoidRootPart.Position + mode.offset
+    
+    -- Handle camera collision
+    if mode.collision then
+        targetPosition = self:handleCameraCollision(humanoidRootPart.Position, targetPosition)
+    end
+    
+    -- Set camera position based on mode
+    if self.currentMode == "first_person" then
+        self.camera.CFrame = CFrame.new(targetPosition, humanoidRootPart.Position + humanoidRootPart.CFrame.LookVector * 10)
+    elseif self.currentMode == "top_down" then
+        self.camera.CFrame = CFrame.new(targetPosition, humanoidRootPart.Position)
+    else
+        self.camera.CFrame = CFrame.lookAt(targetPosition, humanoidRootPart.Position)
+    end
+end
+
+function CustomCameraModes:handleCameraCollision(characterPosition, cameraPosition)
+    local direction = (cameraPosition - characterPosition).Unit
+    local distance = (cameraPosition - characterPosition).Magnitude
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {workspace.CurrentCamera}
+    
+    local raycastResult = workspace:Raycast(characterPosition, direction * distance, raycastParams)
+    
+    if raycastResult then
+        return raycastResult.Position - direction * 2
+    end
+    
+    return cameraPosition
+end
+
+function CustomCameraModes:enableMouseLook(enabled)
+    self.mouseLookEnabled = enabled
+    print("Mouse look:", enabled and "enabled" or "disabled")
+end
+
+function CustomCameraModes:setMouseSensitivity(sensitivity)
+    self.mouseSensitivity = sensitivity
+    print("Mouse sensitivity set to:", sensitivity)
+end
+
+-- 4. DEMO THE CAMERA SYSTEMS
+print("\\n4. RUNNING CAMERA SYSTEM DEMONSTRATIONS...")
+
+-- Setup basic camera
+setupBasicCamera()
+
+-- Create advanced camera controller
+local cameraController = AdvancedCameraController.new()
+
+-- Create custom camera modes
+local cameraModes = CustomCameraModes.new()
+
+-- Test camera movements
+wait(1)
+print("\\n--- Testing Camera Movements ---")
+cameraController:smoothMoveTo(Vector3.new(0, 20, 20), Vector3.new(0, 0, 0), 3)
+
+wait(4)
+cameraController:zoom(50, 2)
+
+wait(3)
+cameraController:zoom(80, 2)
+
+wait(3)
+cameraController:addShake(3, 2)
+
+wait(3)
+print("\\n--- Testing Camera Orbiting ---")
+local orbitConnection = cameraController:orbit(Vector3.new(0, 0, 0), 15, 10, 2)
+
+wait(5)
+cameraController:stopOrbit()
+
+wait(1)
+print("\\n--- Testing Camera Modes ---")
+cameraModes:setMode("third_person")
+
+wait(2)
+cameraModes:setMode("first_person")
+
+wait(2)
+cameraModes:setMode("top_down")
+
+wait(2)
+cameraModes:setMode("cinematic")
+
+wait(2)
+cameraModes:setMode("free_cam")
+
+-- Update camera systems
+local player = Players.LocalPlayer
+player.CharacterAdded:Connect(function(character)
+    RunService.Heartbeat:Connect(function(deltaTime)
+        cameraController:update(deltaTime)
+        cameraModes:updateCamera(character)
+    end)
+end)
+
+print("\\n=== CAMERA BASICS & CONTROL DEMO COMPLETE ===")
+print("You've learned camera manipulation and control systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Set camera CFrame to control position and rotation', type: 'code_contains', value: 'CFrame' },
+        { description: 'Use TweenService to create smooth camera movements', type: 'code_contains', value: 'TweenService' },
+        { description: 'Change camera FieldOfView for zoom effects', type: 'code_contains', value: 'FieldOfView' }
+      ],
+      hints: [
+        'Use camera.CFrame to set camera position and rotation',
+        'Use TweenService:Create() to animate camera properties smoothly',
+        'Use camera.FieldOfView to control zoom level',
+        'Use CFrame.lookAt() to make camera look at specific points',
+        'Use RunService.Heartbeat to update camera continuously'
+      ],
+      successMessage: 'Excellent! You now understand camera control and manipulation. These skills are essential for creating engaging gameplay experiences!'
+    }
+  },
+
+  'viewport-frames': {
+    title: 'Viewport Frames & 3D UI',
+    description: 'Create 3D objects in 2D UI using ViewportFrames for immersive interfaces',
+    sections: [
+      {
+        title: 'Understanding ViewportFrames',
+        content: `ViewportFrames allow you to render 3D objects directly in 2D GUI, creating immersive UI elements and previews.
+
+**ViewportFrame Properties:**
+- **CurrentCamera**: Camera that renders the 3D scene
+- **LightDirection**: Direction of lighting in the viewport
+- **LightColor**: Color of the lighting
+- **Ambient**: Ambient lighting color
+- **Size**: Size of the viewport in pixels
+
+**ViewportFrame Methods:**
+- **SetViewport()**: Set what 3D objects to render
+- **GetViewport()**: Get current viewport contents
+- **SetCamera()**: Set the camera for the viewport`,
+        codeExample: `-- Basic ViewportFrame setup
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ViewportFrame
+local viewportFrame = Instance.new("ViewportFrame")
+viewportFrame.Size = UDim2.new(0, 300, 0, 200)
+viewportFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+viewportFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+viewportFrame.BorderSizePixel = 2
+viewportFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+viewportFrame.Parent = playerGui
+
+-- Create camera for viewport
+local camera = Instance.new("Camera")
+camera.Parent = viewportFrame
+viewportFrame.CurrentCamera = camera
+
+-- Create a 3D object to display
+local part = Instance.new("Part")
+part.Size = Vector3.new(4, 4, 4)
+part.Material = Enum.Material.Neon
+part.Color = Color3.fromRGB(0, 255, 255)
+part.Parent = viewportFrame
+
+-- Position camera
+camera.CFrame = CFrame.new(0, 0, 10) * CFrame.Angles(0, 0, 0)
+
+-- Set lighting
+viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+viewportFrame.Ambient = Color3.fromRGB(50, 50, 50)
+
+print("ViewportFrame created with 3D object!")`,
+        color: 'blue'
+      },
+      {
+        title: 'Interactive 3D UI Elements',
+        content: `Create interactive 3D UI elements that respond to user input and provide rich visual feedback.
+
+**Interactive Features:**
+- **Mouse Interaction**: Detect mouse clicks on 3D objects
+- **Hover Effects**: Visual feedback when hovering over objects
+- **3D Animations**: Animate 3D objects in the viewport
+- **Dynamic Content**: Change 3D content based on game state
+
+**Advanced Viewport Techniques:**
+- **Multiple Objects**: Display multiple 3D objects
+- **Camera Controls**: Allow users to control the viewport camera
+- **Lighting Effects**: Dynamic lighting and shadows
+- **Particle Effects**: Add particle systems to viewports`,
+        codeExample: `-- Interactive 3D UI system
+
+local InteractiveViewport = {}
+InteractiveViewport.__index = InteractiveViewport
+
+function InteractiveViewport.new(parent, size, position)
+    local self = setmetatable({}, InteractiveViewport)
+    
+    -- Create ViewportFrame
+    self.viewportFrame = Instance.new("ViewportFrame")
+    self.viewportFrame.Size = size or UDim2.new(0, 400, 0, 300)
+    self.viewportFrame.Position = position or UDim2.new(0, 0, 0, 0)
+    self.viewportFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    self.viewportFrame.BorderSizePixel = 0
+    self.viewportFrame.Parent = parent
+    
+    -- Create camera
+    self.camera = Instance.new("Camera")
+    self.camera.Parent = self.viewportFrame
+    self.viewportFrame.CurrentCamera = self.camera
+    
+    -- Setup lighting
+    self.viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+    self.viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+    self.viewportFrame.Ambient = Color3.fromRGB(100, 100, 100)
+    
+    -- Object storage
+    self.objects = {}
+    self.selectedObject = nil
+    
+    return self
+end
+
+function InteractiveViewport:addObject(name, object)
+    object.Parent = self.viewportFrame
+    self.objects[name] = object
+    print("Added object to viewport:", name)
+end
+
+function InteractiveViewport:removeObject(name)
+    local object = self.objects[name]
+    if object then
+        object:Destroy()
+        self.objects[name] = nil
+        print("Removed object from viewport:", name)
+    end
+end
+
+function InteractiveViewport:setCameraPosition(position, lookAt)
+    if lookAt then
+        self.camera.CFrame = CFrame.lookAt(position, lookAt)
+    else
+        self.camera.CFrame = CFrame.new(position)
+    end
+end
+
+function InteractiveViewport:animateObject(name, targetCFrame, duration)
+    local object = self.objects[name]
+    if object then
+        duration = duration or 1
+        
+        local tween = TweenService:Create(object,
+            TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {CFrame = targetCFrame}
+        )
+        
+        tween:Play()
+        print("Animating object:", name)
+    end
+end
+
+function InteractiveViewport:rotateObject(name, rotation, duration)
+    local object = self.objects[name]
+    if object then
+        duration = duration or 1
+        
+        local targetCFrame = object.CFrame * CFrame.Angles(rotation.X, rotation.Y, rotation.Z)
+        self:animateObject(name, targetCFrame, duration)
+    end
+end
+
+function InteractiveViewport:setObjectColor(name, color)
+    local object = self.objects[name]
+    if object then
+        object.Color = color
+        print("Set object color:", name, "to", color)
+    end
+end
+
+function InteractiveViewport:createPreviewObject(objectType, properties)
+    properties = properties or {}
+    
+    local object
+    if objectType == "part" then
+        object = Instance.new("Part")
+        object.Size = properties.size or Vector3.new(2, 2, 2)
+        object.Material = properties.material or Enum.Material.Plastic
+        object.Color = properties.color or Color3.fromRGB(100, 100, 100)
+    elseif objectType == "model" then
+        object = Instance.new("Model")
+        -- Add basic model structure
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(2, 2, 2)
+        part.Material = Enum.Material.Neon
+        part.Color = Color3.fromRGB(0, 255, 255)
+        part.Parent = object
+    end
+    
+    return object
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create interactive viewport
+local viewport = InteractiveViewport.new(playerGui, 
+    UDim2.new(0, 400, 0, 300), 
+    UDim2.new(0.5, -200, 0.5, -150)
+)
+
+-- Add some objects
+local cube = viewport:createPreviewObject("part", {
+    size = Vector3.new(3, 3, 3),
+    color = Color3.fromRGB(255, 0, 0),
+    material = Enum.Material.Neon
+})
+viewport:addObject("cube", cube)
+
+local sphere = Instance.new("Part")
+sphere.Shape = Enum.PartType.Ball
+sphere.Size = Vector3.new(2, 2, 2)
+sphere.Color = Color3.fromRGB(0, 255, 0)
+sphere.Material = Enum.Material.Neon
+viewport:addObject("sphere", sphere)
+
+-- Position objects
+cube.CFrame = CFrame.new(-3, 0, 0)
+sphere.CFrame = CFrame.new(3, 0, 0)
+
+-- Set camera position
+viewport:setCameraPosition(Vector3.new(0, 5, 10), Vector3.new(0, 0, 0))
+
+-- Animate objects
+wait(1)
+viewport:rotateObject("cube", Vector3.new(0, math.rad(180), 0), 2)
+
+wait(2)
+viewport:animateObject("sphere", CFrame.new(3, 2, 0), 1)
+
+wait(2)
+viewport:setObjectColor("cube", Color3.fromRGB(0, 0, 255))`,
+        color: 'green'
+      },
+      {
+        title: 'Advanced Viewport Applications',
+        content: `ViewportFrames have many advanced applications in game development, from inventory previews to character customization.
+
+**Advanced Applications:**
+- **Inventory Previews**: Show 3D models of items
+- **Character Customization**: Preview character changes
+- **Map Previews**: Display 3D maps and environments
+- **Achievement Displays**: Show 3D rewards and trophies
+- **Mini Games**: Create 3D mini-games within UI
+
+**Performance Considerations:**
+- **Object Limits**: Limit number of objects in viewport
+- **LOD Systems**: Use different detail levels
+- **Culling**: Hide objects outside camera view
+- **Optimization**: Use efficient rendering techniques`,
+        codeExample: `-- Advanced ViewportFrame applications
+
+local AdvancedViewport = {}
+AdvancedViewport.__index = AdvancedViewport
+
+function AdvancedViewport.new(parent, size, position)
+    local self = setmetatable({}, AdvancedViewport)
+    
+    -- Create main ViewportFrame
+    self.viewportFrame = Instance.new("ViewportFrame")
+    self.viewportFrame.Size = size or UDim2.new(0, 500, 0, 400)
+    self.viewportFrame.Position = position or UDim2.new(0, 0, 0, 0)
+    self.viewportFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    self.viewportFrame.BorderSizePixel = 0
+    self.viewportFrame.Parent = parent
+    
+    -- Create camera
+    self.camera = Instance.new("Camera")
+    self.camera.Parent = self.viewportFrame
+    self.viewportFrame.CurrentCamera = self.camera
+    
+    -- Advanced lighting setup
+    self.viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+    self.viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+    self.viewportFrame.Ambient = Color3.fromRGB(80, 80, 80)
+    
+    -- Object management
+    self.objects = {}
+    self.objectCount = 0
+    self.maxObjects = 50
+    
+    return self
+end
+
+function AdvancedViewport:createInventoryPreview(itemData)
+    local model = Instance.new("Model")
+    
+    -- Create item based on data
+    if itemData.type == "weapon" then
+        local handle = Instance.new("Part")
+        handle.Size = Vector3.new(0.5, 3, 0.5)
+        handle.Material = Enum.Material.Wood
+        handle.Color = Color3.fromRGB(139, 69, 19)
+        handle.Parent = model
+        
+        local blade = Instance.new("Part")
+        blade.Size = Vector3.new(0.2, 2, 0.1)
+        blade.Material = Enum.Material.Metal
+        blade.Color = Color3.fromRGB(192, 192, 192)
+        blade.CFrame = handle.CFrame * CFrame.new(0, 2.5, 0)
+        blade.Parent = model
+        
+    elseif itemData.type == "armor" then
+        local armor = Instance.new("Part")
+        armor.Size = Vector3.new(2, 3, 1)
+        armor.Material = Enum.Material.Metal
+        armor.Color = itemData.color or Color3.fromRGB(100, 100, 100)
+        armor.Parent = model
+        
+    elseif itemData.type == "potion" then
+        local bottle = Instance.new("Part")
+        bottle.Size = Vector3.new(1, 2, 1)
+        bottle.Shape = Enum.PartType.Cylinder
+        bottle.Material = Enum.Material.Glass
+        bottle.Color = itemData.color or Color3.fromRGB(255, 0, 255)
+        bottle.Parent = model
+        
+        local liquid = Instance.new("Part")
+        liquid.Size = Vector3.new(0.8, 1.5, 0.8)
+        liquid.Shape = Enum.PartType.Cylinder
+        liquid.Material = Enum.Material.ForceField
+        liquid.Color = itemData.liquidColor or Color3.fromRGB(0, 255, 0)
+        liquid.CFrame = bottle.CFrame * CFrame.new(0, -0.25, 0)
+        liquid.Parent = model
+    end
+    
+    return model
+end
+
+function AdvancedViewport:createCharacterPreview(characterData)
+    local model = Instance.new("Model")
+    
+    -- Create basic character structure
+    local head = Instance.new("Part")
+    head.Name = "Head"
+    head.Size = Vector3.new(2, 1, 1)
+    head.Shape = Enum.PartType.Ball
+    head.Color = characterData.skinColor or Color3.fromRGB(255, 220, 177)
+    head.Parent = model
+    
+    local torso = Instance.new("Part")
+    torso.Name = "Torso"
+    torso.Size = Vector3.new(2, 2, 1)
+    torso.Color = characterData.torsoColor or Color3.fromRGB(255, 220, 177)
+    torso.CFrame = head.CFrame * CFrame.new(0, -1.5, 0)
+    torso.Parent = model
+    
+    -- Add clothing if specified
+    if characterData.shirt then
+        local shirt = Instance.new("Part")
+        shirt.Size = Vector3.new(2.1, 2.1, 1.1)
+        shirt.Color = characterData.shirtColor or Color3.fromRGB(0, 0, 255)
+        shirt.CFrame = torso.CFrame
+        shirt.Material = Enum.Material.Fabric
+        shirt.Parent = model
+    end
+    
+    return model
+end
+
+function AdvancedViewport:addObject(name, object)
+    if self.objectCount >= self.maxObjects then
+        warn("Viewport object limit reached!")
+        return false
+    end
+    
+    object.Parent = self.viewportFrame
+    self.objects[name] = object
+    self.objectCount = self.objectCount + 1
+    
+    print("Added object to viewport:", name, "Total objects:", self.objectCount)
+    return true
+end
+
+function AdvancedViewport:removeObject(name)
+    local object = self.objects[name]
+    if object then
+        object:Destroy()
+        self.objects[name] = nil
+        self.objectCount = self.objectCount - 1
+        print("Removed object from viewport:", name, "Total objects:", self.objectCount)
+    end
+end
+
+function AdvancedViewport:setCameraMode(mode, target)
+    if mode == "orbit" then
+        self:orbitCamera(target or Vector3.new(0, 0, 0))
+    elseif mode == "fixed" then
+        self.camera.CFrame = CFrame.new(0, 5, 10) * CFrame.Angles(0, 0, 0)
+    elseif mode == "follow" then
+        self:followTarget(target)
+    end
+end
+
+function AdvancedViewport:orbitCamera(target)
+    local radius = 10
+    local height = 5
+    local angle = 0
+    local speed = 1
+    
+    local connection
+    connection = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+        angle = angle + speed * deltaTime
+        
+        local x = target.X + math.cos(angle) * radius
+        local z = target.Z + math.sin(angle) * radius
+        local y = target.Y + height
+        
+        local position = Vector3.new(x, y, z)
+        self.camera.CFrame = CFrame.lookAt(position, target)
+    end)
+    
+    return connection
+end
+
+function AdvancedViewport:followTarget(target)
+    if target then
+        local connection
+        connection = game:GetService("RunService").Heartbeat:Connect(function()
+            local position = target.Position + Vector3.new(0, 5, 10)
+            self.camera.CFrame = CFrame.lookAt(position, target.Position)
+        end)
+        
+        return connection
+    end
+end
+
+-- Example usage
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create advanced viewport
+local viewport = AdvancedViewport.new(playerGui, 
+    UDim2.new(0, 500, 0, 400), 
+    UDim2.new(0.5, -250, 0.5, -200)
+)
+
+-- Create inventory preview
+local swordData = {
+    type = "weapon",
+    name = "Iron Sword",
+    damage = 25
+}
+local swordPreview = viewport:createInventoryPreview(swordData)
+viewport:addObject("sword", swordPreview)
+
+-- Create character preview
+local characterData = {
+    skinColor = Color3.fromRGB(255, 220, 177),
+    shirt = true,
+    shirtColor = Color3.fromRGB(0, 100, 200)
+}
+local characterPreview = viewport:createCharacterPreview(characterData)
+characterPreview:SetPrimaryPartCFrame(CFrame.new(0, 0, 0))
+viewport:addObject("character", characterPreview)
+
+-- Set camera to orbit mode
+viewport:setCameraMode("orbit", Vector3.new(0, 0, 0))`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Viewport Frames & 3D UI - Comprehensive Learning Example
+-- Master ViewportFrames and 3D UI elements in Roblox
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+print("=== VIEWPORT FRAMES & 3D UI DEMO ===")
+print("Learning ViewportFrames and 3D UI systems...")
+
+-- 1. BASIC VIEWPORTFRAME SETUP
+print("\\n1. DEMONSTRATING BASIC VIEWPORTFRAME...")
+
+local function createBasicViewport(parent)
+    local viewportFrame = Instance.new("ViewportFrame")
+    viewportFrame.Size = UDim2.new(0, 300, 0, 200)
+    viewportFrame.Position = UDim2.new(0.5, -150, 0.3, -100)
+    viewportFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    viewportFrame.BorderSizePixel = 2
+    viewportFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    viewportFrame.Parent = parent
+    
+    -- Create camera
+    local camera = Instance.new("Camera")
+    camera.Parent = viewportFrame
+    viewportFrame.CurrentCamera = camera
+    
+    -- Create 3D object
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(4, 4, 4)
+    part.Material = Enum.Material.Neon
+    part.Color = Color3.fromRGB(0, 255, 255)
+    part.Parent = viewportFrame
+    
+    -- Position camera
+    camera.CFrame = CFrame.new(0, 0, 10) * CFrame.Angles(0, 0, 0)
+    
+    -- Setup lighting
+    viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+    viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+    viewportFrame.Ambient = Color3.fromRGB(50, 50, 50)
+    
+    print("Basic ViewportFrame created!")
+    return viewportFrame, camera, part
+end
+
+-- 2. INTERACTIVE 3D UI SYSTEM
+print("\\n2. DEMONSTRATING INTERACTIVE 3D UI...")
+
+local InteractiveViewport = {}
+InteractiveViewport.__index = InteractiveViewport
+
+function InteractiveViewport.new(parent, size, position)
+    local self = setmetatable({}, InteractiveViewport)
+    
+    -- Create ViewportFrame
+    self.viewportFrame = Instance.new("ViewportFrame")
+    self.viewportFrame.Size = size or UDim2.new(0, 400, 0, 300)
+    self.viewportFrame.Position = position or UDim2.new(0, 0, 0, 0)
+    self.viewportFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    self.viewportFrame.BorderSizePixel = 0
+    self.viewportFrame.Parent = parent
+    
+    -- Create camera
+    self.camera = Instance.new("Camera")
+    self.camera.Parent = self.viewportFrame
+    self.viewportFrame.CurrentCamera = self.camera
+    
+    -- Setup lighting
+    self.viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+    self.viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+    self.viewportFrame.Ambient = Color3.fromRGB(100, 100, 100)
+    
+    -- Object storage
+    self.objects = {}
+    self.selectedObject = nil
+    
+    return self
+end
+
+function InteractiveViewport:addObject(name, object)
+    object.Parent = self.viewportFrame
+    self.objects[name] = object
+    print("Added object to viewport:", name)
+end
+
+function InteractiveViewport:removeObject(name)
+    local object = self.objects[name]
+    if object then
+        object:Destroy()
+        self.objects[name] = nil
+        print("Removed object from viewport:", name)
+    end
+end
+
+function InteractiveViewport:setCameraPosition(position, lookAt)
+    if lookAt then
+        self.camera.CFrame = CFrame.lookAt(position, lookAt)
+    else
+        self.camera.CFrame = CFrame.new(position)
+    end
+end
+
+function InteractiveViewport:animateObject(name, targetCFrame, duration)
+    local object = self.objects[name]
+    if object then
+        duration = duration or 1
+        
+        local tween = TweenService:Create(object,
+            TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {CFrame = targetCFrame}
+        )
+        
+        tween:Play()
+        print("Animating object:", name)
+    end
+end
+
+function InteractiveViewport:rotateObject(name, rotation, duration)
+    local object = self.objects[name]
+    if object then
+        duration = duration or 1
+        
+        local targetCFrame = object.CFrame * CFrame.Angles(rotation.X, rotation.Y, rotation.Z)
+        self:animateObject(name, targetCFrame, duration)
+    end
+end
+
+function InteractiveViewport:setObjectColor(name, color)
+    local object = self.objects[name]
+    if object then
+        object.Color = color
+        print("Set object color:", name, "to", color)
+    end
+end
+
+function InteractiveViewport:createPreviewObject(objectType, properties)
+    properties = properties or {}
+    
+    local object
+    if objectType == "part" then
+        object = Instance.new("Part")
+        object.Size = properties.size or Vector3.new(2, 2, 2)
+        object.Material = properties.material or Enum.Material.Plastic
+        object.Color = properties.color or Color3.fromRGB(100, 100, 100)
+    elseif objectType == "model" then
+        object = Instance.new("Model")
+        -- Add basic model structure
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(2, 2, 2)
+        part.Material = Enum.Material.Neon
+        part.Color = Color3.fromRGB(0, 255, 255)
+        part.Parent = object
+    end
+    
+    return object
+end
+
+-- 3. ADVANCED VIEWPORT APPLICATIONS
+print("\\n3. DEMONSTRATING ADVANCED VIEWPORT APPLICATIONS...")
+
+local AdvancedViewport = {}
+AdvancedViewport.__index = AdvancedViewport
+
+function AdvancedViewport.new(parent, size, position)
+    local self = setmetatable({}, AdvancedViewport)
+    
+    -- Create main ViewportFrame
+    self.viewportFrame = Instance.new("ViewportFrame")
+    self.viewportFrame.Size = size or UDim2.new(0, 500, 0, 400)
+    self.viewportFrame.Position = position or UDim2.new(0, 0, 0, 0)
+    self.viewportFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    self.viewportFrame.BorderSizePixel = 0
+    self.viewportFrame.Parent = parent
+    
+    -- Create camera
+    self.camera = Instance.new("Camera")
+    self.camera.Parent = self.viewportFrame
+    self.viewportFrame.CurrentCamera = self.camera
+    
+    -- Advanced lighting setup
+    self.viewportFrame.LightDirection = Vector3.new(-1, -1, -1)
+    self.viewportFrame.LightColor = Color3.fromRGB(255, 255, 255)
+    self.viewportFrame.Ambient = Color3.fromRGB(80, 80, 80)
+    
+    -- Object management
+    self.objects = {}
+    self.objectCount = 0
+    self.maxObjects = 50
+    
+    return self
+end
+
+function AdvancedViewport:createInventoryPreview(itemData)
+    local model = Instance.new("Model")
+    
+    -- Create item based on data
+    if itemData.type == "weapon" then
+        local handle = Instance.new("Part")
+        handle.Size = Vector3.new(0.5, 3, 0.5)
+        handle.Material = Enum.Material.Wood
+        handle.Color = Color3.fromRGB(139, 69, 19)
+        handle.Parent = model
+        
+        local blade = Instance.new("Part")
+        blade.Size = Vector3.new(0.2, 2, 0.1)
+        blade.Material = Enum.Material.Metal
+        blade.Color = Color3.fromRGB(192, 192, 192)
+        blade.CFrame = handle.CFrame * CFrame.new(0, 2.5, 0)
+        blade.Parent = model
+        
+    elseif itemData.type == "armor" then
+        local armor = Instance.new("Part")
+        armor.Size = Vector3.new(2, 3, 1)
+        armor.Material = Enum.Material.Metal
+        armor.Color = itemData.color or Color3.fromRGB(100, 100, 100)
+        armor.Parent = model
+        
+    elseif itemData.type == "potion" then
+        local bottle = Instance.new("Part")
+        bottle.Size = Vector3.new(1, 2, 1)
+        bottle.Shape = Enum.PartType.Cylinder
+        bottle.Material = Enum.Material.Glass
+        bottle.Color = itemData.color or Color3.fromRGB(255, 0, 255)
+        bottle.Parent = model
+        
+        local liquid = Instance.new("Part")
+        liquid.Size = Vector3.new(0.8, 1.5, 0.8)
+        liquid.Shape = Enum.PartType.Cylinder
+        liquid.Material = Enum.Material.ForceField
+        liquid.Color = itemData.liquidColor or Color3.fromRGB(0, 255, 0)
+        liquid.CFrame = bottle.CFrame * CFrame.new(0, -0.25, 0)
+        liquid.Parent = model
+    end
+    
+    return model
+end
+
+function AdvancedViewport:createCharacterPreview(characterData)
+    local model = Instance.new("Model")
+    
+    -- Create basic character structure
+    local head = Instance.new("Part")
+    head.Name = "Head"
+    head.Size = Vector3.new(2, 1, 1)
+    head.Shape = Enum.PartType.Ball
+    head.Color = characterData.skinColor or Color3.fromRGB(255, 220, 177)
+    head.Parent = model
+    
+    local torso = Instance.new("Part")
+    torso.Name = "Torso"
+    torso.Size = Vector3.new(2, 2, 1)
+    torso.Color = characterData.torsoColor or Color3.fromRGB(255, 220, 177)
+    torso.CFrame = head.CFrame * CFrame.new(0, -1.5, 0)
+    torso.Parent = model
+    
+    -- Add clothing if specified
+    if characterData.shirt then
+        local shirt = Instance.new("Part")
+        shirt.Size = Vector3.new(2.1, 2.1, 1.1)
+        shirt.Color = characterData.shirtColor or Color3.fromRGB(0, 0, 255)
+        shirt.CFrame = torso.CFrame
+        shirt.Material = Enum.Material.Fabric
+        shirt.Parent = model
+    end
+    
+    return model
+end
+
+function AdvancedViewport:addObject(name, object)
+    if self.objectCount >= self.maxObjects then
+        warn("Viewport object limit reached!")
+        return false
+    end
+    
+    object.Parent = self.viewportFrame
+    self.objects[name] = object
+    self.objectCount = self.objectCount + 1
+    
+    print("Added object to viewport:", name, "Total objects:", self.objectCount)
+    return true
+end
+
+function AdvancedViewport:removeObject(name)
+    local object = self.objects[name]
+    if object then
+        object:Destroy()
+        self.objects[name] = nil
+        self.objectCount = self.objectCount - 1
+        print("Removed object from viewport:", name, "Total objects:", self.objectCount)
+    end
+end
+
+function AdvancedViewport:setCameraMode(mode, target)
+    if mode == "orbit" then
+        self:orbitCamera(target or Vector3.new(0, 0, 0))
+    elseif mode == "fixed" then
+        self.camera.CFrame = CFrame.new(0, 5, 10) * CFrame.Angles(0, 0, 0)
+    elseif mode == "follow" then
+        self:followTarget(target)
+    end
+end
+
+function AdvancedViewport:orbitCamera(target)
+    local radius = 10
+    local height = 5
+    local angle = 0
+    local speed = 1
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        angle = angle + speed * deltaTime
+        
+        local x = target.X + math.cos(angle) * radius
+        local z = target.Z + math.sin(angle) * radius
+        local y = target.Y + height
+        
+        local position = Vector3.new(x, y, z)
+        self.camera.CFrame = CFrame.lookAt(position, target)
+    end)
+    
+    return connection
+end
+
+function AdvancedViewport:followTarget(target)
+    if target then
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            local position = target.Position + Vector3.new(0, 5, 10)
+            self.camera.CFrame = CFrame.lookAt(position, target.Position)
+        end)
+        
+        return connection
+    end
+end
+
+-- 4. DEMO THE VIEWPORT SYSTEMS
+print("\\n4. RUNNING VIEWPORT SYSTEM DEMONSTRATIONS...")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create basic viewport
+local basicViewport, basicCamera, basicPart = createBasicViewport(playerGui)
+
+-- Create interactive viewport
+local interactiveViewport = InteractiveViewport.new(playerGui, 
+    UDim2.new(0, 400, 0, 300), 
+    UDim2.new(0.5, -200, 0.7, -150)
+)
+
+-- Add objects to interactive viewport
+local cube = interactiveViewport:createPreviewObject("part", {
+    size = Vector3.new(3, 3, 3),
+    color = Color3.fromRGB(255, 0, 0),
+    material = Enum.Material.Neon
+})
+interactiveViewport:addObject("cube", cube)
+
+local sphere = Instance.new("Part")
+sphere.Shape = Enum.PartType.Ball
+sphere.Size = Vector3.new(2, 2, 2)
+sphere.Color = Color3.fromRGB(0, 255, 0)
+sphere.Material = Enum.Material.Neon
+interactiveViewport:addObject("sphere", sphere)
+
+-- Position objects
+cube.CFrame = CFrame.new(-3, 0, 0)
+sphere.CFrame = CFrame.new(3, 0, 0)
+
+-- Set camera position
+interactiveViewport:setCameraPosition(Vector3.new(0, 5, 10), Vector3.new(0, 0, 0))
+
+-- Create advanced viewport
+local advancedViewport = AdvancedViewport.new(playerGui, 
+    UDim2.new(0, 500, 0, 400), 
+    UDim2.new(0, 0, 0, 0)
+)
+
+-- Create inventory preview
+local swordData = {
+    type = "weapon",
+    name = "Iron Sword",
+    damage = 25
+}
+local swordPreview = advancedViewport:createInventoryPreview(swordData)
+advancedViewport:addObject("sword", swordPreview)
+
+-- Create character preview
+local characterData = {
+    skinColor = Color3.fromRGB(255, 220, 177),
+    shirt = true,
+    shirtColor = Color3.fromRGB(0, 100, 200)
+}
+local characterPreview = advancedViewport:createCharacterPreview(characterData)
+characterPreview:SetPrimaryPartCFrame(CFrame.new(0, 0, 0))
+advancedViewport:addObject("character", characterPreview)
+
+-- Set camera to orbit mode
+advancedViewport:setCameraMode("orbit", Vector3.new(0, 0, 0))
+
+-- Animate objects in interactive viewport
+wait(1)
+print("\\n--- Testing Object Animations ---")
+interactiveViewport:rotateObject("cube", Vector3.new(0, math.rad(180), 0), 2)
+
+wait(2)
+interactiveViewport:animateObject("sphere", CFrame.new(3, 2, 0), 1)
+
+wait(2)
+interactiveViewport:setObjectColor("cube", Color3.fromRGB(0, 0, 255))
+
+print("\\n=== VIEWPORT FRAMES & 3D UI DEMO COMPLETE ===")
+print("You've learned ViewportFrames and 3D UI systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Create a ViewportFrame with a camera', type: 'code_contains', value: 'ViewportFrame' },
+        { description: 'Add 3D objects to the viewport', type: 'code_contains', value: 'Parent' },
+        { description: 'Set up lighting for the viewport', type: 'code_contains', value: 'LightDirection' }
+      ],
+      hints: [
+        'Use Instance.new("ViewportFrame") to create viewport frames',
+        'Create a Camera object and set it as the viewport\'s CurrentCamera',
+        'Use viewportFrame.LightDirection and viewportFrame.LightColor for lighting',
+        'Add 3D objects to the viewport by setting their Parent to the viewport',
+        'Use TweenService to animate objects within viewports'
+      ],
+      successMessage: 'Outstanding! You now understand ViewportFrames and 3D UI systems. These are powerful tools for creating immersive interfaces!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
