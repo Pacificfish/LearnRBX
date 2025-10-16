@@ -6765,6 +6765,2189 @@ print("You've learned ViewportFrames and 3D UI systems!")`,
     }
   },
 
+  // === LIGHTING & ENVIRONMENT SYSTEMS ===
+  'lighting-basics': {
+    title: 'Lighting & Environment Basics',
+    description: 'Master lighting systems, atmosphere, and environmental effects in Roblox',
+    sections: [
+      {
+        title: 'Understanding Lighting Service',
+        content: `The Lighting service controls the global lighting and atmosphere of your game world. Proper lighting creates mood, atmosphere, and visual appeal.
+
+**Key Lighting Properties:**
+- **Ambient**: Overall brightness of shadows (Color3)
+- **Brightness**: Overall brightness multiplier (number)
+- **ColorShift_Bottom**: Color tint for bottom of sky (Color3)
+- **ColorShift_Top**: Color tint for top of sky (Color3)
+- **OutdoorAmbient**: Brightness of outdoor lighting (Color3)
+- **ShadowSoftness**: How soft shadows appear (number)
+
+**Lighting Methods:**
+- **GetSunDirection()**: Get current sun direction
+- **SetSunDirection()**: Set sun direction
+- **GetSunAngles()**: Get sun angles
+- **SetSunAngles()**: Set sun angles`,
+        codeExample: `-- Basic lighting setup
+
+local Lighting = game:GetService("Lighting")
+
+-- Basic lighting configuration
+Lighting.Ambient = Color3.fromRGB(100, 100, 100)  -- Soft ambient lighting
+Lighting.Brightness = 2  -- Bright overall lighting
+Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)  -- No bottom tint
+Lighting.ColorShift_Top = Color3.fromRGB(0, 0, 0)  -- No top tint
+Lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)  -- Outdoor lighting
+Lighting.ShadowSoftness = 0.2  -- Soft shadows
+
+-- Set sun direction for different times of day
+Lighting:SetSunDirection(Vector3.new(0, 1, 0))  -- Noon sun
+
+print("Basic lighting setup complete!")
+print("Ambient lighting:", Lighting.Ambient)
+print("Brightness:", Lighting.Brightness)
+print("Shadow softness:", Lighting.ShadowSoftness)`,
+        color: 'blue'
+      },
+      {
+        title: 'Dynamic Lighting Systems',
+        content: `Create dynamic lighting that changes over time, responds to game events, and creates immersive atmospheres.
+
+**Dynamic Lighting Features:**
+- **Time of Day**: Cycle through different lighting conditions
+- **Weather Effects**: Rain, fog, storms with lighting changes
+- **Event-Based Lighting**: Lighting that responds to game events
+- **Smooth Transitions**: Gradual changes between lighting states
+- **Performance Optimization**: Efficient lighting updates
+
+**Advanced Lighting Techniques:**
+- **Color Temperature**: Warm/cool lighting based on time
+- **Atmospheric Perspective**: Distance-based lighting changes
+- **Dynamic Shadows**: Shadows that change with lighting`,
+        codeExample: `-- Dynamic lighting system
+
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local DynamicLighting = {}
+DynamicLighting.__index = DynamicLighting
+
+function DynamicLighting.new()
+    local self = setmetatable({}, DynamicLighting)
+    self.lighting = Lighting
+    self.currentTime = 12  -- 12 PM
+    self.timeSpeed = 1  -- Real-time speed
+    self.isDay = true
+    self.weather = "clear"
+    
+    -- Lighting presets
+    self.presets = {
+        dawn = {
+            ambient = Color3.fromRGB(150, 100, 50),
+            brightness = 1.5,
+            outdoorAmbient = Color3.fromRGB(200, 150, 100),
+            sunDirection = Vector3.new(0.5, 0.8, 0.3)
+        },
+        noon = {
+            ambient = Color3.fromRGB(100, 100, 100),
+            brightness = 2,
+            outdoorAmbient = Color3.fromRGB(255, 255, 255),
+            sunDirection = Vector3.new(0, 1, 0)
+        },
+        dusk = {
+            ambient = Color3.fromRGB(100, 50, 150),
+            brightness = 1.2,
+            outdoorAmbient = Color3.fromRGB(150, 100, 200),
+            sunDirection = Vector3.new(-0.5, 0.8, 0.3)
+        },
+        night = {
+            ambient = Color3.fromRGB(20, 20, 40),
+            brightness = 0.3,
+            outdoorAmbient = Color3.fromRGB(50, 50, 100),
+            sunDirection = Vector3.new(0, -1, 0)
+        }
+    }
+    
+    return self
+end
+
+function DynamicLighting:setTime(hour)
+    self.currentTime = hour
+    self:updateLighting()
+    print("Time set to:", hour, "o'clock")
+end
+
+function DynamicLighting:setTimeSpeed(speed)
+    self.timeSpeed = speed
+    print("Time speed set to:", speed)
+end
+
+function DynamicLighting:setWeather(weatherType)
+    self.weather = weatherType
+    self:updateLighting()
+    print("Weather changed to:", weatherType)
+end
+
+function DynamicLighting:updateLighting()
+    local preset
+    
+    -- Determine lighting preset based on time
+    if self.currentTime >= 6 and self.currentTime < 12 then
+        preset = self.presets.dawn
+        self.isDay = true
+    elseif self.currentTime >= 12 and self.currentTime < 18 then
+        preset = self.presets.noon
+        self.isDay = true
+    elseif self.currentTime >= 18 and self.currentTime < 22 then
+        preset = self.presets.dusk
+        self.isDay = false
+    else
+        preset = self.presets.night
+        self.isDay = false
+    end
+    
+    -- Apply weather modifications
+    if self.weather == "rainy" then
+        preset.ambient = Color3.fromRGB(preset.ambient.R * 0.7, preset.ambient.G * 0.7, preset.ambient.B * 0.8)
+        preset.brightness = preset.brightness * 0.6
+    elseif self.weather == "foggy" then
+        preset.ambient = Color3.fromRGB(preset.ambient.R * 0.8, preset.ambient.G * 0.8, preset.ambient.B * 0.9)
+        preset.brightness = preset.brightness * 0.7
+    end
+    
+    -- Apply lighting with smooth transition
+    self:transitionToPreset(preset)
+end
+
+function DynamicLighting:transitionToPreset(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    -- Tween ambient lighting
+    local ambientTween = TweenService:Create(self.lighting, tweenInfo, {
+        Ambient = preset.ambient
+    })
+    
+    -- Tween brightness
+    local brightnessTween = TweenService:Create(self.lighting, tweenInfo, {
+        Brightness = preset.brightness
+    })
+    
+    -- Tween outdoor ambient
+    local outdoorTween = TweenService:Create(self.lighting, tweenInfo, {
+        OutdoorAmbient = preset.outdoorAmbient
+    })
+    
+    -- Start tweens
+    ambientTween:Play()
+    brightnessTween:Play()
+    outdoorTween:Play()
+    
+    -- Set sun direction
+    self.lighting:SetSunDirection(preset.sunDirection)
+end
+
+function DynamicLighting:startTimeCycle()
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        self.currentTime = self.currentTime + (deltaTime * self.timeSpeed / 3600)  -- Convert to hours
+        
+        if self.currentTime >= 24 then
+            self.currentTime = 0
+        end
+        
+        self:updateLighting()
+    end)
+    
+    print("Time cycle started")
+    return connection
+end
+
+function DynamicLighting:createLightingEvent(eventName, duration, lightingChanges)
+    duration = duration or 5
+    
+    print("Lighting event started:", eventName)
+    
+    -- Store original lighting
+    local originalAmbient = self.lighting.Ambient
+    local originalBrightness = self.lighting.Brightness
+    local originalOutdoor = self.lighting.OutdoorAmbient
+    
+    -- Apply event lighting
+    if lightingChanges.ambient then
+        self.lighting.Ambient = lightingChanges.ambient
+    end
+    if lightingChanges.brightness then
+        self.lighting.Brightness = lightingChanges.brightness
+    end
+    if lightingChanges.outdoorAmbient then
+        self.lighting.OutdoorAmbient = lightingChanges.outdoorAmbient
+    end
+    
+    -- Wait for duration
+    wait(duration)
+    
+    -- Restore original lighting
+    self.lighting.Ambient = originalAmbient
+    self.lighting.Brightness = originalBrightness
+    self.lighting.OutdoorAmbient = originalOutdoor
+    
+    print("Lighting event ended:", eventName)
+end
+
+-- Example usage
+local dynamicLighting = DynamicLighting.new()
+
+-- Test time changes
+dynamicLighting:setTime(6)  -- Dawn
+wait(3)
+dynamicLighting:setTime(12)  -- Noon
+wait(3)
+dynamicLighting:setTime(18)  -- Dusk
+wait(3)
+dynamicLighting:setTime(0)  -- Night
+
+-- Test weather
+dynamicLighting:setWeather("rainy")
+wait(3)
+dynamicLighting:setWeather("foggy")
+wait(3)
+dynamicLighting:setWeather("clear")
+
+-- Test lighting event
+dynamicLighting:createLightingEvent("Flash", 1, {
+    brightness = 5,
+    ambient = Color3.fromRGB(255, 255, 255)
+})
+
+-- Start time cycle
+local timeConnection = dynamicLighting:startTimeCycle()`,
+        color: 'green'
+      },
+      {
+        title: 'Atmosphere & Sky Effects',
+        content: `Create immersive atmospheric effects using the Atmosphere and Sky objects to enhance your game's visual appeal.
+
+**Atmosphere Properties:**
+- **Density**: How thick the atmosphere appears (0-1)
+- **Offset**: Height offset for atmosphere effect (0-1)
+- **Color**: Color of the atmosphere (Color3)
+- **Decay**: How atmosphere fades with distance (Color3)
+- **Glare**: Brightness of atmospheric glare (0-1)
+- **Haze**: Atmospheric haze intensity (0-1)
+
+**Sky Properties:**
+- **CelestialBodiesShown**: Show sun/moon in sky
+- **MoonAngularSize**: Size of moon in sky
+- **MoonSize**: Moon texture size
+- **StarCount**: Number of stars visible
+- **SunAngularSize**: Size of sun in sky
+- **SunSize**: Sun texture size
+
+**Advanced Sky Features:**
+- **Dynamic Sky Changes**: Sky that changes with time
+- **Weather Integration**: Sky effects for different weather
+- **Custom Skyboxes**: Custom sky textures and effects`,
+        codeExample: `-- Atmosphere and sky effects system
+
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+
+local AtmosphereSystem = {}
+AtmosphereSystem.__index = AtmosphereSystem
+
+function AtmosphereSystem.new()
+    local self = setmetatable({}, AtmosphereSystem)
+    self.lighting = Lighting
+    self.atmosphere = nil
+    self.sky = nil
+    
+    self:setupAtmosphere()
+    self:setupSky()
+    
+    return self
+end
+
+function AtmosphereSystem:setupAtmosphere()
+    -- Create or get existing atmosphere
+    self.atmosphere = self.lighting:FindFirstChild("Atmosphere")
+    if not self.atmosphere then
+        self.atmosphere = Instance.new("Atmosphere")
+        self.atmosphere.Parent = self.lighting
+    end
+    
+    -- Set default atmosphere
+    self.atmosphere.Density = 0.3
+    self.atmosphere.Offset = 0.25
+    self.atmosphere.Color = Color3.fromRGB(199, 199, 199)
+    self.atmosphere.Decay = Color3.fromRGB(92, 60, 13)
+    self.atmosphere.Glare = 0
+    self.atmosphere.Haze = 0
+    
+    print("Atmosphere setup complete")
+end
+
+function AtmosphereSystem:setupSky()
+    -- Create or get existing sky
+    self.sky = self.lighting:FindFirstChild("Sky")
+    if not self.sky then
+        self.sky = Instance.new("Sky")
+        self.sky.Parent = self.lighting
+    end
+    
+    -- Set default sky
+    self.sky.CelestialBodiesShown = true
+    self.sky.MoonAngularSize = 11
+    self.sky.MoonSize = 11
+    self.sky.StarCount = 100
+    self.sky.SunAngularSize = 21
+    self.sky.SunSize = 21
+    
+    print("Sky setup complete")
+end
+
+function AtmosphereSystem:setAtmospherePreset(presetName)
+    local presets = {
+        clear = {
+            density = 0.1,
+            offset = 0.25,
+            color = Color3.fromRGB(199, 199, 199),
+            decay = Color3.fromRGB(92, 60, 13),
+            glare = 0,
+            haze = 0
+        },
+        hazy = {
+            density = 0.5,
+            offset = 0.3,
+            color = Color3.fromRGB(150, 150, 150),
+            decay = Color3.fromRGB(100, 80, 50),
+            glare = 0.2,
+            haze = 0.3
+        },
+        foggy = {
+            density = 0.8,
+            offset = 0.1,
+            color = Color3.fromRGB(200, 200, 200),
+            decay = Color3.fromRGB(150, 150, 150),
+            glare = 0.1,
+            haze = 0.8
+        },
+        stormy = {
+            density = 0.6,
+            offset = 0.2,
+            color = Color3.fromRGB(100, 100, 120),
+            decay = Color3.fromRGB(50, 50, 70),
+            glare = 0.3,
+            haze = 0.5
+        }
+    }
+    
+    local preset = presets[presetName]
+    if preset then
+        self:transitionAtmosphere(preset)
+        print("Atmosphere preset changed to:", presetName)
+    end
+end
+
+function AtmosphereSystem:transitionAtmosphere(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    local atmosphereTween = TweenService:Create(self.atmosphere, tweenInfo, {
+        Density = preset.density,
+        Offset = preset.offset,
+        Color = preset.color,
+        Decay = preset.decay,
+        Glare = preset.glare,
+        Haze = preset.haze
+    })
+    
+    atmosphereTween:Play()
+end
+
+function AtmosphereSystem:setSkyPreset(presetName)
+    local presets = {
+        day = {
+            celestialBodiesShown = true,
+            moonAngularSize = 0,
+            moonSize = 0,
+            starCount = 0,
+            sunAngularSize = 21,
+            sunSize = 21
+        },
+        night = {
+            celestialBodiesShown = true,
+            moonAngularSize = 11,
+            moonSize = 11,
+            starCount = 100,
+            sunAngularSize = 0,
+            sunSize = 0
+        },
+        dusk = {
+            celestialBodiesShown = true,
+            moonAngularSize = 8,
+            moonSize = 8,
+            starCount = 50,
+            sunAngularSize = 15,
+            sunSize = 15
+        }
+    }
+    
+    local preset = presets[presetName]
+    if preset then
+        self:transitionSky(preset)
+        print("Sky preset changed to:", presetName)
+    end
+end
+
+function AtmosphereSystem:transitionSky(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    local skyTween = TweenService:Create(self.sky, tweenInfo, {
+        CelestialBodiesShown = preset.celestialBodiesShown,
+        MoonAngularSize = preset.moonAngularSize,
+        MoonSize = preset.moonSize,
+        StarCount = preset.starCount,
+        SunAngularSize = preset.sunAngularSize,
+        SunSize = preset.sunSize
+    })
+    
+    skyTween:Play()
+end
+
+function AtmosphereSystem:createWeatherEffect(weatherType, duration)
+    duration = duration or 10
+    
+    print("Weather effect started:", weatherType)
+    
+    if weatherType == "rain" then
+        self:setAtmospherePreset("stormy")
+        self:setSkyPreset("dusk")
+        
+        -- Create rain effect (simplified)
+        local rain = Instance.new("Part")
+        rain.Name = "RainEffect"
+        rain.Size = Vector3.new(1000, 1000, 1000)
+        rain.Transparency = 0.8
+        rain.Color = Color3.fromRGB(100, 150, 255)
+        rain.Material = Enum.Material.ForceField
+        rain.Parent = workspace
+        
+        wait(duration)
+        rain:Destroy()
+        
+    elseif weatherType == "fog" then
+        self:setAtmospherePreset("foggy")
+        self:setSkyPreset("dusk")
+        
+        wait(duration)
+        
+    elseif weatherType == "clear" then
+        self:setAtmospherePreset("clear")
+        self:setSkyPreset("day")
+        
+        wait(duration)
+    end
+    
+    print("Weather effect ended:", weatherType)
+end
+
+-- Example usage
+local atmosphereSystem = AtmosphereSystem.new()
+
+-- Test atmosphere presets
+atmosphereSystem:setAtmospherePreset("clear")
+wait(3)
+atmosphereSystem:setAtmospherePreset("hazy")
+wait(3)
+atmosphereSystem:setAtmospherePreset("foggy")
+wait(3)
+atmosphereSystem:setAtmospherePreset("stormy")
+
+-- Test sky presets
+atmosphereSystem:setSkyPreset("day")
+wait(3)
+atmosphereSystem:setSkyPreset("dusk")
+wait(3)
+atmosphereSystem:setSkyPreset("night")
+
+-- Test weather effects
+atmosphereSystem:createWeatherEffect("rain", 5)
+wait(6)
+atmosphereSystem:createWeatherEffect("fog", 5)
+wait(6)
+atmosphereSystem:createWeatherEffect("clear", 5)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Lighting & Environment Basics - Comprehensive Learning Example
+-- Master lighting systems and environmental effects in Roblox
+
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+print("=== LIGHTING & ENVIRONMENT BASICS DEMO ===")
+print("Learning lighting systems and environmental effects...")
+
+-- 1. BASIC LIGHTING SETUP
+print("\\n1. DEMONSTRATING BASIC LIGHTING...")
+
+local function setupBasicLighting()
+    -- Basic lighting configuration
+    Lighting.Ambient = Color3.fromRGB(100, 100, 100)  -- Soft ambient lighting
+    Lighting.Brightness = 2  -- Bright overall lighting
+    Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)  -- No bottom tint
+    Lighting.ColorShift_Top = Color3.fromRGB(0, 0, 0)  -- No top tint
+    Lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)  -- Outdoor lighting
+    Lighting.ShadowSoftness = 0.2  -- Soft shadows
+    
+    -- Set sun direction for noon
+    Lighting:SetSunDirection(Vector3.new(0, 1, 0))
+    
+    print("Basic lighting setup complete!")
+    print("Ambient lighting:", Lighting.Ambient)
+    print("Brightness:", Lighting.Brightness)
+    print("Shadow softness:", Lighting.ShadowSoftness)
+end
+
+-- 2. DYNAMIC LIGHTING SYSTEM
+print("\\n2. DEMONSTRATING DYNAMIC LIGHTING...")
+
+local DynamicLighting = {}
+DynamicLighting.__index = DynamicLighting
+
+function DynamicLighting.new()
+    local self = setmetatable({}, DynamicLighting)
+    self.lighting = Lighting
+    self.currentTime = 12  -- 12 PM
+    self.timeSpeed = 1  -- Real-time speed
+    self.isDay = true
+    self.weather = "clear"
+    
+    -- Lighting presets
+    self.presets = {
+        dawn = {
+            ambient = Color3.fromRGB(150, 100, 50),
+            brightness = 1.5,
+            outdoorAmbient = Color3.fromRGB(200, 150, 100),
+            sunDirection = Vector3.new(0.5, 0.8, 0.3)
+        },
+        noon = {
+            ambient = Color3.fromRGB(100, 100, 100),
+            brightness = 2,
+            outdoorAmbient = Color3.fromRGB(255, 255, 255),
+            sunDirection = Vector3.new(0, 1, 0)
+        },
+        dusk = {
+            ambient = Color3.fromRGB(100, 50, 150),
+            brightness = 1.2,
+            outdoorAmbient = Color3.fromRGB(150, 100, 200),
+            sunDirection = Vector3.new(-0.5, 0.8, 0.3)
+        },
+        night = {
+            ambient = Color3.fromRGB(20, 20, 40),
+            brightness = 0.3,
+            outdoorAmbient = Color3.fromRGB(50, 50, 100),
+            sunDirection = Vector3.new(0, -1, 0)
+        }
+    }
+    
+    return self
+end
+
+function DynamicLighting:setTime(hour)
+    self.currentTime = hour
+    self:updateLighting()
+    print("Time set to:", hour, "o'clock")
+end
+
+function DynamicLighting:setTimeSpeed(speed)
+    self.timeSpeed = speed
+    print("Time speed set to:", speed)
+end
+
+function DynamicLighting:setWeather(weatherType)
+    self.weather = weatherType
+    self:updateLighting()
+    print("Weather changed to:", weatherType)
+end
+
+function DynamicLighting:updateLighting()
+    local preset
+    
+    -- Determine lighting preset based on time
+    if self.currentTime >= 6 and self.currentTime < 12 then
+        preset = self.presets.dawn
+        self.isDay = true
+    elseif self.currentTime >= 12 and self.currentTime < 18 then
+        preset = self.presets.noon
+        self.isDay = true
+    elseif self.currentTime >= 18 and self.currentTime < 22 then
+        preset = self.presets.dusk
+        self.isDay = false
+    else
+        preset = self.presets.night
+        self.isDay = false
+    end
+    
+    -- Apply weather modifications
+    if self.weather == "rainy" then
+        preset.ambient = Color3.fromRGB(preset.ambient.R * 0.7, preset.ambient.G * 0.7, preset.ambient.B * 0.8)
+        preset.brightness = preset.brightness * 0.6
+    elseif self.weather == "foggy" then
+        preset.ambient = Color3.fromRGB(preset.ambient.R * 0.8, preset.ambient.G * 0.8, preset.ambient.B * 0.9)
+        preset.brightness = preset.brightness * 0.7
+    end
+    
+    -- Apply lighting with smooth transition
+    self:transitionToPreset(preset)
+end
+
+function DynamicLighting:transitionToPreset(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    -- Tween ambient lighting
+    local ambientTween = TweenService:Create(self.lighting, tweenInfo, {
+        Ambient = preset.ambient
+    })
+    
+    -- Tween brightness
+    local brightnessTween = TweenService:Create(self.lighting, tweenInfo, {
+        Brightness = preset.brightness
+    })
+    
+    -- Tween outdoor ambient
+    local outdoorTween = TweenService:Create(self.lighting, tweenInfo, {
+        OutdoorAmbient = preset.outdoorAmbient
+    })
+    
+    -- Start tweens
+    ambientTween:Play()
+    brightnessTween:Play()
+    outdoorTween:Play()
+    
+    -- Set sun direction
+    self.lighting:SetSunDirection(preset.sunDirection)
+end
+
+function DynamicLighting:startTimeCycle()
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        self.currentTime = self.currentTime + (deltaTime * self.timeSpeed / 3600)  -- Convert to hours
+        
+        if self.currentTime >= 24 then
+            self.currentTime = 0
+        end
+        
+        self:updateLighting()
+    end)
+    
+    print("Time cycle started")
+    return connection
+end
+
+function DynamicLighting:createLightingEvent(eventName, duration, lightingChanges)
+    duration = duration or 5
+    
+    print("Lighting event started:", eventName)
+    
+    -- Store original lighting
+    local originalAmbient = self.lighting.Ambient
+    local originalBrightness = self.lighting.Brightness
+    local originalOutdoor = self.lighting.OutdoorAmbient
+    
+    -- Apply event lighting
+    if lightingChanges.ambient then
+        self.lighting.Ambient = lightingChanges.ambient
+    end
+    if lightingChanges.brightness then
+        self.lighting.Brightness = lightingChanges.brightness
+    end
+    if lightingChanges.outdoorAmbient then
+        self.lighting.OutdoorAmbient = lightingChanges.outdoorAmbient
+    end
+    
+    -- Wait for duration
+    wait(duration)
+    
+    -- Restore original lighting
+    self.lighting.Ambient = originalAmbient
+    self.lighting.Brightness = originalBrightness
+    self.lighting.OutdoorAmbient = originalOutdoor
+    
+    print("Lighting event ended:", eventName)
+end
+
+-- 3. ATMOSPHERE & SKY EFFECTS SYSTEM
+print("\\n3. DEMONSTRATING ATMOSPHERE & SKY EFFECTS...")
+
+local AtmosphereSystem = {}
+AtmosphereSystem.__index = AtmosphereSystem
+
+function AtmosphereSystem.new()
+    local self = setmetatable({}, AtmosphereSystem)
+    self.lighting = Lighting
+    self.atmosphere = nil
+    self.sky = nil
+    
+    self:setupAtmosphere()
+    self:setupSky()
+    
+    return self
+end
+
+function AtmosphereSystem:setupAtmosphere()
+    -- Create or get existing atmosphere
+    self.atmosphere = self.lighting:FindFirstChild("Atmosphere")
+    if not self.atmosphere then
+        self.atmosphere = Instance.new("Atmosphere")
+        self.atmosphere.Parent = self.lighting
+    end
+    
+    -- Set default atmosphere
+    self.atmosphere.Density = 0.3
+    self.atmosphere.Offset = 0.25
+    self.atmosphere.Color = Color3.fromRGB(199, 199, 199)
+    self.atmosphere.Decay = Color3.fromRGB(92, 60, 13)
+    self.atmosphere.Glare = 0
+    self.atmosphere.Haze = 0
+    
+    print("Atmosphere setup complete")
+end
+
+function AtmosphereSystem:setupSky()
+    -- Create or get existing sky
+    self.sky = self.lighting:FindFirstChild("Sky")
+    if not self.sky then
+        self.sky = Instance.new("Sky")
+        self.sky.Parent = self.lighting
+    end
+    
+    -- Set default sky
+    self.sky.CelestialBodiesShown = true
+    self.sky.MoonAngularSize = 11
+    self.sky.MoonSize = 11
+    self.sky.StarCount = 100
+    self.sky.SunAngularSize = 21
+    self.sky.SunSize = 21
+    
+    print("Sky setup complete")
+end
+
+function AtmosphereSystem:setAtmospherePreset(presetName)
+    local presets = {
+        clear = {
+            density = 0.1,
+            offset = 0.25,
+            color = Color3.fromRGB(199, 199, 199),
+            decay = Color3.fromRGB(92, 60, 13),
+            glare = 0,
+            haze = 0
+        },
+        hazy = {
+            density = 0.5,
+            offset = 0.3,
+            color = Color3.fromRGB(150, 150, 150),
+            decay = Color3.fromRGB(100, 80, 50),
+            glare = 0.2,
+            haze = 0.3
+        },
+        foggy = {
+            density = 0.8,
+            offset = 0.1,
+            color = Color3.fromRGB(200, 200, 200),
+            decay = Color3.fromRGB(150, 150, 150),
+            glare = 0.1,
+            haze = 0.8
+        },
+        stormy = {
+            density = 0.6,
+            offset = 0.2,
+            color = Color3.fromRGB(100, 100, 120),
+            decay = Color3.fromRGB(50, 50, 70),
+            glare = 0.3,
+            haze = 0.5
+        }
+    }
+    
+    local preset = presets[presetName]
+    if preset then
+        self:transitionAtmosphere(preset)
+        print("Atmosphere preset changed to:", presetName)
+    end
+end
+
+function AtmosphereSystem:transitionAtmosphere(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    local atmosphereTween = TweenService:Create(self.atmosphere, tweenInfo, {
+        Density = preset.density,
+        Offset = preset.offset,
+        Color = preset.color,
+        Decay = preset.decay,
+        Glare = preset.glare,
+        Haze = preset.haze
+    })
+    
+    atmosphereTween:Play()
+end
+
+function AtmosphereSystem:setSkyPreset(presetName)
+    local presets = {
+        day = {
+            celestialBodiesShown = true,
+            moonAngularSize = 0,
+            moonSize = 0,
+            starCount = 0,
+            sunAngularSize = 21,
+            sunSize = 21
+        },
+        night = {
+            celestialBodiesShown = true,
+            moonAngularSize = 11,
+            moonSize = 11,
+            starCount = 100,
+            sunAngularSize = 0,
+            sunSize = 0
+        },
+        dusk = {
+            celestialBodiesShown = true,
+            moonAngularSize = 8,
+            moonSize = 8,
+            starCount = 50,
+            sunAngularSize = 15,
+            sunSize = 15
+        }
+    }
+    
+    local preset = presets[presetName]
+    if preset then
+        self:transitionSky(preset)
+        print("Sky preset changed to:", presetName)
+    end
+end
+
+function AtmosphereSystem:transitionSky(preset, duration)
+    duration = duration or 2
+    
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    
+    local skyTween = TweenService:Create(self.sky, tweenInfo, {
+        CelestialBodiesShown = preset.celestialBodiesShown,
+        MoonAngularSize = preset.moonAngularSize,
+        MoonSize = preset.moonSize,
+        StarCount = preset.starCount,
+        SunAngularSize = preset.sunAngularSize,
+        SunSize = preset.sunSize
+    })
+    
+    skyTween:Play()
+end
+
+function AtmosphereSystem:createWeatherEffect(weatherType, duration)
+    duration = duration or 10
+    
+    print("Weather effect started:", weatherType)
+    
+    if weatherType == "rain" then
+        self:setAtmospherePreset("stormy")
+        self:setSkyPreset("dusk")
+        
+        -- Create rain effect (simplified)
+        local rain = Instance.new("Part")
+        rain.Name = "RainEffect"
+        rain.Size = Vector3.new(1000, 1000, 1000)
+        rain.Transparency = 0.8
+        rain.Color = Color3.fromRGB(100, 150, 255)
+        rain.Material = Enum.Material.ForceField
+        rain.Parent = workspace
+        
+        wait(duration)
+        rain:Destroy()
+        
+    elseif weatherType == "fog" then
+        self:setAtmospherePreset("foggy")
+        self:setSkyPreset("dusk")
+        
+        wait(duration)
+        
+    elseif weatherType == "clear" then
+        self:setAtmospherePreset("clear")
+        self:setSkyPreset("day")
+        
+        wait(duration)
+    end
+    
+    print("Weather effect ended:", weatherType)
+end
+
+-- 4. DEMO THE LIGHTING SYSTEMS
+print("\\n4. RUNNING LIGHTING SYSTEM DEMONSTRATIONS...")
+
+-- Setup basic lighting
+setupBasicLighting()
+
+-- Create dynamic lighting system
+local dynamicLighting = DynamicLighting.new()
+
+-- Create atmosphere system
+local atmosphereSystem = AtmosphereSystem.new()
+
+-- Test time changes
+wait(1)
+print("\\n--- Testing Time Changes ---")
+dynamicLighting:setTime(6)  -- Dawn
+wait(3)
+dynamicLighting:setTime(12)  -- Noon
+wait(3)
+dynamicLighting:setTime(18)  -- Dusk
+wait(3)
+dynamicLighting:setTime(0)  -- Night
+
+-- Test weather
+wait(1)
+print("\\n--- Testing Weather ---")
+dynamicLighting:setWeather("rainy")
+wait(3)
+dynamicLighting:setWeather("foggy")
+wait(3)
+dynamicLighting:setWeather("clear")
+
+-- Test lighting event
+wait(1)
+print("\\n--- Testing Lighting Events ---")
+dynamicLighting:createLightingEvent("Flash", 1, {
+    brightness = 5,
+    ambient = Color3.fromRGB(255, 255, 255)
+})
+
+-- Test atmosphere presets
+wait(1)
+print("\\n--- Testing Atmosphere Presets ---")
+atmosphereSystem:setAtmospherePreset("clear")
+wait(3)
+atmosphereSystem:setAtmospherePreset("hazy")
+wait(3)
+atmosphereSystem:setAtmospherePreset("foggy")
+wait(3)
+atmosphereSystem:setAtmospherePreset("stormy")
+
+-- Test sky presets
+wait(1)
+print("\\n--- Testing Sky Presets ---")
+atmosphereSystem:setSkyPreset("day")
+wait(3)
+atmosphereSystem:setSkyPreset("dusk")
+wait(3)
+atmosphereSystem:setSkyPreset("night")
+
+-- Test weather effects
+wait(1)
+print("\\n--- Testing Weather Effects ---")
+atmosphereSystem:createWeatherEffect("rain", 5)
+wait(6)
+atmosphereSystem:createWeatherEffect("fog", 5)
+wait(6)
+atmosphereSystem:createWeatherEffect("clear", 5)
+
+-- Start time cycle
+wait(1)
+print("\\n--- Starting Time Cycle ---")
+local timeConnection = dynamicLighting:startTimeCycle()
+
+print("\\n=== LIGHTING & ENVIRONMENT BASICS DEMO COMPLETE ===")
+print("You've learned lighting systems and environmental effects!")`,
+    challenge: {
+      tests: [
+        { description: 'Set lighting properties like Ambient and Brightness', type: 'code_contains', value: 'Ambient' },
+        { description: 'Use TweenService to create smooth lighting transitions', type: 'code_contains', value: 'TweenService' },
+        { description: 'Create Atmosphere and Sky objects', type: 'code_contains', value: 'Atmosphere' }
+      ],
+      hints: [
+        'Use Lighting.Ambient and Lighting.Brightness to control global lighting',
+        'Use TweenService:Create() to animate lighting properties smoothly',
+        'Use Instance.new("Atmosphere") and Instance.new("Sky") for environmental effects',
+        'Use Lighting:SetSunDirection() to control sun position',
+        'Use RunService.Heartbeat to create dynamic lighting cycles'
+      ],
+      successMessage: 'Excellent! You now understand lighting and environmental systems. These skills are essential for creating immersive game atmospheres!'
+    }
+  },
+
+  'post-processing-effects': {
+    title: 'Post-Processing Effects',
+    description: 'Create stunning visual effects using post-processing techniques and advanced lighting',
+    sections: [
+      {
+        title: 'Understanding Post-Processing',
+        content: `Post-processing effects enhance your game's visual quality by applying effects after the initial rendering. These effects can dramatically improve the look and feel of your game.
+
+**Post-Processing Effects:**
+- **Bloom**: Bright areas glow and bleed into surrounding areas
+- **Blur**: Motion blur and depth of field effects
+- **Color Correction**: Adjust colors, contrast, and saturation
+- **Distortion**: Screen distortion and warping effects
+- **Film Grain**: Add film-like texture to the image
+
+**Post-Processing Properties:**
+- **Enabled**: Whether the effect is active
+- **Intensity**: Strength of the effect (0-1)
+- **Size**: Size/scale of the effect
+- **Threshold**: Minimum brightness for effect to apply`,
+        codeExample: `-- Basic post-processing setup
+
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+
+-- Create Bloom effect
+local bloom = Instance.new("BloomEffect")
+bloom.Parent = Lighting
+bloom.Enabled = true
+bloom.Intensity = 0.5
+bloom.Size = 24
+bloom.Threshold = 0.8
+
+-- Create Blur effect
+local blur = Instance.new("BlurEffect")
+blur.Parent = Lighting
+bloom.Enabled = true
+blur.Size = 2
+
+-- Create Color Correction
+local colorCorrection = Instance.new("ColorCorrectionEffect")
+colorCorrection.Parent = Lighting
+colorCorrection.Enabled = true
+colorCorrection.Brightness = 0.1
+colorCorrection.Contrast = 0.1
+colorCorrection.Saturation = 0.1
+colorCorrection.TintColor = Color3.fromRGB(255, 255, 255)
+
+print("Post-processing effects setup complete!")`,
+        color: 'blue'
+      },
+      {
+        title: 'Advanced Visual Effects',
+        content: `Create sophisticated visual effects that respond to game events and create cinematic experiences.
+
+**Advanced Effects:**
+- **Screen Shake**: Camera shake effects
+- **Flash Effects**: Screen flash for impacts
+- **Fade Effects**: Screen fade in/out
+- **Distortion Effects**: Screen warping and distortion
+- **Particle Integration**: Combine with particle systems
+
+**Effect Management:**
+- **Effect Layering**: Multiple effects working together
+- **Effect Timing**: Synchronized effect sequences
+- **Performance Optimization**: Efficient effect rendering
+- **Dynamic Effects**: Effects that change based on game state`,
+        codeExample: `-- Advanced visual effects system
+
+local AdvancedEffects = {}
+AdvancedEffects.__index = AdvancedEffects
+
+function AdvancedEffects.new()
+    local self = setmetatable({}, AdvancedEffects)
+    self.lighting = game:GetService("Lighting")
+    self.tweenService = game:GetService("TweenService")
+    self.runService = game:GetService("RunService")
+    
+    -- Effect storage
+    self.effects = {}
+    self.activeEffects = {}
+    
+    self:setupEffects()
+    
+    return self
+end
+
+function AdvancedEffects:setupEffects()
+    -- Create all post-processing effects
+    self.effects.bloom = self:createEffect("BloomEffect", {
+        intensity = 0.5,
+        size = 24,
+        threshold = 0.8
+    })
+    
+    self.effects.blur = self:createEffect("BlurEffect", {
+        size = 2
+    })
+    
+    self.effects.colorCorrection = self:createEffect("ColorCorrectionEffect", {
+        brightness = 0,
+        contrast = 0,
+        saturation = 0,
+        tintColor = Color3.fromRGB(255, 255, 255)
+    })
+    
+    self.effects.distortion = self:createEffect("DistortionEffect", {
+        intensity = 0.1
+    })
+    
+    self.effects.filmGrain = self:createEffect("FilmGrainEffect", {
+        intensity = 0.1
+    })
+    
+    print("Advanced effects setup complete")
+end
+
+function AdvancedEffects:createEffect(effectType, properties)
+    local effect = Instance.new(effectType)
+    effect.Parent = self.lighting
+    effect.Enabled = false
+    
+    -- Apply properties
+    for property, value in pairs(properties) do
+        effect[property] = value
+    end
+    
+    return effect
+end
+
+function AdvancedEffects:enableEffect(effectName, duration)
+    local effect = self.effects[effectName]
+    if effect then
+        effect.Enabled = true
+        self.activeEffects[effectName] = effect
+        
+        if duration then
+            wait(duration)
+            effect.Enabled = false
+            self.activeEffects[effectName] = nil
+        end
+        
+        print("Effect enabled:", effectName)
+    end
+end
+
+function AdvancedEffects:disableEffect(effectName)
+    local effect = self.effects[effectName]
+    if effect then
+        effect.Enabled = false
+        self.activeEffects[effectName] = nil
+        print("Effect disabled:", effectName)
+    end
+end
+
+function AdvancedEffects:animateEffect(effectName, targetProperties, duration)
+    local effect = self.effects[effectName]
+    if effect then
+        duration = duration or 1
+        
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = self.tweenService:Create(effect, tweenInfo, targetProperties)
+        
+        tween:Play()
+        print("Effect animated:", effectName)
+    end
+end
+
+function AdvancedEffects:createScreenShake(intensity, duration, frequency)
+    intensity = intensity or 5
+    duration = duration or 1
+    frequency = frequency or 10
+    
+    print("Screen shake started - intensity:", intensity, "duration:", duration)
+    
+    local camera = workspace.CurrentCamera
+    local originalCFrame = camera.CFrame
+    local shakeTimer = 0
+    
+    local connection
+    connection = self.runService.Heartbeat:Connect(function(deltaTime)
+        shakeTimer = shakeTimer + deltaTime
+        
+        if shakeTimer >= duration then
+            camera.CFrame = originalCFrame
+            connection:Disconnect()
+            print("Screen shake ended")
+            return
+        end
+        
+        local shakeX = (math.random() - 0.5) * intensity
+        local shakeY = (math.random() - 0.5) * intensity
+        local shakeZ = (math.random() - 0.5) * intensity
+        
+        local shakeOffset = Vector3.new(shakeX, shakeY, shakeZ)
+        camera.CFrame = originalCFrame + shakeOffset
+    end)
+    
+    return connection
+end
+
+function AdvancedEffects:createFlashEffect(color, intensity, duration)
+    color = color or Color3.fromRGB(255, 255, 255)
+    intensity = intensity or 1
+    duration = duration or 0.5
+    
+    print("Flash effect started")
+    
+    -- Create flash effect using color correction
+    self.effects.colorCorrection.Enabled = true
+    self.effects.colorCorrection.Brightness = intensity
+    self.effects.colorCorrection.TintColor = color
+    
+    -- Fade out
+    self:animateEffect("colorCorrection", {
+        Brightness = 0,
+        TintColor = Color3.fromRGB(255, 255, 255)
+    }, duration)
+    
+    wait(duration)
+    self.effects.colorCorrection.Enabled = false
+    
+    print("Flash effect ended")
+end
+
+function AdvancedEffects:createFadeEffect(fadeType, duration, color)
+    fadeType = fadeType or "in"  -- "in" or "out"
+    duration = duration or 2
+    color = color or Color3.fromRGB(0, 0, 0)
+    
+    print("Fade effect started:", fadeType)
+    
+    -- Create fade effect using color correction
+    self.effects.colorCorrection.Enabled = true
+    
+    if fadeType == "in" then
+        self.effects.colorCorrection.Brightness = -1
+        self.effects.colorCorrection.TintColor = color
+        
+        self:animateEffect("colorCorrection", {
+            Brightness = 0,
+            TintColor = Color3.fromRGB(255, 255, 255)
+        }, duration)
+    else
+        self.effects.colorCorrection.Brightness = 0
+        self.effects.colorCorrection.TintColor = Color3.fromRGB(255, 255, 255)
+        
+        self:animateEffect("colorCorrection", {
+            Brightness = -1,
+            TintColor = color
+        }, duration)
+    end
+    
+    wait(duration)
+    
+    if fadeType == "out" then
+        self.effects.colorCorrection.Enabled = false
+    end
+    
+    print("Fade effect ended:", fadeType)
+end
+
+function AdvancedEffects:createDistortionEffect(intensity, duration)
+    intensity = intensity or 0.5
+    duration = duration or 2
+    
+    print("Distortion effect started")
+    
+    self.effects.distortion.Enabled = true
+    self.effects.distortion.Intensity = intensity
+    
+    wait(duration)
+    
+    self:animateEffect("distortion", {
+        Intensity = 0
+    }, 0.5)
+    
+    wait(0.5)
+    self.effects.distortion.Enabled = false
+    
+    print("Distortion effect ended")
+end
+
+function AdvancedEffects:createCinematicSequence()
+    print("Cinematic sequence started")
+    
+    -- Fade in
+    self:createFadeEffect("in", 2)
+    
+    wait(2)
+    
+    -- Add bloom and film grain
+    self:enableEffect("bloom")
+    self:enableEffect("filmGrain")
+    
+    wait(3)
+    
+    -- Screen shake
+    self:createScreenShake(3, 1, 15)
+    
+    wait(1)
+    
+    -- Flash effect
+    self:createFlashEffect(Color3.fromRGB(255, 0, 0), 2, 0.3)
+    
+    wait(1)
+    
+    -- Distortion
+    self:createDistortionEffect(0.8, 2)
+    
+    wait(2)
+    
+    -- Fade out
+    self:createFadeEffect("out", 2)
+    
+    print("Cinematic sequence ended")
+end
+
+-- Example usage
+local advancedEffects = AdvancedEffects.new()
+
+-- Test individual effects
+advancedEffects:enableEffect("bloom", 3)
+wait(4)
+advancedEffects:enableEffect("blur", 3)
+wait(4)
+advancedEffects:enableEffect("filmGrain", 3)
+
+-- Test screen shake
+wait(1)
+advancedEffects:createScreenShake(5, 2, 20)
+
+-- Test flash effect
+wait(3)
+advancedEffects:createFlashEffect(Color3.fromRGB(255, 255, 0), 1.5, 0.5)
+
+-- Test fade effects
+wait(2)
+advancedEffects:createFadeEffect("out", 2)
+wait(2)
+advancedEffects:createFadeEffect("in", 2)
+
+-- Test distortion
+wait(2)
+advancedEffects:createDistortionEffect(0.6, 3)
+
+-- Test cinematic sequence
+wait(3)
+advancedEffects:createCinematicSequence()`,
+        color: 'green'
+      },
+      {
+        title: 'Performance & Optimization',
+        content: `Optimize post-processing effects for better performance while maintaining visual quality.
+
+**Performance Considerations:**
+- **Effect Layering**: Limit number of active effects
+- **Quality Settings**: Adjust effect quality based on device
+- **Dynamic Loading**: Enable/disable effects as needed
+- **Memory Management**: Clean up unused effects
+- **Frame Rate Impact**: Monitor performance impact
+
+**Optimization Techniques:**
+- **LOD Effects**: Different quality levels for different distances
+- **Conditional Effects**: Only apply effects when needed
+- **Effect Pooling**: Reuse effect objects
+- **Batch Updates**: Update multiple effects together`,
+        codeExample: `-- Performance-optimized effects system
+
+local OptimizedEffects = {}
+OptimizedEffects.__index = OptimizedEffects
+
+function OptimizedEffects.new()
+    local self = setmetatable({}, OptimizedEffects)
+    self.lighting = game:GetService("Lighting")
+    self.tweenService = game:GetService("TweenService")
+    self.runService = game:GetService("RunService")
+    self.userInputService = game:GetService("UserInputService")
+    
+    -- Performance settings
+    self.qualityLevel = "high"  -- "low", "medium", "high"
+    self.maxActiveEffects = 3
+    self.activeEffects = {}
+    self.effectPool = {}
+    
+    -- Performance monitoring
+    self.frameRate = 60
+    self.lastFrameTime = tick()
+    
+    self:setupPerformanceMonitoring()
+    self:setupEffectPool()
+    
+    return self
+end
+
+function OptimizedEffects:setupPerformanceMonitoring()
+    self.runService.Heartbeat:Connect(function()
+        local currentTime = tick()
+        local deltaTime = currentTime - self.lastFrameTime
+        self.frameRate = 1 / deltaTime
+        self.lastFrameTime = currentTime
+        
+        -- Adjust quality based on performance
+        if self.frameRate < 30 then
+            self.qualityLevel = "low"
+        elseif self.frameRate < 45 then
+            self.qualityLevel = "medium"
+        else
+            self.qualityLevel = "high"
+        end
+    end)
+end
+
+function OptimizedEffects:setupEffectPool()
+    -- Create effect pool for reuse
+    local effectTypes = {"BloomEffect", "BlurEffect", "ColorCorrectionEffect", "DistortionEffect"}
+    
+    for _, effectType in ipairs(effectTypes) do
+        self.effectPool[effectType] = {}
+        
+        -- Pre-create some effects
+        for i = 1, 2 do
+            local effect = Instance.new(effectType)
+            effect.Parent = self.lighting
+            effect.Enabled = false
+            table.insert(self.effectPool[effectType], effect)
+        end
+    end
+end
+
+function OptimizedEffects:getEffect(effectType)
+    local pool = self.effectPool[effectType]
+    if pool and #pool > 0 then
+        return table.remove(pool)
+    else
+        -- Create new effect if pool is empty
+        local effect = Instance.new(effectType)
+        effect.Parent = self.lighting
+        effect.Enabled = false
+        return effect
+    end
+end
+
+function OptimizedEffects:returnEffect(effect)
+    local effectType = effect.ClassName
+    local pool = self.effectPool[effectType]
+    
+    if pool then
+        effect.Enabled = false
+        table.insert(pool, effect)
+    else
+        effect:Destroy()
+    end
+end
+
+function OptimizedEffects:canAddEffect()
+    return #self.activeEffects < self.maxActiveEffects
+end
+
+function OptimizedEffects:addEffect(effectType, properties, duration)
+    if not self:canAddEffect() then
+        warn("Maximum active effects reached!")
+        return nil
+    end
+    
+    local effect = self:getEffect(effectType)
+    
+    -- Apply properties based on quality level
+    if self.qualityLevel == "low" then
+        properties = self:reduceEffectQuality(properties)
+    elseif self.qualityLevel == "medium" then
+        properties = self:reduceEffectQuality(properties, 0.5)
+    end
+    
+    -- Apply properties
+    for property, value in pairs(properties) do
+        effect[property] = value
+    end
+    
+    effect.Enabled = true
+    table.insert(self.activeEffects, effect)
+    
+    if duration then
+        wait(duration)
+        self:removeEffect(effect)
+    end
+    
+    print("Effect added:", effectType, "Quality:", self.qualityLevel)
+    return effect
+end
+
+function OptimizedEffects:removeEffect(effect)
+    for i, activeEffect in ipairs(self.activeEffects) do
+        if activeEffect == effect then
+            table.remove(self.activeEffects, i)
+            self:returnEffect(effect)
+            print("Effect removed:", effect.ClassName)
+            break
+        end
+    end
+end
+
+function OptimizedEffects:reduceEffectQuality(properties, reduction)
+    reduction = reduction or 0.3
+    
+    local reducedProperties = {}
+    for property, value in pairs(properties) do
+        if type(value) == "number" then
+            reducedProperties[property] = value * (1 - reduction)
+        else
+            reducedProperties[property] = value
+        end
+    end
+    
+    return reducedProperties
+end
+
+function OptimizedEffects:clearAllEffects()
+    for _, effect in ipairs(self.activeEffects) do
+        self:returnEffect(effect)
+    end
+    self.activeEffects = {}
+    print("All effects cleared")
+end
+
+function OptimizedEffects:createOptimizedSequence(sequenceData)
+    print("Optimized sequence started")
+    
+    for _, step in ipairs(sequenceData) do
+        if self:canAddEffect() then
+            self:addEffect(step.effectType, step.properties, step.duration)
+        else
+            warn("Skipping effect due to performance limits:", step.effectType)
+        end
+        
+        wait(step.delay or 0.5)
+    end
+    
+    print("Optimized sequence ended")
+end
+
+function OptimizedEffects:getPerformanceInfo()
+    return {
+        frameRate = math.floor(self.frameRate),
+        qualityLevel = self.qualityLevel,
+        activeEffects = #self.activeEffects,
+        maxEffects = self.maxActiveEffects
+    }
+end
+
+-- Example usage
+local optimizedEffects = OptimizedEffects.new()
+
+-- Test performance monitoring
+wait(1)
+local perfInfo = optimizedEffects:getPerformanceInfo()
+print("Performance Info:", perfInfo.frameRate, "FPS, Quality:", perfInfo.qualityLevel)
+
+-- Test optimized effects
+local sequenceData = {
+    {
+        effectType = "BloomEffect",
+        properties = {Intensity = 0.5, Size = 24, Threshold = 0.8},
+        duration = 2,
+        delay = 0.5
+    },
+    {
+        effectType = "BlurEffect",
+        properties = {Size = 2},
+        duration = 2,
+        delay = 0.5
+    },
+    {
+        effectType = "ColorCorrectionEffect",
+        properties = {Brightness = 0.2, Contrast = 0.1},
+        duration = 2,
+        delay = 0.5
+    }
+}
+
+optimizedEffects:createOptimizedSequence(sequenceData)
+
+-- Test performance info again
+wait(1)
+perfInfo = optimizedEffects:getPerformanceInfo()
+print("Final Performance Info:", perfInfo.frameRate, "FPS, Quality:", perfInfo.qualityLevel)`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Post-Processing Effects - Comprehensive Learning Example
+-- Master post-processing effects and visual enhancement in Roblox
+
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+print("=== POST-PROCESSING EFFECTS DEMO ===")
+print("Learning post-processing effects and visual enhancement...")
+
+-- 1. BASIC POST-PROCESSING SETUP
+print("\\n1. DEMONSTRATING BASIC POST-PROCESSING...")
+
+local function setupBasicPostProcessing()
+    -- Create Bloom effect
+    local bloom = Instance.new("BloomEffect")
+    bloom.Parent = Lighting
+    bloom.Enabled = true
+    bloom.Intensity = 0.5
+    bloom.Size = 24
+    bloom.Threshold = 0.8
+    
+    -- Create Blur effect
+    local blur = Instance.new("BlurEffect")
+    blur.Parent = Lighting
+    blur.Enabled = true
+    blur.Size = 2
+    
+    -- Create Color Correction
+    local colorCorrection = Instance.new("ColorCorrectionEffect")
+    colorCorrection.Parent = Lighting
+    colorCorrection.Enabled = true
+    colorCorrection.Brightness = 0.1
+    colorCorrection.Contrast = 0.1
+    colorCorrection.Saturation = 0.1
+    colorCorrection.TintColor = Color3.fromRGB(255, 255, 255)
+    
+    print("Basic post-processing effects setup complete!")
+    print("Bloom intensity:", bloom.Intensity)
+    print("Blur size:", blur.Size)
+    print("Color correction brightness:", colorCorrection.Brightness)
+end
+
+-- 2. ADVANCED VISUAL EFFECTS SYSTEM
+print("\\n2. DEMONSTRATING ADVANCED VISUAL EFFECTS...")
+
+local AdvancedEffects = {}
+AdvancedEffects.__index = AdvancedEffects
+
+function AdvancedEffects.new()
+    local self = setmetatable({}, AdvancedEffects)
+    self.lighting = Lighting
+    self.tweenService = TweenService
+    self.runService = RunService
+    
+    -- Effect storage
+    self.effects = {}
+    self.activeEffects = {}
+    
+    self:setupEffects()
+    
+    return self
+end
+
+function AdvancedEffects:setupEffects()
+    -- Create all post-processing effects
+    self.effects.bloom = self:createEffect("BloomEffect", {
+        intensity = 0.5,
+        size = 24,
+        threshold = 0.8
+    })
+    
+    self.effects.blur = self:createEffect("BlurEffect", {
+        size = 2
+    })
+    
+    self.effects.colorCorrection = self:createEffect("ColorCorrectionEffect", {
+        brightness = 0,
+        contrast = 0,
+        saturation = 0,
+        tintColor = Color3.fromRGB(255, 255, 255)
+    })
+    
+    self.effects.distortion = self:createEffect("DistortionEffect", {
+        intensity = 0.1
+    })
+    
+    self.effects.filmGrain = self:createEffect("FilmGrainEffect", {
+        intensity = 0.1
+    })
+    
+    print("Advanced effects setup complete")
+end
+
+function AdvancedEffects:createEffect(effectType, properties)
+    local effect = Instance.new(effectType)
+    effect.Parent = self.lighting
+    effect.Enabled = false
+    
+    -- Apply properties
+    for property, value in pairs(properties) do
+        effect[property] = value
+    end
+    
+    return effect
+end
+
+function AdvancedEffects:enableEffect(effectName, duration)
+    local effect = self.effects[effectName]
+    if effect then
+        effect.Enabled = true
+        self.activeEffects[effectName] = effect
+        
+        if duration then
+            wait(duration)
+            effect.Enabled = false
+            self.activeEffects[effectName] = nil
+        end
+        
+        print("Effect enabled:", effectName)
+    end
+end
+
+function AdvancedEffects:disableEffect(effectName)
+    local effect = self.effects[effectName]
+    if effect then
+        effect.Enabled = false
+        self.activeEffects[effectName] = nil
+        print("Effect disabled:", effectName)
+    end
+end
+
+function AdvancedEffects:animateEffect(effectName, targetProperties, duration)
+    local effect = self.effects[effectName]
+    if effect then
+        duration = duration or 1
+        
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = self.tweenService:Create(effect, tweenInfo, targetProperties)
+        
+        tween:Play()
+        print("Effect animated:", effectName)
+    end
+end
+
+function AdvancedEffects:createScreenShake(intensity, duration, frequency)
+    intensity = intensity or 5
+    duration = duration or 1
+    frequency = frequency or 10
+    
+    print("Screen shake started - intensity:", intensity, "duration:", duration)
+    
+    local camera = workspace.CurrentCamera
+    local originalCFrame = camera.CFrame
+    local shakeTimer = 0
+    
+    local connection
+    connection = self.runService.Heartbeat:Connect(function(deltaTime)
+        shakeTimer = shakeTimer + deltaTime
+        
+        if shakeTimer >= duration then
+            camera.CFrame = originalCFrame
+            connection:Disconnect()
+            print("Screen shake ended")
+            return
+        end
+        
+        local shakeX = (math.random() - 0.5) * intensity
+        local shakeY = (math.random() - 0.5) * intensity
+        local shakeZ = (math.random() - 0.5) * intensity
+        
+        local shakeOffset = Vector3.new(shakeX, shakeY, shakeZ)
+        camera.CFrame = originalCFrame + shakeOffset
+    end)
+    
+    return connection
+end
+
+function AdvancedEffects:createFlashEffect(color, intensity, duration)
+    color = color or Color3.fromRGB(255, 255, 255)
+    intensity = intensity or 1
+    duration = duration or 0.5
+    
+    print("Flash effect started")
+    
+    -- Create flash effect using color correction
+    self.effects.colorCorrection.Enabled = true
+    self.effects.colorCorrection.Brightness = intensity
+    self.effects.colorCorrection.TintColor = color
+    
+    -- Fade out
+    self:animateEffect("colorCorrection", {
+        Brightness = 0,
+        TintColor = Color3.fromRGB(255, 255, 255)
+    }, duration)
+    
+    wait(duration)
+    self.effects.colorCorrection.Enabled = false
+    
+    print("Flash effect ended")
+end
+
+function AdvancedEffects:createFadeEffect(fadeType, duration, color)
+    fadeType = fadeType or "in"  -- "in" or "out"
+    duration = duration or 2
+    color = color or Color3.fromRGB(0, 0, 0)
+    
+    print("Fade effect started:", fadeType)
+    
+    -- Create fade effect using color correction
+    self.effects.colorCorrection.Enabled = true
+    
+    if fadeType == "in" then
+        self.effects.colorCorrection.Brightness = -1
+        self.effects.colorCorrection.TintColor = color
+        
+        self:animateEffect("colorCorrection", {
+            Brightness = 0,
+            TintColor = Color3.fromRGB(255, 255, 255)
+        }, duration)
+    else
+        self.effects.colorCorrection.Brightness = 0
+        self.effects.colorCorrection.TintColor = Color3.fromRGB(255, 255, 255)
+        
+        self:animateEffect("colorCorrection", {
+            Brightness = -1,
+            TintColor = color
+        }, duration)
+    end
+    
+    wait(duration)
+    
+    if fadeType == "out" then
+        self.effects.colorCorrection.Enabled = false
+    end
+    
+    print("Fade effect ended:", fadeType)
+end
+
+function AdvancedEffects:createDistortionEffect(intensity, duration)
+    intensity = intensity or 0.5
+    duration = duration or 2
+    
+    print("Distortion effect started")
+    
+    self.effects.distortion.Enabled = true
+    self.effects.distortion.Intensity = intensity
+    
+    wait(duration)
+    
+    self:animateEffect("distortion", {
+        Intensity = 0
+    }, 0.5)
+    
+    wait(0.5)
+    self.effects.distortion.Enabled = false
+    
+    print("Distortion effect ended")
+end
+
+function AdvancedEffects:createCinematicSequence()
+    print("Cinematic sequence started")
+    
+    -- Fade in
+    self:createFadeEffect("in", 2)
+    
+    wait(2)
+    
+    -- Add bloom and film grain
+    self:enableEffect("bloom")
+    self:enableEffect("filmGrain")
+    
+    wait(3)
+    
+    -- Screen shake
+    self:createScreenShake(3, 1, 15)
+    
+    wait(1)
+    
+    -- Flash effect
+    self:createFlashEffect(Color3.fromRGB(255, 0, 0), 2, 0.3)
+    
+    wait(1)
+    
+    -- Distortion
+    self:createDistortionEffect(0.8, 2)
+    
+    wait(2)
+    
+    -- Fade out
+    self:createFadeEffect("out", 2)
+    
+    print("Cinematic sequence ended")
+end
+
+-- 3. PERFORMANCE-OPTIMIZED EFFECTS SYSTEM
+print("\\n3. DEMONSTRATING PERFORMANCE-OPTIMIZED EFFECTS...")
+
+local OptimizedEffects = {}
+OptimizedEffects.__index = OptimizedEffects
+
+function OptimizedEffects.new()
+    local self = setmetatable({}, OptimizedEffects)
+    self.lighting = Lighting
+    self.tweenService = TweenService
+    self.runService = RunService
+    self.userInputService = UserInputService
+    
+    -- Performance settings
+    self.qualityLevel = "high"  -- "low", "medium", "high"
+    self.maxActiveEffects = 3
+    self.activeEffects = {}
+    self.effectPool = {}
+    
+    -- Performance monitoring
+    self.frameRate = 60
+    self.lastFrameTime = tick()
+    
+    self:setupPerformanceMonitoring()
+    self:setupEffectPool()
+    
+    return self
+end
+
+function OptimizedEffects:setupPerformanceMonitoring()
+    self.runService.Heartbeat:Connect(function()
+        local currentTime = tick()
+        local deltaTime = currentTime - self.lastFrameTime
+        self.frameRate = 1 / deltaTime
+        self.lastFrameTime = currentTime
+        
+        -- Adjust quality based on performance
+        if self.frameRate < 30 then
+            self.qualityLevel = "low"
+        elseif self.frameRate < 45 then
+            self.qualityLevel = "medium"
+        else
+            self.qualityLevel = "high"
+        end
+    end)
+end
+
+function OptimizedEffects:setupEffectPool()
+    -- Create effect pool for reuse
+    local effectTypes = {"BloomEffect", "BlurEffect", "ColorCorrectionEffect", "DistortionEffect"}
+    
+    for _, effectType in ipairs(effectTypes) do
+        self.effectPool[effectType] = {}
+        
+        -- Pre-create some effects
+        for i = 1, 2 do
+            local effect = Instance.new(effectType)
+            effect.Parent = self.lighting
+            effect.Enabled = false
+            table.insert(self.effectPool[effectType], effect)
+        end
+    end
+end
+
+function OptimizedEffects:getEffect(effectType)
+    local pool = self.effectPool[effectType]
+    if pool and #pool > 0 then
+        return table.remove(pool)
+    else
+        -- Create new effect if pool is empty
+        local effect = Instance.new(effectType)
+        effect.Parent = self.lighting
+        effect.Enabled = false
+        return effect
+    end
+end
+
+function OptimizedEffects:returnEffect(effect)
+    local effectType = effect.ClassName
+    local pool = self.effectPool[effectType]
+    
+    if pool then
+        effect.Enabled = false
+        table.insert(pool, effect)
+    else
+        effect:Destroy()
+    end
+end
+
+function OptimizedEffects:canAddEffect()
+    return #self.activeEffects < self.maxActiveEffects
+end
+
+function OptimizedEffects:addEffect(effectType, properties, duration)
+    if not self:canAddEffect() then
+        warn("Maximum active effects reached!")
+        return nil
+    end
+    
+    local effect = self:getEffect(effectType)
+    
+    -- Apply properties based on quality level
+    if self.qualityLevel == "low" then
+        properties = self:reduceEffectQuality(properties)
+    elseif self.qualityLevel == "medium" then
+        properties = self:reduceEffectQuality(properties, 0.5)
+    end
+    
+    -- Apply properties
+    for property, value in pairs(properties) do
+        effect[property] = value
+    end
+    
+    effect.Enabled = true
+    table.insert(self.activeEffects, effect)
+    
+    if duration then
+        wait(duration)
+        self:removeEffect(effect)
+    end
+    
+    print("Effect added:", effectType, "Quality:", self.qualityLevel)
+    return effect
+end
+
+function OptimizedEffects:removeEffect(effect)
+    for i, activeEffect in ipairs(self.activeEffects) do
+        if activeEffect == effect then
+            table.remove(self.activeEffects, i)
+            self:returnEffect(effect)
+            print("Effect removed:", effect.ClassName)
+            break
+        end
+    end
+end
+
+function OptimizedEffects:reduceEffectQuality(properties, reduction)
+    reduction = reduction or 0.3
+    
+    local reducedProperties = {}
+    for property, value in pairs(properties) do
+        if type(value) == "number" then
+            reducedProperties[property] = value * (1 - reduction)
+        else
+            reducedProperties[property] = value
+        end
+    end
+    
+    return reducedProperties
+end
+
+function OptimizedEffects:clearAllEffects()
+    for _, effect in ipairs(self.activeEffects) do
+        self:returnEffect(effect)
+    end
+    self.activeEffects = {}
+    print("All effects cleared")
+end
+
+function OptimizedEffects:getPerformanceInfo()
+    return {
+        frameRate = math.floor(self.frameRate),
+        qualityLevel = self.qualityLevel,
+        activeEffects = #self.activeEffects,
+        maxEffects = self.maxActiveEffects
+    }
+end
+
+-- 4. DEMO THE POST-PROCESSING SYSTEMS
+print("\\n4. RUNNING POST-PROCESSING SYSTEM DEMONSTRATIONS...")
+
+-- Setup basic post-processing
+setupBasicPostProcessing()
+
+-- Create advanced effects system
+local advancedEffects = AdvancedEffects.new()
+
+-- Create optimized effects system
+local optimizedEffects = OptimizedEffects.new()
+
+-- Test individual effects
+wait(1)
+print("\\n--- Testing Individual Effects ---")
+advancedEffects:enableEffect("bloom", 3)
+wait(4)
+advancedEffects:enableEffect("blur", 3)
+wait(4)
+advancedEffects:enableEffect("filmGrain", 3)
+
+-- Test screen shake
+wait(1)
+print("\\n--- Testing Screen Shake ---")
+advancedEffects:createScreenShake(5, 2, 20)
+
+-- Test flash effect
+wait(3)
+print("\\n--- Testing Flash Effect ---")
+advancedEffects:createFlashEffect(Color3.fromRGB(255, 255, 0), 1.5, 0.5)
+
+-- Test fade effects
+wait(2)
+print("\\n--- Testing Fade Effects ---")
+advancedEffects:createFadeEffect("out", 2)
+wait(2)
+advancedEffects:createFadeEffect("in", 2)
+
+-- Test distortion
+wait(2)
+print("\\n--- Testing Distortion ---")
+advancedEffects:createDistortionEffect(0.6, 3)
+
+-- Test performance monitoring
+wait(1)
+print("\\n--- Testing Performance Monitoring ---")
+local perfInfo = optimizedEffects:getPerformanceInfo()
+print("Performance Info:", perfInfo.frameRate, "FPS, Quality:", perfInfo.qualityLevel)
+
+-- Test optimized effects
+wait(1)
+print("\\n--- Testing Optimized Effects ---")
+local sequenceData = {
+    {
+        effectType = "BloomEffect",
+        properties = {Intensity = 0.5, Size = 24, Threshold = 0.8},
+        duration = 2,
+        delay = 0.5
+    },
+    {
+        effectType = "BlurEffect",
+        properties = {Size = 2},
+        duration = 2,
+        delay = 0.5
+    },
+    {
+        effectType = "ColorCorrectionEffect",
+        properties = {Brightness = 0.2, Contrast = 0.1},
+        duration = 2,
+        delay = 0.5
+    }
+}
+
+for _, step in ipairs(sequenceData) do
+    if optimizedEffects:canAddEffect() then
+        optimizedEffects:addEffect(step.effectType, step.properties, step.duration)
+    else
+        warn("Skipping effect due to performance limits:", step.effectType)
+    end
+    
+    wait(step.delay or 0.5)
+end
+
+-- Test cinematic sequence
+wait(3)
+print("\\n--- Testing Cinematic Sequence ---")
+advancedEffects:createCinematicSequence()
+
+-- Final performance info
+wait(1)
+perfInfo = optimizedEffects:getPerformanceInfo()
+print("Final Performance Info:", perfInfo.frameRate, "FPS, Quality:", perfInfo.qualityLevel)
+
+print("\\n=== POST-PROCESSING EFFECTS DEMO COMPLETE ===")
+print("You've learned post-processing effects and visual enhancement!")`,
+    challenge: {
+      tests: [
+        { description: 'Create post-processing effects like BloomEffect', type: 'code_contains', value: 'BloomEffect' },
+        { description: 'Use TweenService to animate effect properties', type: 'code_contains', value: 'TweenService' },
+        { description: 'Enable and disable effects dynamically', type: 'code_contains', value: 'Enabled' }
+      ],
+      hints: [
+        'Use Instance.new("BloomEffect") to create bloom effects',
+        'Use TweenService:Create() to animate effect properties smoothly',
+        'Use effect.Enabled = true/false to control effect visibility',
+        'Use effect.Intensity, effect.Size, etc. to control effect strength',
+        'Monitor performance when using multiple effects simultaneously'
+      ],
+      successMessage: 'Outstanding! You now understand post-processing effects and visual enhancement. These skills are essential for creating cinematic and polished game experiences!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
