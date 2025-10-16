@@ -20316,6 +20316,1291 @@ print("You've learned advanced networking concepts, replication, and bandwidth o
     }
   },
 
+  // === PERFORMANCE & OPTIMIZATION ===
+  'performance-optimization-advanced': {
+    title: 'Advanced Performance Optimization',
+    description: 'Master performance optimization techniques for smooth, efficient Roblox games',
+    sections: [
+      {
+        title: 'Script Profiling & Memory Management',
+        content: `Advanced performance optimization ensures your Roblox games run smoothly on all devices, from mobile phones to high-end PCs.
+
+**Performance Monitoring:**
+- **Script Profiling**: Identify performance bottlenecks in your code
+- **Memory Management**: Efficient memory usage and garbage collection
+- **Frame Rate Optimization**: Maintaining consistent 60 FPS
+- **Network Optimization**: Reducing bandwidth usage and latency
+- **Rendering Optimization**: Efficient use of graphics resources
+
+**Optimization Techniques:**
+- **Object Pooling**: Reusing objects instead of creating new ones
+- **LOD Systems**: Level of Detail for distant objects
+- **Culling**: Not rendering objects outside the camera view
+- **Batch Operations**: Grouping similar operations together
+- **Async Processing**: Moving heavy operations off the main thread`,
+        codeExample: `-- Advanced performance optimization system
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local MemoryStoreService = game:GetService("MemoryStoreService")
+
+local PerformanceOptimizer = {}
+PerformanceOptimizer.__index = PerformanceOptimizer
+
+-- Performance configuration
+local PERFORMANCE_CONFIG = {
+    TARGET_FPS = 60,
+    MAX_MEMORY_MB = 100,
+    PROFILE_INTERVAL = 5, -- seconds
+    OPTIMIZATION_THRESHOLD = 0.8, -- 80% of target performance
+    CLEANUP_INTERVAL = 30 -- seconds
+}
+
+-- Performance metrics
+local performanceMetrics = {
+    frameTime = 0,
+    memoryUsage = 0,
+    networkLatency = 0,
+    activeObjects = 0,
+    lastOptimization = 0
+}
+
+function PerformanceOptimizer.new()
+    local self = setmetatable({}, PerformanceOptimizer)
+    
+    -- Optimization systems
+    self.objectPool = {}
+    self.lodSystem = {}
+    self.cullingSystem = {}
+    self.batchOperations = {}
+    self.asyncQueue = {}
+    
+    -- Performance monitoring
+    self.profiler = {}
+    self.memoryMonitor = {}
+    self.frameRateMonitor = {}
+    
+    -- Setup optimization
+    self:setupOptimization()
+    
+    return self
+end
+
+function PerformanceOptimizer:setupOptimization()
+    -- Setup performance monitoring
+    self:setupProfiling()
+    self:setupMemoryMonitoring()
+    self:setupFrameRateMonitoring()
+    
+    -- Setup optimization systems
+    self:setupObjectPooling()
+    self:setupLODSystem()
+    self:setupCullingSystem()
+    self:setupBatchOperations()
+    self:setupAsyncProcessing()
+    
+    print("Advanced performance optimization system initialized")
+end
+
+function PerformanceOptimizer:setupProfiling()
+    self.profiler = {
+        startTime = 0,
+        endTime = 0,
+        totalTime = 0,
+        callCount = 0,
+        averageTime = 0
+    }
+    
+    -- Profile script execution
+    local originalSpawn = spawn
+    spawn = function(func, ...)
+        local startTime = tick()
+        local result = originalSpawn(func, ...)
+        local endTime = tick()
+        
+        self:recordProfileData(endTime - startTime)
+        return result
+    end
+end
+
+function PerformanceOptimizer:recordProfileData(executionTime)
+    self.profiler.totalTime = self.profiler.totalTime + executionTime
+    self.profiler.callCount = self.profiler.callCount + 1
+    self.profiler.averageTime = self.profiler.totalTime / self.profiler.callCount
+    
+    -- Check if optimization is needed
+    if self.profiler.averageTime > (1/PERFORMANCE_CONFIG.TARGET_FPS) * PERFORMANCE_CONFIG.OPTIMIZATION_THRESHOLD then
+        self:triggerOptimization()
+    end
+end
+
+function PerformanceOptimizer:setupMemoryMonitoring()
+    self.memoryMonitor = {
+        currentUsage = 0,
+        peakUsage = 0,
+        garbageCollectionCount = 0,
+        lastCleanup = 0
+    }
+    
+    -- Monitor memory usage
+    RunService.Heartbeat:Connect(function()
+        self:monitorMemoryUsage()
+    end)
+end
+
+function PerformanceOptimizer:monitorMemoryUsage()
+    local currentMemory = collectgarbage("count")
+    self.memoryMonitor.currentUsage = currentMemory
+    
+    if currentMemory > self.memoryMonitor.peakUsage then
+        self.memoryMonitor.peakUsage = currentMemory
+    end
+    
+    -- Trigger garbage collection if memory usage is high
+    if currentMemory > PERFORMANCE_CONFIG.MAX_MEMORY_MB then
+        self:triggerGarbageCollection()
+    end
+end
+
+function PerformanceOptimizer:triggerGarbageCollection()
+    collectgarbage("collect")
+    self.memoryMonitor.garbageCollectionCount = self.memoryMonitor.garbageCollectionCount + 1
+    self.memoryMonitor.lastCleanup = tick()
+    
+    print("Garbage collection triggered - Memory usage:", collectgarbage("count"), "MB")
+end
+
+function PerformanceOptimizer:setupFrameRateMonitoring()
+    self.frameRateMonitor = {
+        frameCount = 0,
+        lastFrameTime = 0,
+        currentFPS = 0,
+        averageFPS = 0,
+        frameTimeHistory = {}
+    }
+    
+    -- Monitor frame rate
+    RunService.Heartbeat:Connect(function()
+        self:monitorFrameRate()
+    end)
+end
+
+function PerformanceOptimizer:monitorFrameRate()
+    local currentTime = tick()
+    local deltaTime = currentTime - self.frameRateMonitor.lastFrameTime
+    
+    self.frameRateMonitor.frameCount = self.frameRateMonitor.frameCount + 1
+    self.frameRateMonitor.currentFPS = 1 / deltaTime
+    
+    -- Store frame time history
+    table.insert(self.frameRateMonitor.frameTimeHistory, deltaTime)
+    if #self.frameRateMonitor.frameTimeHistory > 60 then
+        table.remove(self.frameRateMonitor.frameTimeHistory, 1)
+    end
+    
+    -- Calculate average FPS
+    local totalFrameTime = 0
+    for _, frameTime in ipairs(self.frameRateMonitor.frameTimeHistory) do
+        totalFrameTime = totalFrameTime + frameTime
+    end
+    self.frameRateMonitor.averageFPS = #self.frameRateMonitor.frameTimeHistory / totalFrameTime
+    
+    self.frameRateMonitor.lastFrameTime = currentTime
+    
+    -- Check if frame rate is below target
+    if self.frameRateMonitor.averageFPS < PERFORMANCE_CONFIG.TARGET_FPS * PERFORMANCE_CONFIG.OPTIMIZATION_THRESHOLD then
+        self:triggerFrameRateOptimization()
+    end
+end
+
+function PerformanceOptimizer:triggerFrameRateOptimization()
+    print("Frame rate optimization triggered - Current FPS:", self.frameRateMonitor.averageFPS)
+    
+    -- Reduce quality settings
+    self:reduceQualitySettings()
+    
+    -- Optimize rendering
+    self:optimizeRendering()
+    
+    -- Clean up unused objects
+    self:cleanupUnusedObjects()
+end
+
+function PerformanceOptimizer:setupObjectPooling()
+    self.objectPool = {
+        bullets = {},
+        particles = {},
+        effects = {},
+        maxPoolSize = 100
+    }
+    
+    -- Pre-populate object pools
+    self:populateObjectPools()
+end
+
+function PerformanceOptimizer:populateObjectPools()
+    -- Create bullet pool
+    for i = 1, 50 do
+        local bullet = Instance.new("Part")
+        bullet.Name = "PooledBullet"
+        bullet.Size = Vector3.new(0.2, 0.2, 2)
+        bullet.Material = Enum.Material.Neon
+        bullet.Color = Color3.fromRGB(255, 255, 0)
+        bullet.Anchored = true
+        bullet.CanCollide = false
+        bullet.Parent = nil -- Don't parent until needed
+        
+        table.insert(self.objectPool.bullets, bullet)
+    end
+    
+    print("Object pools populated with", #self.objectPool.bullets, "bullets")
+end
+
+function PerformanceOptimizer:getPooledObject(objectType)
+    local pool = self.objectPool[objectType]
+    if not pool or #pool == 0 then
+        return nil
+    end
+    
+    local object = table.remove(pool)
+    return object
+end
+
+function PerformanceOptimizer:returnPooledObject(objectType, object)
+    local pool = self.objectPool[objectType]
+    if not pool then
+        return
+    end
+    
+    if #pool < self.objectPool.maxPoolSize then
+        -- Reset object properties
+        object.Parent = nil
+        object.Position = Vector3.new(0, 0, 0)
+        object.Rotation = Vector3.new(0, 0, 0)
+        
+        table.insert(pool, object)
+    else
+        object:Destroy()
+    end
+end
+
+function PerformanceOptimizer:setupLODSystem()
+    self.lodSystem = {
+        levels = {
+            {distance = 100, quality = "High"},
+            {distance = 200, quality = "Medium"},
+            {distance = 500, quality = "Low"}
+        },
+        objects = {}
+    }
+end
+
+function PerformanceOptimizer:registerLODObject(object, lodLevels)
+    self.lodSystem.objects[object] = {
+        levels = lodLevels,
+        currentLevel = 1,
+        lastUpdate = 0
+    }
+end
+
+function PerformanceOptimizer:updateLODSystem(cameraPosition)
+    local currentTime = tick()
+    
+    for object, lodData in pairs(self.lodSystem.objects) do
+        if currentTime - lodData.lastUpdate > 0.1 then -- Update every 100ms
+            local distance = (object.Position - cameraPosition).Magnitude
+            local newLevel = self:calculateLODLevel(distance)
+            
+            if newLevel ~= lodData.currentLevel then
+                self:applyLODLevel(object, newLevel, lodData.levels)
+                lodData.currentLevel = newLevel
+            end
+            
+            lodData.lastUpdate = currentTime
+        end
+    end
+end
+
+function PerformanceOptimizer:calculateLODLevel(distance)
+    for i, level in ipairs(self.lodSystem.levels) do
+        if distance <= level.distance then
+            return i
+        end
+    end
+    return #self.lodSystem.levels
+end
+
+function PerformanceOptimizer:applyLODLevel(object, level, lodLevels)
+    if lodLevels[level] then
+        local lodConfig = lodLevels[level]
+        
+        -- Apply LOD settings
+        if lodConfig.transparency then
+            object.Transparency = lodConfig.transparency
+        end
+        
+        if lodConfig.size then
+            object.Size = lodConfig.size
+        end
+        
+        if lodConfig.material then
+            object.Material = lodConfig.material
+        end
+    end
+end
+
+function PerformanceOptimizer:setupCullingSystem()
+    self.cullingSystem = {
+        camera = nil,
+        cullDistance = 1000,
+        culledObjects = {},
+        lastCullUpdate = 0
+    }
+end
+
+function PerformanceOptimizer:updateCullingSystem()
+    local currentTime = tick()
+    
+    if currentTime - self.cullingSystem.lastCullUpdate > 0.5 then -- Update every 500ms
+        if self.cullingSystem.camera then
+            self:performCulling()
+        end
+        self.cullingSystem.lastCullUpdate = currentTime
+    end
+end
+
+function PerformanceOptimizer:performCulling()
+    local cameraPosition = self.cullingSystem.camera.CFrame.Position
+    
+    for object, _ in pairs(self.culledObjects) do
+        local distance = (object.Position - cameraPosition).Magnitude
+        
+        if distance > self.cullingSystem.cullDistance then
+            if object.Parent then
+                object.Parent = nil
+                print("Culled object:", object.Name, "at distance:", distance)
+            end
+        else
+            if not object.Parent then
+                object.Parent = workspace
+                print("Unculled object:", object.Name, "at distance:", distance)
+            end
+        end
+    end
+end
+
+function PerformanceOptimizer:setupBatchOperations()
+    self.batchOperations = {
+        queue = {},
+        maxBatchSize = 100,
+        batchInterval = 0.1 -- 100ms
+    }
+    
+    -- Process batches
+    RunService.Heartbeat:Connect(function()
+        self:processBatchOperations()
+    end)
+end
+
+function PerformanceOptimizer:addBatchOperation(operation, data)
+    table.insert(self.batchOperations.queue, {
+        operation = operation,
+        data = data,
+        timestamp = tick()
+    })
+end
+
+function PerformanceOptimizer:processBatchOperations()
+    if #self.batchOperations.queue == 0 then
+        return
+    end
+    
+    local batchSize = math.min(#self.batchOperations.queue, self.batchOperations.maxBatchSize)
+    local batch = {}
+    
+    for i = 1, batchSize do
+        table.insert(batch, table.remove(self.batchOperations.queue, 1))
+    end
+    
+    -- Process batch
+    self:executeBatch(batch)
+end
+
+function PerformanceOptimizer:executeBatch(batch)
+    local startTime = tick()
+    
+    for _, operation in ipairs(batch) do
+        if operation.operation == "createPart" then
+            self:createPartBatch(operation.data)
+        elseif operation.operation == "updatePosition" then
+            self:updatePositionBatch(operation.data)
+        elseif operation.operation == "destroyObject" then
+            self:destroyObjectBatch(operation.data)
+        end
+    end
+    
+    local endTime = tick()
+    print("Processed batch of", #batch, "operations in", (endTime - startTime) * 1000, "ms")
+end
+
+function PerformanceOptimizer:createPartBatch(data)
+    for _, partData in ipairs(data) do
+        local part = Instance.new("Part")
+        part.Name = partData.name or "BatchPart"
+        part.Size = partData.size or Vector3.new(4, 4, 4)
+        part.Position = partData.position or Vector3.new(0, 0, 0)
+        part.Color = partData.color or Color3.fromRGB(255, 255, 255)
+        part.Parent = workspace
+    end
+end
+
+function PerformanceOptimizer:updatePositionBatch(data)
+    for _, updateData in ipairs(data) do
+        if updateData.object and updateData.object.Parent then
+            updateData.object.Position = updateData.position
+        end
+    end
+end
+
+function PerformanceOptimizer:destroyObjectBatch(data)
+    for _, object in ipairs(data) do
+        if object and object.Parent then
+            object:Destroy()
+        end
+    end
+end
+
+function PerformanceOptimizer:setupAsyncProcessing()
+    self.asyncQueue = {
+        tasks = {},
+        maxConcurrentTasks = 5,
+        activeTasks = 0
+    }
+    
+    -- Process async tasks
+    RunService.Heartbeat:Connect(function()
+        self:processAsyncTasks()
+    end)
+end
+
+function PerformanceOptimizer:addAsyncTask(task, priority)
+    table.insert(self.asyncQueue.tasks, {
+        task = task,
+        priority = priority or 1,
+        timestamp = tick()
+    })
+    
+    -- Sort by priority
+    table.sort(self.asyncQueue.tasks, function(a, b)
+        return a.priority > b.priority
+    end)
+end
+
+function PerformanceOptimizer:processAsyncTasks()
+    if self.asyncQueue.activeTasks >= self.asyncQueue.maxConcurrentTasks then
+        return
+    end
+    
+    if #self.asyncQueue.tasks == 0 then
+        return
+    end
+    
+    local task = table.remove(self.asyncQueue.tasks, 1)
+    self.asyncQueue.activeTasks = self.asyncQueue.activeTasks + 1
+    
+    -- Execute task asynchronously
+    spawn(function()
+        local success, result = pcall(task.task)
+        self.asyncQueue.activeTasks = self.asyncQueue.activeTasks - 1
+        
+        if not success then
+            warn("Async task failed:", result)
+        end
+    end)
+end
+
+function PerformanceOptimizer:triggerOptimization()
+    print("Performance optimization triggered")
+    
+    -- Reduce quality settings
+    self:reduceQualitySettings()
+    
+    -- Optimize memory usage
+    self:optimizeMemoryUsage()
+    
+    -- Clean up unused objects
+    self:cleanupUnusedObjects()
+    
+    performanceMetrics.lastOptimization = tick()
+end
+
+function PerformanceOptimizer:reduceQualitySettings()
+    -- Reduce lighting quality
+    game.Lighting.GlobalShadows = false
+    game.Lighting.ShadowSoftness = 0.2
+    
+    -- Reduce particle effects
+    for _, effect in pairs(workspace:GetDescendants()) do
+        if effect:IsA("ParticleEmitter") then
+            effect.Enabled = false
+        end
+    end
+    
+    print("Quality settings reduced for performance")
+end
+
+function PerformanceOptimizer:optimizeMemoryUsage()
+    -- Clear unused textures
+    for _, texture in pairs(workspace:GetDescendants()) do
+        if texture:IsA("Texture") and not texture.Parent.Parent then
+            texture:Destroy()
+        end
+    end
+    
+    -- Optimize scripts
+    for _, script in pairs(workspace:GetDescendants()) do
+        if script:IsA("Script") and script.Parent == nil then
+            script:Destroy()
+        end
+    end
+    
+    print("Memory usage optimized")
+end
+
+function PerformanceOptimizer:cleanupUnusedObjects()
+    local cleanupCount = 0
+    
+    for _, object in pairs(workspace:GetDescendants()) do
+        if object:IsA("Part") and not object.Parent.Parent then
+            if (object.Position - Vector3.new(0, 0, 0)).Magnitude > 1000 then
+                object:Destroy()
+                cleanupCount = cleanupCount + 1
+            end
+        end
+    end
+    
+    print("Cleaned up", cleanupCount, "unused objects")
+end
+
+function PerformanceOptimizer:getPerformanceMetrics()
+    return {
+        frameRate = self.frameRateMonitor.averageFPS,
+        memoryUsage = self.memoryMonitor.currentUsage,
+        memoryPeak = self.memoryMonitor.peakUsage,
+        garbageCollections = self.memoryMonitor.garbageCollectionCount,
+        averageExecutionTime = self.profiler.averageTime,
+        activeObjects = self:countActiveObjects(),
+        optimizationCount = performanceMetrics.lastOptimization
+    }
+end
+
+function PerformanceOptimizer:countActiveObjects()
+    local count = 0
+    for _ in pairs(workspace:GetDescendants()) do
+        count = count + 1
+    end
+    return count
+end
+
+-- Example usage
+local performanceOptimizer = PerformanceOptimizer.new()
+
+-- Test performance systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        -- Setup LOD system for player
+        local lodLevels = {
+            {transparency = 0, size = Vector3.new(4, 4, 4), material = Enum.Material.Plastic},
+            {transparency = 0.2, size = Vector3.new(3, 3, 3), material = Enum.Material.Plastic},
+            {transparency = 0.5, size = Vector3.new(2, 2, 2), material = Enum.Material.Plastic}
+        }
+        
+        performanceOptimizer:registerLODObject(player.Character.HumanoidRootPart, lodLevels)
+        
+        -- Add to culling system
+        performanceOptimizer.cullingSystem.culledObjects[player.Character.HumanoidRootPart] = true
+    end
+    
+    -- Test batch operations
+    for i = 1, 10 do
+        performanceOptimizer:addBatchOperation("createPart", {
+            {name = "TestPart" .. i, position = Vector3.new(i * 10, 0, 0)}
+        })
+    end
+    
+    -- Test async tasks
+    performanceOptimizer:addAsyncTask(function()
+        wait(1)
+        print("Async task completed for", player.Name)
+    end, 2)
+    
+    print("Applied performance optimization tests to", player.Name)
+end)
+
+-- Monitor performance
+RunService.Heartbeat:Connect(function()
+    local metrics = performanceOptimizer:getPerformanceMetrics()
+    
+    if tick() % 10 < 0.1 then -- Print every 10 seconds
+        print("Performance Metrics:")
+        print("  FPS:", string.format("%.1f", metrics.frameRate))
+        print("  Memory:", string.format("%.1f", metrics.memoryUsage), "MB")
+        print("  Active Objects:", metrics.activeObjects)
+    end
+end)
+
+print("Advanced performance optimization system initialized with profiling, memory management, and optimization systems")`,
+        color: 'green'
+      }
+    ],
+    defaultCode: `-- Advanced Performance Optimization - Comprehensive Learning Example
+-- Master performance optimization techniques for smooth, efficient Roblox games
+
+print("=== ADVANCED PERFORMANCE OPTIMIZATION DEMO ===")
+print("Learning performance optimization techniques and systems...")
+
+-- 1. SCRIPT PROFILING & MEMORY MANAGEMENT
+print("\\n1. DEMONSTRATING SCRIPT PROFILING & MEMORY MANAGEMENT...")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local TweenService = game:GetService("TweenService")
+local MemoryStoreService = game:GetService("MemoryStoreService")
+
+local PerformanceOptimizer = {}
+PerformanceOptimizer.__index = PerformanceOptimizer
+
+-- Performance configuration
+local PERFORMANCE_CONFIG = {
+    TARGET_FPS = 60,
+    MAX_MEMORY_MB = 100,
+    PROFILE_INTERVAL = 5, -- seconds
+    OPTIMIZATION_THRESHOLD = 0.8, -- 80% of target performance
+    CLEANUP_INTERVAL = 30 -- seconds
+}
+
+-- Performance metrics
+local performanceMetrics = {
+    frameTime = 0,
+    memoryUsage = 0,
+    networkLatency = 0,
+    activeObjects = 0,
+    lastOptimization = 0
+}
+
+function PerformanceOptimizer.new()
+    local self = setmetatable({}, PerformanceOptimizer)
+    
+    -- Optimization systems
+    self.objectPool = {}
+    self.lodSystem = {}
+    self.cullingSystem = {}
+    self.batchOperations = {}
+    self.asyncQueue = {}
+    
+    -- Performance monitoring
+    self.profiler = {}
+    self.memoryMonitor = {}
+    self.frameRateMonitor = {}
+    
+    -- Setup optimization
+    self:setupOptimization()
+    
+    return self
+end
+
+function PerformanceOptimizer:setupOptimization()
+    -- Setup performance monitoring
+    self:setupProfiling()
+    self:setupMemoryMonitoring()
+    self:setupFrameRateMonitoring()
+    
+    -- Setup optimization systems
+    self:setupObjectPooling()
+    self:setupLODSystem()
+    self:setupCullingSystem()
+    self:setupBatchOperations()
+    self:setupAsyncProcessing()
+    
+    print("Advanced performance optimization system initialized")
+end
+
+function PerformanceOptimizer:setupProfiling()
+    self.profiler = {
+        startTime = 0,
+        endTime = 0,
+        totalTime = 0,
+        callCount = 0,
+        averageTime = 0
+    }
+    
+    -- Profile script execution
+    local originalSpawn = spawn
+    spawn = function(func, ...)
+        local startTime = tick()
+        local result = originalSpawn(func, ...)
+        local endTime = tick()
+        
+        self:recordProfileData(endTime - startTime)
+        return result
+    end
+end
+
+function PerformanceOptimizer:recordProfileData(executionTime)
+    self.profiler.totalTime = self.profiler.totalTime + executionTime
+    self.profiler.callCount = self.profiler.callCount + 1
+    self.profiler.averageTime = self.profiler.totalTime / self.profiler.callCount
+    
+    -- Check if optimization is needed
+    if self.profiler.averageTime > (1/PERFORMANCE_CONFIG.TARGET_FPS) * PERFORMANCE_CONFIG.OPTIMIZATION_THRESHOLD then
+        self:triggerOptimization()
+    end
+end
+
+function PerformanceOptimizer:setupMemoryMonitoring()
+    self.memoryMonitor = {
+        currentUsage = 0,
+        peakUsage = 0,
+        garbageCollectionCount = 0,
+        lastCleanup = 0
+    }
+    
+    -- Monitor memory usage
+    RunService.Heartbeat:Connect(function()
+        self:monitorMemoryUsage()
+    end)
+end
+
+function PerformanceOptimizer:monitorMemoryUsage()
+    local currentMemory = collectgarbage("count")
+    self.memoryMonitor.currentUsage = currentMemory
+    
+    if currentMemory > self.memoryMonitor.peakUsage then
+        self.memoryMonitor.peakUsage = currentMemory
+    end
+    
+    -- Trigger garbage collection if memory usage is high
+    if currentMemory > PERFORMANCE_CONFIG.MAX_MEMORY_MB then
+        self:triggerGarbageCollection()
+    end
+end
+
+function PerformanceOptimizer:triggerGarbageCollection()
+    collectgarbage("collect")
+    self.memoryMonitor.garbageCollectionCount = self.memoryMonitor.garbageCollectionCount + 1
+    self.memoryMonitor.lastCleanup = tick()
+    
+    print("Garbage collection triggered - Memory usage:", collectgarbage("count"), "MB")
+end
+
+function PerformanceOptimizer:setupFrameRateMonitoring()
+    self.frameRateMonitor = {
+        frameCount = 0,
+        lastFrameTime = 0,
+        currentFPS = 0,
+        averageFPS = 0,
+        frameTimeHistory = {}
+    }
+    
+    -- Monitor frame rate
+    RunService.Heartbeat:Connect(function()
+        self:monitorFrameRate()
+    end)
+end
+
+function PerformanceOptimizer:monitorFrameRate()
+    local currentTime = tick()
+    local deltaTime = currentTime - self.frameRateMonitor.lastFrameTime
+    
+    self.frameRateMonitor.frameCount = self.frameRateMonitor.frameCount + 1
+    self.frameRateMonitor.currentFPS = 1 / deltaTime
+    
+    -- Store frame time history
+    table.insert(self.frameRateMonitor.frameTimeHistory, deltaTime)
+    if #self.frameRateMonitor.frameTimeHistory > 60 then
+        table.remove(self.frameRateMonitor.frameTimeHistory, 1)
+    end
+    
+    -- Calculate average FPS
+    local totalFrameTime = 0
+    for _, frameTime in ipairs(self.frameRateMonitor.frameTimeHistory) do
+        totalFrameTime = totalFrameTime + frameTime
+    end
+    self.frameRateMonitor.averageFPS = #self.frameRateMonitor.frameTimeHistory / totalFrameTime
+    
+    self.frameRateMonitor.lastFrameTime = currentTime
+    
+    -- Check if frame rate is below target
+    if self.frameRateMonitor.averageFPS < PERFORMANCE_CONFIG.TARGET_FPS * PERFORMANCE_CONFIG.OPTIMIZATION_THRESHOLD then
+        self:triggerFrameRateOptimization()
+    end
+end
+
+function PerformanceOptimizer:triggerFrameRateOptimization()
+    print("Frame rate optimization triggered - Current FPS:", self.frameRateMonitor.averageFPS)
+    
+    -- Reduce quality settings
+    self:reduceQualitySettings()
+    
+    -- Optimize rendering
+    self:optimizeRendering()
+    
+    -- Clean up unused objects
+    self:cleanupUnusedObjects()
+end
+
+function PerformanceOptimizer:setupObjectPooling()
+    self.objectPool = {
+        bullets = {},
+        particles = {},
+        effects = {},
+        maxPoolSize = 100
+    }
+    
+    -- Pre-populate object pools
+    self:populateObjectPools()
+end
+
+function PerformanceOptimizer:populateObjectPools()
+    -- Create bullet pool
+    for i = 1, 50 do
+        local bullet = Instance.new("Part")
+        bullet.Name = "PooledBullet"
+        bullet.Size = Vector3.new(0.2, 0.2, 2)
+        bullet.Material = Enum.Material.Neon
+        bullet.Color = Color3.fromRGB(255, 255, 0)
+        bullet.Anchored = true
+        bullet.CanCollide = false
+        bullet.Parent = nil -- Don't parent until needed
+        
+        table.insert(self.objectPool.bullets, bullet)
+    end
+    
+    print("Object pools populated with", #self.objectPool.bullets, "bullets")
+end
+
+function PerformanceOptimizer:getPooledObject(objectType)
+    local pool = self.objectPool[objectType]
+    if not pool or #pool == 0 then
+        return nil
+    end
+    
+    local object = table.remove(pool)
+    return object
+end
+
+function PerformanceOptimizer:returnPooledObject(objectType, object)
+    local pool = self.objectPool[objectType]
+    if not pool then
+        return
+    end
+    
+    if #pool < self.objectPool.maxPoolSize then
+        -- Reset object properties
+        object.Parent = nil
+        object.Position = Vector3.new(0, 0, 0)
+        object.Rotation = Vector3.new(0, 0, 0)
+        
+        table.insert(pool, object)
+    else
+        object:Destroy()
+    end
+end
+
+function PerformanceOptimizer:setupLODSystem()
+    self.lodSystem = {
+        levels = {
+            {distance = 100, quality = "High"},
+            {distance = 200, quality = "Medium"},
+            {distance = 500, quality = "Low"}
+        },
+        objects = {}
+    }
+end
+
+function PerformanceOptimizer:registerLODObject(object, lodLevels)
+    self.lodSystem.objects[object] = {
+        levels = lodLevels,
+        currentLevel = 1,
+        lastUpdate = 0
+    }
+end
+
+function PerformanceOptimizer:updateLODSystem(cameraPosition)
+    local currentTime = tick()
+    
+    for object, lodData in pairs(self.lodSystem.objects) do
+        if currentTime - lodData.lastUpdate > 0.1 then -- Update every 100ms
+            local distance = (object.Position - cameraPosition).Magnitude
+            local newLevel = self:calculateLODLevel(distance)
+            
+            if newLevel ~= lodData.currentLevel then
+                self:applyLODLevel(object, newLevel, lodData.levels)
+                lodData.currentLevel = newLevel
+            end
+            
+            lodData.lastUpdate = currentTime
+        end
+    end
+end
+
+function PerformanceOptimizer:calculateLODLevel(distance)
+    for i, level in ipairs(self.lodSystem.levels) do
+        if distance <= level.distance then
+            return i
+        end
+    end
+    return #self.lodSystem.levels
+end
+
+function PerformanceOptimizer:applyLODLevel(object, level, lodLevels)
+    if lodLevels[level] then
+        local lodConfig = lodLevels[level]
+        
+        -- Apply LOD settings
+        if lodConfig.transparency then
+            object.Transparency = lodConfig.transparency
+        end
+        
+        if lodConfig.size then
+            object.Size = lodConfig.size
+        end
+        
+        if lodConfig.material then
+            object.Material = lodConfig.material
+        end
+    end
+end
+
+function PerformanceOptimizer:setupCullingSystem()
+    self.cullingSystem = {
+        camera = nil,
+        cullDistance = 1000,
+        culledObjects = {},
+        lastCullUpdate = 0
+    }
+end
+
+function PerformanceOptimizer:updateCullingSystem()
+    local currentTime = tick()
+    
+    if currentTime - self.cullingSystem.lastCullUpdate > 0.5 then -- Update every 500ms
+        if self.cullingSystem.camera then
+            self:performCulling()
+        end
+        self.cullingSystem.lastCullUpdate = currentTime
+    end
+end
+
+function PerformanceOptimizer:performCulling()
+    local cameraPosition = self.cullingSystem.camera.CFrame.Position
+    
+    for object, _ in pairs(self.culledObjects) do
+        local distance = (object.Position - cameraPosition).Magnitude
+        
+        if distance > self.cullingSystem.cullDistance then
+            if object.Parent then
+                object.Parent = nil
+                print("Culled object:", object.Name, "at distance:", distance)
+            end
+        else
+            if not object.Parent then
+                object.Parent = workspace
+                print("Unculled object:", object.Name, "at distance:", distance)
+            end
+        end
+    end
+end
+
+function PerformanceOptimizer:setupBatchOperations()
+    self.batchOperations = {
+        queue = {},
+        maxBatchSize = 100,
+        batchInterval = 0.1 -- 100ms
+    }
+    
+    -- Process batches
+    RunService.Heartbeat:Connect(function()
+        self:processBatchOperations()
+    end)
+end
+
+function PerformanceOptimizer:addBatchOperation(operation, data)
+    table.insert(self.batchOperations.queue, {
+        operation = operation,
+        data = data,
+        timestamp = tick()
+    })
+end
+
+function PerformanceOptimizer:processBatchOperations()
+    if #self.batchOperations.queue == 0 then
+        return
+    end
+    
+    local batchSize = math.min(#self.batchOperations.queue, self.batchOperations.maxBatchSize)
+    local batch = {}
+    
+    for i = 1, batchSize do
+        table.insert(batch, table.remove(self.batchOperations.queue, 1))
+    end
+    
+    -- Process batch
+    self:executeBatch(batch)
+end
+
+function PerformanceOptimizer:executeBatch(batch)
+    local startTime = tick()
+    
+    for _, operation in ipairs(batch) do
+        if operation.operation == "createPart" then
+            self:createPartBatch(operation.data)
+        elseif operation.operation == "updatePosition" then
+            self:updatePositionBatch(operation.data)
+        elseif operation.operation == "destroyObject" then
+            self:destroyObjectBatch(operation.data)
+        end
+    end
+    
+    local endTime = tick()
+    print("Processed batch of", #batch, "operations in", (endTime - startTime) * 1000, "ms")
+end
+
+function PerformanceOptimizer:createPartBatch(data)
+    for _, partData in ipairs(data) do
+        local part = Instance.new("Part")
+        part.Name = partData.name or "BatchPart"
+        part.Size = partData.size or Vector3.new(4, 4, 4)
+        part.Position = partData.position or Vector3.new(0, 0, 0)
+        part.Color = partData.color or Color3.fromRGB(255, 255, 255)
+        part.Parent = workspace
+    end
+end
+
+function PerformanceOptimizer:updatePositionBatch(data)
+    for _, updateData in ipairs(data) do
+        if updateData.object and updateData.object.Parent then
+            updateData.object.Position = updateData.position
+        end
+    end
+end
+
+function PerformanceOptimizer:destroyObjectBatch(data)
+    for _, object in ipairs(data) do
+        if object and object.Parent then
+            object:Destroy()
+        end
+    end
+end
+
+function PerformanceOptimizer:setupAsyncProcessing()
+    self.asyncQueue = {
+        tasks = {},
+        maxConcurrentTasks = 5,
+        activeTasks = 0
+    }
+    
+    -- Process async tasks
+    RunService.Heartbeat:Connect(function()
+        self:processAsyncTasks()
+    end)
+end
+
+function PerformanceOptimizer:addAsyncTask(task, priority)
+    table.insert(self.asyncQueue.tasks, {
+        task = task,
+        priority = priority or 1,
+        timestamp = tick()
+    })
+    
+    -- Sort by priority
+    table.sort(self.asyncQueue.tasks, function(a, b)
+        return a.priority > b.priority
+    end)
+end
+
+function PerformanceOptimizer:processAsyncTasks()
+    if self.asyncQueue.activeTasks >= self.asyncQueue.maxConcurrentTasks then
+        return
+    end
+    
+    if #self.asyncQueue.tasks == 0 then
+        return
+    end
+    
+    local task = table.remove(self.asyncQueue.tasks, 1)
+    self.asyncQueue.activeTasks = self.asyncQueue.activeTasks + 1
+    
+    -- Execute task asynchronously
+    spawn(function()
+        local success, result = pcall(task.task)
+        self.asyncQueue.activeTasks = self.asyncQueue.activeTasks - 1
+        
+        if not success then
+            warn("Async task failed:", result)
+        end
+    end)
+end
+
+function PerformanceOptimizer:triggerOptimization()
+    print("Performance optimization triggered")
+    
+    -- Reduce quality settings
+    self:reduceQualitySettings()
+    
+    -- Optimize memory usage
+    self:optimizeMemoryUsage()
+    
+    -- Clean up unused objects
+    self:cleanupUnusedObjects()
+    
+    performanceMetrics.lastOptimization = tick()
+end
+
+function PerformanceOptimizer:reduceQualitySettings()
+    -- Reduce lighting quality
+    game.Lighting.GlobalShadows = false
+    game.Lighting.ShadowSoftness = 0.2
+    
+    -- Reduce particle effects
+    for _, effect in pairs(workspace:GetDescendants()) do
+        if effect:IsA("ParticleEmitter") then
+            effect.Enabled = false
+        end
+    end
+    
+    print("Quality settings reduced for performance")
+end
+
+function PerformanceOptimizer:optimizeMemoryUsage()
+    -- Clear unused textures
+    for _, texture in pairs(workspace:GetDescendants()) do
+        if texture:IsA("Texture") and not texture.Parent.Parent then
+            texture:Destroy()
+        end
+    end
+    
+    -- Optimize scripts
+    for _, script in pairs(workspace:GetDescendants()) do
+        if script:IsA("Script") and script.Parent == nil then
+            script:Destroy()
+        end
+    end
+    
+    print("Memory usage optimized")
+end
+
+function PerformanceOptimizer:cleanupUnusedObjects()
+    local cleanupCount = 0
+    
+    for _, object in pairs(workspace:GetDescendants()) do
+        if object:IsA("Part") and not object.Parent.Parent then
+            if (object.Position - Vector3.new(0, 0, 0)).Magnitude > 1000 then
+                object:Destroy()
+                cleanupCount = cleanupCount + 1
+            end
+        end
+    end
+    
+    print("Cleaned up", cleanupCount, "unused objects")
+end
+
+function PerformanceOptimizer:getPerformanceMetrics()
+    return {
+        frameRate = self.frameRateMonitor.averageFPS,
+        memoryUsage = self.memoryMonitor.currentUsage,
+        memoryPeak = self.memoryMonitor.peakUsage,
+        garbageCollections = self.memoryMonitor.garbageCollectionCount,
+        averageExecutionTime = self.profiler.averageTime,
+        activeObjects = self:countActiveObjects(),
+        optimizationCount = performanceMetrics.lastOptimization
+    }
+end
+
+function PerformanceOptimizer:countActiveObjects()
+    local count = 0
+    for _ in pairs(workspace:GetDescendants()) do
+        count = count + 1
+    end
+    return count
+end
+
+-- 2. DEMO THE SYSTEMS
+print("\\n2. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local performanceOptimizer = PerformanceOptimizer.new()
+
+-- Test performance systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        -- Setup LOD system for player
+        local lodLevels = {
+            {transparency = 0, size = Vector3.new(4, 4, 4), material = Enum.Material.Plastic},
+            {transparency = 0.2, size = Vector3.new(3, 3, 3), material = Enum.Material.Plastic},
+            {transparency = 0.5, size = Vector3.new(2, 2, 2), material = Enum.Material.Plastic}
+        }
+        
+        performanceOptimizer:registerLODObject(player.Character.HumanoidRootPart, lodLevels)
+        
+        -- Add to culling system
+        performanceOptimizer.cullingSystem.culledObjects[player.Character.HumanoidRootPart] = true
+    end
+    
+    -- Test batch operations
+    for i = 1, 10 do
+        performanceOptimizer:addBatchOperation("createPart", {
+            {name = "TestPart" .. i, position = Vector3.new(i * 10, 0, 0)}
+        })
+    end
+    
+    -- Test async tasks
+    performanceOptimizer:addAsyncTask(function()
+        wait(1)
+        print("Async task completed for", player.Name)
+    end, 2)
+    
+    print("Applied performance optimization tests to", player.Name)
+end)
+
+-- Monitor performance
+RunService.Heartbeat:Connect(function()
+    local metrics = performanceOptimizer:getPerformanceMetrics()
+    
+    if tick() % 10 < 0.1 then -- Print every 10 seconds
+        print("Performance Metrics:")
+        print("  FPS:", string.format("%.1f", metrics.frameRate))
+        print("  Memory:", string.format("%.1f", metrics.memoryUsage), "MB")
+        print("  Active Objects:", metrics.activeObjects)
+    end
+end)
+
+print("\\n=== ADVANCED PERFORMANCE OPTIMIZATION DEMO COMPLETE ===")
+print("You've learned performance optimization techniques, memory management, and optimization systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Create performance optimization system with profiling', type: 'code_contains', value: 'setupProfiling' },
+        { description: 'Implement memory monitoring and garbage collection', type: 'code_contains', value: 'monitorMemoryUsage' },
+        { description: 'Build object pooling and LOD systems', type: 'code_contains', value: 'setupObjectPooling' }
+      ],
+      hints: [
+        'Use collectgarbage() to manage memory and prevent memory leaks',
+        'Implement object pooling to reuse objects instead of creating new ones',
+        'Use LOD (Level of Detail) systems to reduce rendering load for distant objects',
+        'Monitor frame rate and automatically reduce quality when performance drops',
+        'Use batch operations to group similar operations together for better performance'
+      ],
+      successMessage: 'Excellent! You now understand advanced performance optimization techniques, memory management, and optimization systems. These skills are essential for creating smooth, efficient Roblox games!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
