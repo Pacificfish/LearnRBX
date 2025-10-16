@@ -24375,7 +24375,7 @@ function SecuritySystem:setupInputValidator()
             -- Path traversal patterns
             pathTraversal = {"../", "..\\", "/etc/", "C:\\", "\\windows\\"},
             -- Command injection patterns
-            commandInjection = {"|", "&", ";", "`", "$", "&&", "||"}
+            commandInjection = {"|", "&", ";", "\`", "$", "&&", "||"}
         },
         maxLength = 1000,
         allowedCharacters = "[%w%s%p]"
@@ -25088,7 +25088,7 @@ function SecuritySystem:setupInputValidator()
             -- Path traversal patterns
             pathTraversal = {"../", "..\\", "/etc/", "C:\\", "\\windows\\"},
             -- Command injection patterns
-            commandInjection = {"|", "&", ";", "`", "$", "&&", "||"}
+            commandInjection = {"|", "&", ";", "\`", "$", "&&", "||"}
         },
         maxLength = 1000,
         allowedCharacters = "[%w%s%p]"
