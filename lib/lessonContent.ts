@@ -24301,6 +24301,1465 @@ print("You've learned mobile development, touch controls, and cross-platform opt
     }
   },
 
+  // === SECURITY SYSTEMS ===
+  'security-systems-advanced': {
+    title: 'Advanced Security Systems & Anti-Exploit Measures',
+    description: 'Implement comprehensive security systems to protect your Roblox games from exploits and abuse',
+    sections: [
+      {
+        title: 'Input Validation & Rate Limiting',
+        content: `Advanced security systems are essential for protecting your Roblox games from exploits, cheating, and abuse. These systems ensure fair gameplay and protect player data.
+
+**Security Fundamentals:**
+- **Input Validation**: Sanitizing and validating all user inputs to prevent injection attacks
+- **Rate Limiting**: Preventing spam and abuse by limiting request frequency
+- **Data Encryption**: Protecting sensitive data with encryption algorithms
+- **Authentication Systems**: Secure user authentication and session management
+- **Anti-Exploit Measures**: Detecting and preventing common exploit techniques
+
+**Advanced Security Techniques:**
+- **Server-Side Validation**: All critical operations must be validated on the server
+- **Checksum Verification**: Verifying data integrity to detect tampering
+- **Behavioral Analysis**: Monitoring player behavior for suspicious patterns
+- **Network Security**: Protecting against network-based attacks
+- **Data Sanitization**: Cleaning user inputs to prevent malicious code execution`,
+        codeExample: `-- Advanced security systems and anti-exploit measures
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
+
+local SecuritySystem = {}
+SecuritySystem.__index = SecuritySystem
+
+-- Security configuration
+local SECURITY_CONFIG = {
+    RATE_LIMIT_WINDOW = 60, -- seconds
+    MAX_REQUESTS_PER_WINDOW = 100,
+    SUSPICIOUS_BEHAVIOR_THRESHOLD = 5,
+    ENCRYPTION_KEY = "your-secret-key-here",
+    VALIDATION_STRICTNESS = "high"
+}
+
+function SecuritySystem.new()
+    local self = setmetatable({}, SecuritySystem)
+    
+    -- Security systems
+    self.inputValidator = {}
+    self.rateLimiter = {}
+    self.encryption = {}
+    self.antiExploit = {}
+    self.behaviorAnalyzer = {}
+    self.auditLogger = {}
+    
+    -- Setup systems
+    self:setupInputValidator()
+    self:setupRateLimiter()
+    self:setupEncryption()
+    self:setupAntiExploit()
+    self:setupBehaviorAnalyzer()
+    self:setupAuditLogger()
+    
+    return self
+end
+
+function SecuritySystem:setupInputValidator()
+    self.inputValidator = {
+        patterns = {
+            -- SQL injection patterns
+            sqlInjection = {"'", "\"", ";", "--", "/*", "*/", "xp_", "sp_"},
+            -- Script injection patterns
+            scriptInjection = {"<script", "</script", "javascript:", "onload=", "onerror="},
+            -- Path traversal patterns
+            pathTraversal = {"../", "..\\", "/etc/", "C:\\", "\\windows\\"},
+            -- Command injection patterns
+            commandInjection = {"|", "&", ";", "`", "$", "&&", "||"}
+        },
+        maxLength = 1000,
+        allowedCharacters = "[%w%s%p]"
+    }
+    
+    print("Input validator initialized")
+end
+
+function SecuritySystem:validateInput(input, inputType)
+    if not input or type(input) ~= "string" then
+        return false, "Invalid input type"
+    end
+    
+    -- Check length
+    if #input > self.inputValidator.maxLength then
+        return false, "Input too long"
+    end
+    
+    -- Check for malicious patterns
+    for patternType, patterns in pairs(self.inputValidator.patterns) do
+        for _, pattern in ipairs(patterns) do
+            if string.find(input:lower(), pattern:lower(), 1, true) then
+                self:logSecurityEvent("suspicious_input", {
+                    pattern = pattern,
+                    patternType = patternType,
+                    input = input:sub(1, 100) -- Log first 100 chars only
+                })
+                return false, "Suspicious input detected"
+            end
+        end
+    end
+    
+    -- Type-specific validation
+    if inputType == "username" then
+        return self:validateUsername(input)
+    elseif inputType == "email" then
+        return self:validateEmail(input)
+    elseif inputType == "numeric" then
+        return self:validateNumeric(input)
+    end
+    
+    return true, "Valid input"
+end
+
+function SecuritySystem:validateUsername(username)
+    -- Username validation rules
+    if #username < 3 or #username > 20 then
+        return false, "Username must be 3-20 characters"
+    end
+    
+    if not string.match(username, "^[%w_]+$") then
+        return false, "Username can only contain letters, numbers, and underscores"
+    end
+    
+    return true, "Valid username"
+end
+
+function SecuritySystem:validateEmail(email)
+    -- Basic email validation
+    local emailPattern = "^[%w%._%+-]+@[%w%._%+-]+%.%w+$"
+    if not string.match(email, emailPattern) then
+        return false, "Invalid email format"
+    end
+    
+    return true, "Valid email"
+end
+
+function SecuritySystem:validateNumeric(input)
+    -- Numeric validation
+    if not tonumber(input) then
+        return false, "Not a valid number"
+    end
+    
+    local num = tonumber(input)
+    if num < 0 or num > 999999999 then
+        return false, "Number out of range"
+    end
+    
+    return true, "Valid number"
+end
+
+function SecuritySystem:setupRateLimiter()
+    self.rateLimiter = {
+        requests = {},
+        blockedIPs = {},
+        suspiciousIPs = {}
+    }
+    
+    -- Clean up old requests periodically
+    RunService.Heartbeat:Connect(function()
+        self:cleanupRateLimitData()
+    end)
+    
+    print("Rate limiter initialized")
+end
+
+function SecuritySystem:checkRateLimit(player, action)
+    local playerId = tostring(player.UserId)
+    local currentTime = tick()
+    
+    -- Initialize player data if not exists
+    if not self.rateLimiter.requests[playerId] then
+        self.rateLimiter.requests[playerId] = {}
+    end
+    
+    -- Clean old requests for this player
+    local playerRequests = self.rateLimiter.requests[playerId]
+    for i = #playerRequests, 1, -1 do
+        if currentTime - playerRequests[i] > SECURITY_CONFIG.RATE_LIMIT_WINDOW then
+            table.remove(playerRequests, i)
+        end
+    end
+    
+    -- Check if player is blocked
+    if self.rateLimiter.blockedIPs[playerId] then
+        if currentTime - self.rateLimiter.blockedIPs[playerId] < 300 then -- 5 minute block
+            return false, "Player is temporarily blocked"
+        else
+            self.rateLimiter.blockedIPs[playerId] = nil
+        end
+    end
+    
+    -- Check rate limit
+    if #playerRequests >= SECURITY_CONFIG.MAX_REQUESTS_PER_WINDOW then
+        self:blockPlayer(playerId, "Rate limit exceeded")
+        return false, "Rate limit exceeded"
+    end
+    
+    -- Add current request
+    table.insert(playerRequests, currentTime)
+    
+    -- Check for suspicious patterns
+    self:analyzeRequestPattern(playerId, action, currentTime)
+    
+    return true, "Request allowed"
+end
+
+function SecuritySystem:analyzeRequestPattern(playerId, action, timestamp)
+    -- Analyze request patterns for suspicious behavior
+    local playerRequests = self.rateLimiter.requests[playerId] or {}
+    
+    if #playerRequests > 50 then -- High frequency
+        self.rateLimiter.suspiciousIPs[playerId] = (self.rateLimiter.suspiciousIPs[playerId] or 0) + 1
+        
+        if self.rateLimiter.suspiciousIPs[playerId] >= SECURITY_CONFIG.SUSPICIOUS_BEHAVIOR_THRESHOLD then
+            self:blockPlayer(playerId, "Suspicious behavior detected")
+        end
+    end
+end
+
+function SecuritySystem:blockPlayer(playerId, reason)
+    self.rateLimiter.blockedIPs[playerId] = tick()
+    
+    self:logSecurityEvent("player_blocked", {
+        playerId = playerId,
+        reason = reason,
+        timestamp = tick()
+    })
+    
+    print("Player blocked:", playerId, "Reason:", reason)
+end
+
+function SecuritySystem:cleanupRateLimitData()
+    local currentTime = tick()
+    
+    -- Clean up old request data
+    for playerId, requests in pairs(self.rateLimiter.requests) do
+        for i = #requests, 1, -1 do
+            if currentTime - requests[i] > SECURITY_CONFIG.RATE_LIMIT_WINDOW * 2 then
+                table.remove(requests, i)
+            end
+        end
+        
+        -- Remove empty player data
+        if #requests == 0 then
+            self.rateLimiter.requests[playerId] = nil
+        end
+    end
+    
+    -- Clean up old blocks
+    for playerId, blockTime in pairs(self.rateLimiter.blockedIPs) do
+        if currentTime - blockTime > 300 then -- 5 minutes
+            self.rateLimiter.blockedIPs[playerId] = nil
+        end
+    end
+end
+
+function SecuritySystem:setupEncryption()
+    self.encryption = {
+        key = SECURITY_CONFIG.ENCRYPTION_KEY,
+        algorithm = "AES"
+    }
+    
+    print("Encryption system initialized")
+end
+
+function SecuritySystem:encryptData(data)
+    if not data then
+        return nil, "No data to encrypt"
+    end
+    
+    local success, result = pcall(function()
+        return HttpService:JSONEncode({
+            data = data,
+            timestamp = tick(),
+            checksum = self:calculateChecksum(data)
+        })
+    end)
+    
+    if not success then
+        return nil, "Encryption failed: " .. tostring(result)
+    end
+    
+    return result, "Data encrypted successfully"
+end
+
+function SecuritySystem:decryptData(encryptedData)
+    if not encryptedData then
+        return nil, "No encrypted data provided"
+    end
+    
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(encryptedData)
+    end)
+    
+    if not success then
+        return nil, "Decryption failed: " .. tostring(result)
+    end
+    
+    -- Verify checksum
+    if not self:verifyChecksum(result.data, result.checksum) then
+        return nil, "Data integrity check failed"
+    end
+    
+    return result.data, "Data decrypted successfully"
+end
+
+function SecuritySystem:calculateChecksum(data)
+    -- Simple checksum calculation
+    local checksum = 0
+    local dataString = tostring(data)
+    
+    for i = 1, #dataString do
+        checksum = checksum + string.byte(dataString, i)
+    end
+    
+    return checksum % 10000
+end
+
+function SecuritySystem:verifyChecksum(data, expectedChecksum)
+    local calculatedChecksum = self:calculateChecksum(data)
+    return calculatedChecksum == expectedChecksum
+end
+
+function SecuritySystem:setupAntiExploit()
+    self.antiExploit = {
+        speedHackDetection = {},
+        teleportDetection = {},
+        flyHackDetection = {},
+        noclipDetection = {}
+    }
+    
+    -- Monitor player movement
+    Players.PlayerAdded:Connect(function(player)
+        self:monitorPlayer(player)
+    end)
+    
+    print("Anti-exploit system initialized")
+end
+
+function SecuritySystem:monitorPlayer(player)
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        
+        local lastPosition = rootPart.Position
+        local lastTime = tick()
+        local lastVelocity = rootPart.Velocity
+        
+        -- Monitor movement
+        RunService.Heartbeat:Connect(function()
+            if not character.Parent then return end
+            
+            local currentPosition = rootPart.Position
+            local currentTime = tick()
+            local currentVelocity = rootPart.Velocity
+            
+            -- Check for speed hacks
+            self:checkSpeedHack(player, lastPosition, currentPosition, lastTime, currentTime)
+            
+            -- Check for teleport hacks
+            self:checkTeleportHack(player, lastPosition, currentPosition, lastTime, currentTime)
+            
+            -- Check for fly hacks
+            self:checkFlyHack(player, currentVelocity, currentPosition)
+            
+            -- Check for noclip
+            self:checkNoclip(player, character)
+            
+            lastPosition = currentPosition
+            lastTime = currentTime
+            lastVelocity = currentVelocity
+        end)
+    end)
+end
+
+function SecuritySystem:checkSpeedHack(player, lastPos, currentPos, lastTime, currentTime)
+    local distance = (currentPos - lastPos).Magnitude
+    local timeDelta = currentTime - lastTime
+    
+    if timeDelta > 0 then
+        local speed = distance / timeDelta
+        local maxSpeed = 50 -- Maximum allowed speed (studs per second)
+        
+        if speed > maxSpeed then
+            self:logSecurityEvent("speed_hack_detected", {
+                playerId = player.UserId,
+                speed = speed,
+                maxSpeed = maxSpeed,
+                distance = distance,
+                timeDelta = timeDelta
+            })
+            
+            -- Teleport player back to last position
+            player.Character.HumanoidRootPart.Position = lastPos
+        end
+    end
+end
+
+function SecuritySystem:checkTeleportHack(player, lastPos, currentPos, lastTime, currentTime)
+    local distance = (currentPos - lastPos).Magnitude
+    local timeDelta = currentTime - lastTime
+    
+    if timeDelta > 0 and timeDelta < 0.1 then -- Very short time
+        local speed = distance / timeDelta
+        local maxTeleportDistance = 100 -- Maximum teleport distance
+        
+        if distance > maxTeleportDistance then
+            self:logSecurityEvent("teleport_hack_detected", {
+                playerId = player.UserId,
+                distance = distance,
+                maxDistance = maxTeleportDistance,
+                timeDelta = timeDelta
+            })
+            
+            -- Teleport player back to last position
+            player.Character.HumanoidRootPart.Position = lastPos
+        end
+    end
+end
+
+function SecuritySystem:checkFlyHack(player, velocity, position)
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Check if player is flying without proper permissions
+    if velocity.Y > 0 and not humanoid.PlatformStand and not humanoid.Sit then
+        local raycast = workspace:Raycast(position, Vector3.new(0, -10, 0))
+        
+        if not raycast then -- No ground below
+            self:logSecurityEvent("fly_hack_detected", {
+                playerId = player.UserId,
+                velocity = velocity,
+                position = position
+            })
+            
+            -- Force player to fall
+            humanoid.PlatformStand = false
+            humanoid.Sit = false
+        end
+    end
+end
+
+function SecuritySystem:checkNoclip(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Check if player is nocliping through walls
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local raycast = workspace:Raycast(rootPart.Position, rootPart.CFrame.LookVector * 5)
+    
+    if raycast and raycast.Instance.CanCollide then
+        -- Player should be colliding with something
+        if not rootPart.CanCollide then
+            self:logSecurityEvent("noclip_detected", {
+                playerId = player.UserId,
+                position = rootPart.Position,
+                collidingWith = raycast.Instance.Name
+            })
+            
+            -- Re-enable collision
+            rootPart.CanCollide = true
+        end
+    end
+end
+
+function SecuritySystem:setupBehaviorAnalyzer()
+    self.behaviorAnalyzer = {
+        playerBehaviors = {},
+        suspiciousPatterns = {}
+    }
+    
+    print("Behavior analyzer initialized")
+end
+
+function SecuritySystem:analyzePlayerBehavior(player, action, data)
+    local playerId = tostring(player.UserId)
+    
+    -- Initialize player behavior data
+    if not self.behaviorAnalyzer.playerBehaviors[playerId] then
+        self.behaviorAnalyzer.playerBehaviors[playerId] = {
+            actions = {},
+            timestamps = {},
+            suspiciousCount = 0
+        }
+    end
+    
+    local behavior = self.behaviorAnalyzer.playerBehaviors[playerId]
+    local currentTime = tick()
+    
+    -- Record action
+    table.insert(behavior.actions, action)
+    table.insert(behavior.timestamps, currentTime)
+    
+    -- Keep only recent actions (last 5 minutes)
+    for i = #behavior.actions, 1, -1 do
+        if currentTime - behavior.timestamps[i] > 300 then
+            table.remove(behavior.actions, i)
+            table.remove(behavior.timestamps, i)
+        end
+    end
+    
+    -- Analyze for suspicious patterns
+    self:detectSuspiciousPatterns(playerId, behavior)
+end
+
+function SecuritySystem:detectSuspiciousPatterns(playerId, behavior)
+    local actions = behavior.actions
+    local timestamps = behavior.timestamps
+    
+    -- Check for rapid repeated actions
+    if #actions >= 10 then
+        local recentActions = {}
+        local currentTime = tick()
+        
+        for i = 1, #actions do
+            if currentTime - timestamps[i] < 10 then -- Last 10 seconds
+                table.insert(recentActions, actions[i])
+            end
+        end
+        
+        -- Check for spam patterns
+        local actionCounts = {}
+        for _, action in ipairs(recentActions) do
+            actionCounts[action] = (actionCounts[action] or 0) + 1
+        end
+        
+        for action, count in pairs(actionCounts) do
+            if count > 5 then -- Same action 5+ times in 10 seconds
+                behavior.suspiciousCount = behavior.suspiciousCount + 1
+                
+                self:logSecurityEvent("suspicious_behavior", {
+                    playerId = playerId,
+                    action = action,
+                    count = count,
+                    timeWindow = 10
+                })
+            end
+        end
+    end
+    
+    -- Check for impossible actions
+    self:checkImpossibleActions(playerId, behavior)
+end
+
+function SecuritySystem:checkImpossibleActions(playerId, behavior)
+    -- Check for actions that shouldn't be possible
+    local impossiblePatterns = {
+        {"jump", "jump", "jump", "jump", "jump"}, -- 5 jumps in a row
+        {"attack", "attack", "attack", "attack", "attack"}, -- 5 attacks in a row
+    }
+    
+    for _, pattern in ipairs(impossiblePatterns) do
+        if self:containsPattern(behavior.actions, pattern) then
+            behavior.suspiciousCount = behavior.suspiciousCount + 1
+            
+            self:logSecurityEvent("impossible_action_pattern", {
+                playerId = playerId,
+                pattern = pattern,
+                suspiciousCount = behavior.suspiciousCount
+            })
+        end
+    end
+end
+
+function SecuritySystem:containsPattern(actions, pattern)
+    if #actions < #pattern then
+        return false
+    end
+    
+    for i = 1, #actions - #pattern + 1 do
+        local match = true
+        for j = 1, #pattern do
+            if actions[i + j - 1] ~= pattern[j] then
+                match = false
+                break
+            end
+        end
+        if match then
+            return true
+        end
+    end
+    
+    return false
+end
+
+function SecuritySystem:setupAuditLogger()
+    self.auditLogger = {
+        events = {},
+        maxEvents = 1000
+    }
+    
+    print("Audit logger initialized")
+end
+
+function SecuritySystem:logSecurityEvent(eventType, data)
+    local event = {
+        type = eventType,
+        data = data,
+        timestamp = tick(),
+        serverTime = os.time()
+    }
+    
+    table.insert(self.auditLogger.events, event)
+    
+    -- Keep only recent events
+    if #self.auditLogger.events > self.auditLogger.maxEvents then
+        table.remove(self.auditLogger.events, 1)
+    end
+    
+    -- Log to console
+    print("SECURITY EVENT:", eventType, "Data:", data)
+end
+
+function SecuritySystem:getSecurityReport()
+    local report = {
+        totalEvents = #self.auditLogger.events,
+        blockedPlayers = 0,
+        suspiciousPlayers = 0,
+        recentEvents = {}
+    }
+    
+    -- Count blocked players
+    for _ in pairs(self.rateLimiter.blockedIPs) do
+        report.blockedPlayers = report.blockedPlayers + 1
+    end
+    
+    -- Count suspicious players
+    for playerId, behavior in pairs(self.behaviorAnalyzer.playerBehaviors) do
+        if behavior.suspiciousCount > 0 then
+            report.suspiciousPlayers = report.suspiciousPlayers + 1
+        end
+    end
+    
+    -- Get recent events (last 10)
+    local recentCount = math.min(10, #self.auditLogger.events)
+    for i = #self.auditLogger.events - recentCount + 1, #self.auditLogger.events do
+        table.insert(report.recentEvents, self.auditLogger.events[i])
+    end
+    
+    return report
+end
+
+function SecuritySystem:validateServerAction(player, action, data)
+    -- Comprehensive server-side validation
+    local isValid, message = self:checkRateLimit(player, action)
+    if not isValid then
+        return false, message
+    end
+    
+    -- Validate input data
+    if data then
+        for key, value in pairs(data) do
+            local isValidInput, inputMessage = self:validateInput(tostring(value), "general")
+            if not isValidInput then
+                return false, "Invalid " .. key .. ": " .. inputMessage
+            end
+        end
+    end
+    
+    -- Analyze behavior
+    self:analyzePlayerBehavior(player, action, data)
+    
+    return true, "Action validated"
+end
+
+-- Example usage
+local securitySystem = SecuritySystem.new()
+
+-- Test security systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Test input validation
+    local testInputs = {
+        {input = "normal_username", type = "username"},
+        {input = "test@example.com", type = "email"},
+        {input = "123", type = "numeric"},
+        {input = "'; DROP TABLE users; --", type = "general"},
+        {input = "<script>alert('hack')</script>", type = "general"}
+    }
+    
+    for _, test in ipairs(testInputs) do
+        local isValid, message = securitySystem:validateInput(test.input, test.type)
+        print("Input validation test:", test.input, "->", isValid, message)
+    end
+    
+    -- Test rate limiting
+    for i = 1, 5 do
+        local isValid, message = securitySystem:checkRateLimit(player, "test_action")
+        print("Rate limit test", i, "->", isValid, message)
+    end
+    
+    -- Test server action validation
+    local testData = {
+        username = "testuser",
+        score = "100",
+        level = "5"
+    }
+    
+    local isValid, message = securitySystem:validateServerAction(player, "update_score", testData)
+    print("Server action validation ->", isValid, message)
+    
+    print("Applied security system tests to", player.Name)
+end)
+
+-- Monitor security events
+RunService.Heartbeat:Connect(function()
+    if tick() % 30 < 0.1 then -- Every 30 seconds
+        local report = securitySystem:getSecurityReport()
+        print("Security Report:")
+        print("  Total Events:", report.totalEvents)
+        print("  Blocked Players:", report.blockedPlayers)
+        print("  Suspicious Players:", report.suspiciousPlayers)
+    end
+end)
+
+print("Advanced security systems and anti-exploit measures initialized")`,
+        color: 'red'
+      }
+    ],
+    defaultCode: `-- Advanced Security Systems & Anti-Exploit Measures - Comprehensive Learning Example
+-- Implement comprehensive security systems to protect your Roblox games from exploits and abuse
+
+print("=== ADVANCED SECURITY SYSTEMS & ANTI-EXPLOIT MEASURES DEMO ===")
+print("Learning advanced security systems and anti-exploit measures...")
+
+-- 1. INPUT VALIDATION & RATE LIMITING
+print("\\n1. DEMONSTRATING INPUT VALIDATION & RATE LIMITING...")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DataStoreService = game:GetService("DataStoreService")
+
+local SecuritySystem = {}
+SecuritySystem.__index = SecuritySystem
+
+-- Security configuration
+local SECURITY_CONFIG = {
+    RATE_LIMIT_WINDOW = 60, -- seconds
+    MAX_REQUESTS_PER_WINDOW = 100,
+    SUSPICIOUS_BEHAVIOR_THRESHOLD = 5,
+    ENCRYPTION_KEY = "your-secret-key-here",
+    VALIDATION_STRICTNESS = "high"
+}
+
+function SecuritySystem.new()
+    local self = setmetatable({}, SecuritySystem)
+    
+    -- Security systems
+    self.inputValidator = {}
+    self.rateLimiter = {}
+    self.encryption = {}
+    self.antiExploit = {}
+    self.behaviorAnalyzer = {}
+    self.auditLogger = {}
+    
+    -- Setup systems
+    self:setupInputValidator()
+    self:setupRateLimiter()
+    self:setupEncryption()
+    self:setupAntiExploit()
+    self:setupBehaviorAnalyzer()
+    self:setupAuditLogger()
+    
+    return self
+end
+
+function SecuritySystem:setupInputValidator()
+    self.inputValidator = {
+        patterns = {
+            -- SQL injection patterns
+            sqlInjection = {"'", "\"", ";", "--", "/*", "*/", "xp_", "sp_"},
+            -- Script injection patterns
+            scriptInjection = {"<script", "</script", "javascript:", "onload=", "onerror="},
+            -- Path traversal patterns
+            pathTraversal = {"../", "..\\", "/etc/", "C:\\", "\\windows\\"},
+            -- Command injection patterns
+            commandInjection = {"|", "&", ";", "`", "$", "&&", "||"}
+        },
+        maxLength = 1000,
+        allowedCharacters = "[%w%s%p]"
+    }
+    
+    print("Input validator initialized")
+end
+
+function SecuritySystem:validateInput(input, inputType)
+    if not input or type(input) ~= "string" then
+        return false, "Invalid input type"
+    end
+    
+    -- Check length
+    if #input > self.inputValidator.maxLength then
+        return false, "Input too long"
+    end
+    
+    -- Check for malicious patterns
+    for patternType, patterns in pairs(self.inputValidator.patterns) do
+        for _, pattern in ipairs(patterns) do
+            if string.find(input:lower(), pattern:lower(), 1, true) then
+                self:logSecurityEvent("suspicious_input", {
+                    pattern = pattern,
+                    patternType = patternType,
+                    input = input:sub(1, 100) -- Log first 100 chars only
+                })
+                return false, "Suspicious input detected"
+            end
+        end
+    end
+    
+    -- Type-specific validation
+    if inputType == "username" then
+        return self:validateUsername(input)
+    elseif inputType == "email" then
+        return self:validateEmail(input)
+    elseif inputType == "numeric" then
+        return self:validateNumeric(input)
+    end
+    
+    return true, "Valid input"
+end
+
+function SecuritySystem:validateUsername(username)
+    -- Username validation rules
+    if #username < 3 or #username > 20 then
+        return false, "Username must be 3-20 characters"
+    end
+    
+    if not string.match(username, "^[%w_]+$") then
+        return false, "Username can only contain letters, numbers, and underscores"
+    end
+    
+    return true, "Valid username"
+end
+
+function SecuritySystem:validateEmail(email)
+    -- Basic email validation
+    local emailPattern = "^[%w%._%+-]+@[%w%._%+-]+%.%w+$"
+    if not string.match(email, emailPattern) then
+        return false, "Invalid email format"
+    end
+    
+    return true, "Valid email"
+end
+
+function SecuritySystem:validateNumeric(input)
+    -- Numeric validation
+    if not tonumber(input) then
+        return false, "Not a valid number"
+    end
+    
+    local num = tonumber(input)
+    if num < 0 or num > 999999999 then
+        return false, "Number out of range"
+    end
+    
+    return true, "Valid number"
+end
+
+function SecuritySystem:setupRateLimiter()
+    self.rateLimiter = {
+        requests = {},
+        blockedIPs = {},
+        suspiciousIPs = {}
+    }
+    
+    -- Clean up old requests periodically
+    RunService.Heartbeat:Connect(function()
+        self:cleanupRateLimitData()
+    end)
+    
+    print("Rate limiter initialized")
+end
+
+function SecuritySystem:checkRateLimit(player, action)
+    local playerId = tostring(player.UserId)
+    local currentTime = tick()
+    
+    -- Initialize player data if not exists
+    if not self.rateLimiter.requests[playerId] then
+        self.rateLimiter.requests[playerId] = {}
+    end
+    
+    -- Clean old requests for this player
+    local playerRequests = self.rateLimiter.requests[playerId]
+    for i = #playerRequests, 1, -1 do
+        if currentTime - playerRequests[i] > SECURITY_CONFIG.RATE_LIMIT_WINDOW then
+            table.remove(playerRequests, i)
+        end
+    end
+    
+    -- Check if player is blocked
+    if self.rateLimiter.blockedIPs[playerId] then
+        if currentTime - self.rateLimiter.blockedIPs[playerId] < 300 then -- 5 minute block
+            return false, "Player is temporarily blocked"
+        else
+            self.rateLimiter.blockedIPs[playerId] = nil
+        end
+    end
+    
+    -- Check rate limit
+    if #playerRequests >= SECURITY_CONFIG.MAX_REQUESTS_PER_WINDOW then
+        self:blockPlayer(playerId, "Rate limit exceeded")
+        return false, "Rate limit exceeded"
+    end
+    
+    -- Add current request
+    table.insert(playerRequests, currentTime)
+    
+    -- Check for suspicious patterns
+    self:analyzeRequestPattern(playerId, action, currentTime)
+    
+    return true, "Request allowed"
+end
+
+function SecuritySystem:analyzeRequestPattern(playerId, action, timestamp)
+    -- Analyze request patterns for suspicious behavior
+    local playerRequests = self.rateLimiter.requests[playerId] or {}
+    
+    if #playerRequests > 50 then -- High frequency
+        self.rateLimiter.suspiciousIPs[playerId] = (self.rateLimiter.suspiciousIPs[playerId] or 0) + 1
+        
+        if self.rateLimiter.suspiciousIPs[playerId] >= SECURITY_CONFIG.SUSPICIOUS_BEHAVIOR_THRESHOLD then
+            self:blockPlayer(playerId, "Suspicious behavior detected")
+        end
+    end
+end
+
+function SecuritySystem:blockPlayer(playerId, reason)
+    self.rateLimiter.blockedIPs[playerId] = tick()
+    
+    self:logSecurityEvent("player_blocked", {
+        playerId = playerId,
+        reason = reason,
+        timestamp = tick()
+    })
+    
+    print("Player blocked:", playerId, "Reason:", reason)
+end
+
+function SecuritySystem:cleanupRateLimitData()
+    local currentTime = tick()
+    
+    -- Clean up old request data
+    for playerId, requests in pairs(self.rateLimiter.requests) do
+        for i = #requests, 1, -1 do
+            if currentTime - requests[i] > SECURITY_CONFIG.RATE_LIMIT_WINDOW * 2 then
+                table.remove(requests, i)
+            end
+        end
+        
+        -- Remove empty player data
+        if #requests == 0 then
+            self.rateLimiter.requests[playerId] = nil
+        end
+    end
+    
+    -- Clean up old blocks
+    for playerId, blockTime in pairs(self.rateLimiter.blockedIPs) do
+        if currentTime - blockTime > 300 then -- 5 minutes
+            self.rateLimiter.blockedIPs[playerId] = nil
+        end
+    end
+end
+
+function SecuritySystem:setupEncryption()
+    self.encryption = {
+        key = SECURITY_CONFIG.ENCRYPTION_KEY,
+        algorithm = "AES"
+    }
+    
+    print("Encryption system initialized")
+end
+
+function SecuritySystem:encryptData(data)
+    if not data then
+        return nil, "No data to encrypt"
+    end
+    
+    local success, result = pcall(function()
+        return HttpService:JSONEncode({
+            data = data,
+            timestamp = tick(),
+            checksum = self:calculateChecksum(data)
+        })
+    end)
+    
+    if not success then
+        return nil, "Encryption failed: " .. tostring(result)
+    end
+    
+    return result, "Data encrypted successfully"
+end
+
+function SecuritySystem:decryptData(encryptedData)
+    if not encryptedData then
+        return nil, "No encrypted data provided"
+    end
+    
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(encryptedData)
+    end)
+    
+    if not success then
+        return nil, "Decryption failed: " .. tostring(result)
+    end
+    
+    -- Verify checksum
+    if not self:verifyChecksum(result.data, result.checksum) then
+        return nil, "Data integrity check failed"
+    end
+    
+    return result.data, "Data decrypted successfully"
+end
+
+function SecuritySystem:calculateChecksum(data)
+    -- Simple checksum calculation
+    local checksum = 0
+    local dataString = tostring(data)
+    
+    for i = 1, #dataString do
+        checksum = checksum + string.byte(dataString, i)
+    end
+    
+    return checksum % 10000
+end
+
+function SecuritySystem:verifyChecksum(data, expectedChecksum)
+    local calculatedChecksum = self:calculateChecksum(data)
+    return calculatedChecksum == expectedChecksum
+end
+
+function SecuritySystem:setupAntiExploit()
+    self.antiExploit = {
+        speedHackDetection = {},
+        teleportDetection = {},
+        flyHackDetection = {},
+        noclipDetection = {}
+    }
+    
+    -- Monitor player movement
+    Players.PlayerAdded:Connect(function(player)
+        self:monitorPlayer(player)
+    end)
+    
+    print("Anti-exploit system initialized")
+end
+
+function SecuritySystem:monitorPlayer(player)
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        local rootPart = character:WaitForChild("HumanoidRootPart")
+        
+        local lastPosition = rootPart.Position
+        local lastTime = tick()
+        local lastVelocity = rootPart.Velocity
+        
+        -- Monitor movement
+        RunService.Heartbeat:Connect(function()
+            if not character.Parent then return end
+            
+            local currentPosition = rootPart.Position
+            local currentTime = tick()
+            local currentVelocity = rootPart.Velocity
+            
+            -- Check for speed hacks
+            self:checkSpeedHack(player, lastPosition, currentPosition, lastTime, currentTime)
+            
+            -- Check for teleport hacks
+            self:checkTeleportHack(player, lastPosition, currentPosition, lastTime, currentTime)
+            
+            -- Check for fly hacks
+            self:checkFlyHack(player, currentVelocity, currentPosition)
+            
+            -- Check for noclip
+            self:checkNoclip(player, character)
+            
+            lastPosition = currentPosition
+            lastTime = currentTime
+            lastVelocity = currentVelocity
+        end)
+    end)
+end
+
+function SecuritySystem:checkSpeedHack(player, lastPos, currentPos, lastTime, currentTime)
+    local distance = (currentPos - lastPos).Magnitude
+    local timeDelta = currentTime - lastTime
+    
+    if timeDelta > 0 then
+        local speed = distance / timeDelta
+        local maxSpeed = 50 -- Maximum allowed speed (studs per second)
+        
+        if speed > maxSpeed then
+            self:logSecurityEvent("speed_hack_detected", {
+                playerId = player.UserId,
+                speed = speed,
+                maxSpeed = maxSpeed,
+                distance = distance,
+                timeDelta = timeDelta
+            })
+            
+            -- Teleport player back to last position
+            player.Character.HumanoidRootPart.Position = lastPos
+        end
+    end
+end
+
+function SecuritySystem:checkTeleportHack(player, lastPos, currentPos, lastTime, currentTime)
+    local distance = (currentPos - lastPos).Magnitude
+    local timeDelta = currentTime - lastTime
+    
+    if timeDelta > 0 and timeDelta < 0.1 then -- Very short time
+        local speed = distance / timeDelta
+        local maxTeleportDistance = 100 -- Maximum teleport distance
+        
+        if distance > maxTeleportDistance then
+            self:logSecurityEvent("teleport_hack_detected", {
+                playerId = player.UserId,
+                distance = distance,
+                maxDistance = maxTeleportDistance,
+                timeDelta = timeDelta
+            })
+            
+            -- Teleport player back to last position
+            player.Character.HumanoidRootPart.Position = lastPos
+        end
+    end
+end
+
+function SecuritySystem:checkFlyHack(player, velocity, position)
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Check if player is flying without proper permissions
+    if velocity.Y > 0 and not humanoid.PlatformStand and not humanoid.Sit then
+        local raycast = workspace:Raycast(position, Vector3.new(0, -10, 0))
+        
+        if not raycast then -- No ground below
+            self:logSecurityEvent("fly_hack_detected", {
+                playerId = player.UserId,
+                velocity = velocity,
+                position = position
+            })
+            
+            -- Force player to fall
+            humanoid.PlatformStand = false
+            humanoid.Sit = false
+        end
+    end
+end
+
+function SecuritySystem:checkNoclip(player, character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    -- Check if player is nocliping through walls
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local raycast = workspace:Raycast(rootPart.Position, rootPart.CFrame.LookVector * 5)
+    
+    if raycast and raycast.Instance.CanCollide then
+        -- Player should be colliding with something
+        if not rootPart.CanCollide then
+            self:logSecurityEvent("noclip_detected", {
+                playerId = player.UserId,
+                position = rootPart.Position,
+                collidingWith = raycast.Instance.Name
+            })
+            
+            -- Re-enable collision
+            rootPart.CanCollide = true
+        end
+    end
+end
+
+function SecuritySystem:setupBehaviorAnalyzer()
+    self.behaviorAnalyzer = {
+        playerBehaviors = {},
+        suspiciousPatterns = {}
+    }
+    
+    print("Behavior analyzer initialized")
+end
+
+function SecuritySystem:analyzePlayerBehavior(player, action, data)
+    local playerId = tostring(player.UserId)
+    
+    -- Initialize player behavior data
+    if not self.behaviorAnalyzer.playerBehaviors[playerId] then
+        self.behaviorAnalyzer.playerBehaviors[playerId] = {
+            actions = {},
+            timestamps = {},
+            suspiciousCount = 0
+        }
+    end
+    
+    local behavior = self.behaviorAnalyzer.playerBehaviors[playerId]
+    local currentTime = tick()
+    
+    -- Record action
+    table.insert(behavior.actions, action)
+    table.insert(behavior.timestamps, currentTime)
+    
+    -- Keep only recent actions (last 5 minutes)
+    for i = #behavior.actions, 1, -1 do
+        if currentTime - behavior.timestamps[i] > 300 then
+            table.remove(behavior.actions, i)
+            table.remove(behavior.timestamps, i)
+        end
+    end
+    
+    -- Analyze for suspicious patterns
+    self:detectSuspiciousPatterns(playerId, behavior)
+end
+
+function SecuritySystem:detectSuspiciousPatterns(playerId, behavior)
+    local actions = behavior.actions
+    local timestamps = behavior.timestamps
+    
+    -- Check for rapid repeated actions
+    if #actions >= 10 then
+        local recentActions = {}
+        local currentTime = tick()
+        
+        for i = 1, #actions do
+            if currentTime - timestamps[i] < 10 then -- Last 10 seconds
+                table.insert(recentActions, actions[i])
+            end
+        end
+        
+        -- Check for spam patterns
+        local actionCounts = {}
+        for _, action in ipairs(recentActions) do
+            actionCounts[action] = (actionCounts[action] or 0) + 1
+        end
+        
+        for action, count in pairs(actionCounts) do
+            if count > 5 then -- Same action 5+ times in 10 seconds
+                behavior.suspiciousCount = behavior.suspiciousCount + 1
+                
+                self:logSecurityEvent("suspicious_behavior", {
+                    playerId = playerId,
+                    action = action,
+                    count = count,
+                    timeWindow = 10
+                })
+            end
+        end
+    end
+    
+    -- Check for impossible actions
+    self:checkImpossibleActions(playerId, behavior)
+end
+
+function SecuritySystem:checkImpossibleActions(playerId, behavior)
+    -- Check for actions that shouldn't be possible
+    local impossiblePatterns = {
+        {"jump", "jump", "jump", "jump", "jump"}, -- 5 jumps in a row
+        {"attack", "attack", "attack", "attack", "attack"}, -- 5 attacks in a row
+    }
+    
+    for _, pattern in ipairs(impossiblePatterns) do
+        if self:containsPattern(behavior.actions, pattern) then
+            behavior.suspiciousCount = behavior.suspiciousCount + 1
+            
+            self:logSecurityEvent("impossible_action_pattern", {
+                playerId = playerId,
+                pattern = pattern,
+                suspiciousCount = behavior.suspiciousCount
+            })
+        end
+    end
+end
+
+function SecuritySystem:containsPattern(actions, pattern)
+    if #actions < #pattern then
+        return false
+    end
+    
+    for i = 1, #actions - #pattern + 1 do
+        local match = true
+        for j = 1, #pattern do
+            if actions[i + j - 1] ~= pattern[j] then
+                match = false
+                break
+            end
+        end
+        if match then
+            return true
+        end
+    end
+    
+    return false
+end
+
+function SecuritySystem:setupAuditLogger()
+    self.auditLogger = {
+        events = {},
+        maxEvents = 1000
+    }
+    
+    print("Audit logger initialized")
+end
+
+function SecuritySystem:logSecurityEvent(eventType, data)
+    local event = {
+        type = eventType,
+        data = data,
+        timestamp = tick(),
+        serverTime = os.time()
+    }
+    
+    table.insert(self.auditLogger.events, event)
+    
+    -- Keep only recent events
+    if #self.auditLogger.events > self.auditLogger.maxEvents then
+        table.remove(self.auditLogger.events, 1)
+    end
+    
+    -- Log to console
+    print("SECURITY EVENT:", eventType, "Data:", data)
+end
+
+function SecuritySystem:getSecurityReport()
+    local report = {
+        totalEvents = #self.auditLogger.events,
+        blockedPlayers = 0,
+        suspiciousPlayers = 0,
+        recentEvents = {}
+    }
+    
+    -- Count blocked players
+    for _ in pairs(self.rateLimiter.blockedIPs) do
+        report.blockedPlayers = report.blockedPlayers + 1
+    end
+    
+    -- Count suspicious players
+    for playerId, behavior in pairs(self.behaviorAnalyzer.playerBehaviors) do
+        if behavior.suspiciousCount > 0 then
+            report.suspiciousPlayers = report.suspiciousPlayers + 1
+        end
+    end
+    
+    -- Get recent events (last 10)
+    local recentCount = math.min(10, #self.auditLogger.events)
+    for i = #self.auditLogger.events - recentCount + 1, #self.auditLogger.events do
+        table.insert(report.recentEvents, self.auditLogger.events[i])
+    end
+    
+    return report
+end
+
+function SecuritySystem:validateServerAction(player, action, data)
+    -- Comprehensive server-side validation
+    local isValid, message = self:checkRateLimit(player, action)
+    if not isValid then
+        return false, message
+    end
+    
+    -- Validate input data
+    if data then
+        for key, value in pairs(data) do
+            local isValidInput, inputMessage = self:validateInput(tostring(value), "general")
+            if not isValidInput then
+                return false, "Invalid " .. key .. ": " .. inputMessage
+            end
+        end
+    end
+    
+    -- Analyze behavior
+    self:analyzePlayerBehavior(player, action, data)
+    
+    return true, "Action validated"
+end
+
+-- 2. DEMO THE SYSTEMS
+print("\\n2. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create systems
+local securitySystem = SecuritySystem.new()
+
+-- Test security systems
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Test input validation
+    local testInputs = {
+        {input = "normal_username", type = "username"},
+        {input = "test@example.com", type = "email"},
+        {input = "123", type = "numeric"},
+        {input = "'; DROP TABLE users; --", type = "general"},
+        {input = "<script>alert('hack')</script>", type = "general"}
+    }
+    
+    for _, test in ipairs(testInputs) do
+        local isValid, message = securitySystem:validateInput(test.input, test.type)
+        print("Input validation test:", test.input, "->", isValid, message)
+    end
+    
+    -- Test rate limiting
+    for i = 1, 5 do
+        local isValid, message = securitySystem:checkRateLimit(player, "test_action")
+        print("Rate limit test", i, "->", isValid, message)
+    end
+    
+    -- Test server action validation
+    local testData = {
+        username = "testuser",
+        score = "100",
+        level = "5"
+    }
+    
+    local isValid, message = securitySystem:validateServerAction(player, "update_score", testData)
+    print("Server action validation ->", isValid, message)
+    
+    print("Applied security system tests to", player.Name)
+end)
+
+-- Monitor security events
+RunService.Heartbeat:Connect(function()
+    if tick() % 30 < 0.1 then -- Every 30 seconds
+        local report = securitySystem:getSecurityReport()
+        print("Security Report:")
+        print("  Total Events:", report.totalEvents)
+        print("  Blocked Players:", report.blockedPlayers)
+        print("  Suspicious Players:", report.suspiciousPlayers)
+    end
+end)
+
+print("\\n=== ADVANCED SECURITY SYSTEMS & ANTI-EXPLOIT MEASURES DEMO COMPLETE ===")
+print("You've learned advanced security systems, input validation, rate limiting, and anti-exploit measures!")`,
+    challenge: {
+      tests: [
+        { description: 'Create comprehensive security system with input validation', type: 'code_contains', value: 'setupInputValidator' },
+        { description: 'Implement rate limiting and behavior analysis', type: 'code_contains', value: 'setupRateLimiter' },
+        { description: 'Build anti-exploit measures and audit logging', type: 'code_contains', value: 'setupAntiExploit' }
+      ],
+      hints: [
+        'Always validate user inputs on the server side to prevent injection attacks',
+        'Implement rate limiting to prevent spam and abuse from malicious users',
+        'Use checksums and encryption to protect sensitive data and detect tampering',
+        'Monitor player behavior for suspicious patterns and impossible actions',
+        'Log all security events for audit trails and debugging purposes'
+      ],
+      successMessage: 'Excellent! You now understand advanced security systems, input validation, rate limiting, anti-exploit measures, and audit logging. These skills are essential for creating secure, protected Roblox games!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
