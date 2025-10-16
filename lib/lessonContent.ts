@@ -10044,6 +10044,1874 @@ print("You've learned tool creation and weapon systems!")`,
     }
   },
 
+  // === PLAYER MANAGEMENT ===
+  'player-data-systems': {
+    title: 'Player Data & Leaderboards',
+    description: 'Master player data management, leaderboards, and progression systems',
+    sections: [
+      {
+        title: 'Player Data Management',
+        content: `Player data systems are essential for tracking player progress, statistics, and achievements in your Roblox game.
+
+**Core Player Data Concepts:**
+- **DataStoreService**: Persistent data storage across sessions
+- **Player Data Structure**: Organized data hierarchy
+- **Data Validation**: Ensuring data integrity and security
+- **Data Backup**: Protecting against data loss
+- **Data Migration**: Updating data structures over time
+
+**Player Data Types:**
+- **Statistics**: Kills, deaths, wins, losses, playtime
+- **Currency**: Coins, gems, tokens, experience points
+- **Inventory**: Items, tools, cosmetics, collectibles
+- **Progress**: Levels, achievements, unlocks, milestones
+- **Settings**: Preferences, keybinds, display options
+
+**Data Security Best Practices:**
+- **Server-Side Validation**: Never trust client data
+- **Rate Limiting**: Prevent data spam and exploits
+- **Data Encryption**: Protect sensitive information
+- **Backup Systems**: Multiple data storage locations`,
+        codeExample: `-- Comprehensive player data management system
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local PlayerDataManager = {}
+PlayerDataManager.__index = PlayerDataManager
+
+-- Data store configuration
+local DATA_STORE_NAME = "PlayerData_v2"
+local BACKUP_STORE_NAME = "PlayerData_Backup_v2"
+local AUTO_SAVE_INTERVAL = 30 -- seconds
+
+-- Default player data structure
+local DEFAULT_DATA = {
+    stats = {
+        level = 1,
+        experience = 0,
+        coins = 100,
+        gems = 0,
+        kills = 0,
+        deaths = 0,
+        wins = 0,
+        losses = 0,
+        playtime = 0,
+        joinDate = os.time()
+    },
+    inventory = {
+        tools = {},
+        cosmetics = {},
+        collectibles = {}
+    },
+    progress = {
+        achievements = {},
+        unlocks = {},
+        milestones = {}
+    },
+    settings = {
+        musicVolume = 0.5,
+        sfxVolume = 0.5,
+        graphicsQuality = "Medium",
+        keybinds = {}
+    }
+}
+
+function PlayerDataManager.new()
+    local self = setmetatable({}, PlayerDataManager)
+    
+    -- Data stores
+    self.dataStore = DataStoreService:GetDataStore(DATA_STORE_NAME)
+    self.backupStore = DataStoreService:GetDataStore(BACKUP_STORE_NAME)
+    
+    -- Player data cache
+    self.playerData = {}
+    self.autoSaveConnections = {}
+    
+    -- Setup player events
+    self:setupPlayerEvents()
+    
+    return self
+end
+
+function PlayerDataManager:setupPlayerEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:loadPlayerData(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayerData(player)
+    end)
+    
+    -- Auto-save system
+    RunService.Heartbeat:Connect(function()
+        for player, _ in pairs(self.playerData) do
+            if player.Parent then
+                local data = self.playerData[player]
+                if data and data.needsSave then
+                    self:savePlayerData(player)
+                end
+            end
+        end
+    end)
+end
+
+function PlayerDataManager:loadPlayerData(player)
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        -- Validate and merge with default data
+        self.playerData[player] = self:validateData(data)
+        print("Loaded data for", player.Name)
+    else
+        -- Create new player data
+        self.playerData[player] = self:deepCopy(DEFAULT_DATA)
+        print("Created new data for", player.Name)
+    end
+    
+    -- Mark for save to ensure data is stored
+    self.playerData[player].needsSave = true
+    
+    -- Setup auto-save
+    self:setupAutoSave(player)
+    
+    -- Fire data loaded event
+    self:fireDataLoaded(player)
+end
+
+function PlayerDataManager:savePlayerData(player)
+    local data = self.playerData[player]
+    if not data then return end
+    
+    -- Remove temporary data
+    local saveData = self:deepCopy(data)
+    saveData.needsSave = nil
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, saveData)
+    end)
+    
+    if success then
+        print("Saved data for", player.Name)
+        data.needsSave = false
+        
+        -- Backup data
+        self:backupPlayerData(player, saveData)
+    else
+        warn("Failed to save data for", player.Name)
+    end
+end
+
+function PlayerDataManager:backupPlayerData(player, data)
+    pcall(function()
+        self.backupStore:SetAsync(player.UserId, data)
+    end)
+end
+
+function PlayerDataManager:validateData(data)
+    local validatedData = self:deepCopy(DEFAULT_DATA)
+    
+    -- Validate stats
+    if data.stats then
+        for key, value in pairs(data.stats) do
+            if validatedData.stats[key] ~= nil then
+                if type(value) == type(validatedData.stats[key]) then
+                    validatedData.stats[key] = value
+                end
+            end
+        end
+    end
+    
+    -- Validate inventory
+    if data.inventory then
+        for category, items in pairs(data.inventory) do
+            if validatedData.inventory[category] then
+                validatedData.inventory[category] = items
+            end
+        end
+    end
+    
+    -- Validate progress
+    if data.progress then
+        for category, items in pairs(data.progress) do
+            if validatedData.progress[category] then
+                validatedData.progress[category] = items
+            end
+        end
+    end
+    
+    -- Validate settings
+    if data.settings then
+        for key, value in pairs(data.settings) do
+            if validatedData.settings[key] ~= nil then
+                if type(value) == type(validatedData.settings[key]) then
+                    validatedData.settings[key] = value
+                end
+            end
+        end
+    end
+    
+    return validatedData
+end
+
+function PlayerDataManager:getPlayerData(player)
+    return self.playerData[player]
+end
+
+function PlayerDataManager:updateStat(player, statName, value)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.stats[statName] ~= nil then
+        data.stats[statName] = value
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:addStat(player, statName, amount)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.stats[statName] ~= nil then
+        data.stats[statName] = data.stats[statName] + amount
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:addItem(player, category, itemId, itemData)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.inventory[category] then
+        data.inventory[category][itemId] = itemData
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:removeItem(player, category, itemId)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.inventory[category] and data.inventory[category][itemId] then
+        data.inventory[category][itemId] = nil
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:unlockAchievement(player, achievementId)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if not data.progress.achievements[achievementId] then
+        data.progress.achievements[achievementId] = {
+            unlocked = true,
+            unlockedAt = os.time()
+        }
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:setupAutoSave(player)
+    local connection = RunService.Heartbeat:Connect(function()
+        local data = self.playerData[player]
+        if data and data.needsSave then
+            self:savePlayerData(player)
+        end
+    end)
+    
+    self.autoSaveConnections[player] = connection
+end
+
+function PlayerDataManager:cleanupPlayerData(player)
+    if self.autoSaveConnections[player] then
+        self.autoSaveConnections[player]:Disconnect()
+        self.autoSaveConnections[player] = nil
+    end
+    
+    self.playerData[player] = nil
+end
+
+function PlayerDataManager:fireDataLoaded(player)
+    -- Fire custom event for other systems
+    local bindableEvent = Instance.new("BindableEvent")
+    bindableEvent.Name = "PlayerDataLoaded"
+    bindableEvent.Parent = player
+    
+    bindableEvent:Fire(self.playerData[player])
+end
+
+function PlayerDataManager:deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = self:deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+-- Example usage
+local dataManager = PlayerDataManager.new()
+
+-- Update player stats
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for data to load
+    
+    -- Add some coins
+    dataManager:addStat(player, "coins", 50)
+    
+    -- Add a tool to inventory
+    dataManager:addItem(player, "tools", "sword_001", {
+        name = "Iron Sword",
+        damage = 25,
+        durability = 100
+    })
+    
+    -- Unlock an achievement
+    dataManager:unlockAchievement(player, "first_join")
+    
+    print("Updated data for", player.Name)
+end)`,
+        color: 'blue'
+      },
+      {
+        title: 'Leaderboard Systems',
+        content: `Create dynamic leaderboards that display player rankings and statistics in real-time.
+
+**Leaderboard Types:**
+- **Global Leaderboards**: All-time rankings across all players
+- **Seasonal Leaderboards**: Time-limited competitions
+- **Category Leaderboards**: Specific stat rankings (kills, coins, etc.)
+- **Group Leaderboards**: Rankings within specific groups
+- **Local Leaderboards**: Friends or nearby players
+
+**Leaderboard Features:**
+- **Real-time Updates**: Live ranking changes
+- **Multiple Categories**: Different ranking systems
+- **Reward Systems**: Prizes for top players
+- **Anti-Cheat**: Validation and security measures
+- **Performance Optimization**: Efficient data handling
+
+**Leaderboard UI Components:**
+- **Ranking Display**: Position, name, value
+- **Player Avatars**: Visual representation
+- **Progress Bars**: Visual progress indicators
+- **Reward Icons**: Achievement and prize displays`,
+        codeExample: `-- Advanced leaderboard system
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LeaderboardManager = {}
+LeaderboardManager.__index = LeaderboardManager
+
+-- Leaderboard configuration
+local LEADERBOARD_STORE_NAME = "LeaderboardData_v1"
+local UPDATE_INTERVAL = 60 -- seconds
+local MAX_LEADERBOARD_SIZE = 100
+
+-- Leaderboard categories
+local LEADERBOARD_CATEGORIES = {
+    "coins",
+    "kills", 
+    "wins",
+    "level",
+    "playtime"
+}
+
+function LeaderboardManager.new()
+    local self = setmetatable({}, LeaderboardManager)
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore(LEADERBOARD_STORE_NAME)
+    
+    -- Leaderboard data
+    self.leaderboards = {}
+    self.playerData = {}
+    
+    -- Update connections
+    self.updateConnections = {}
+    
+    -- Initialize leaderboards
+    self:initializeLeaderboards()
+    
+    -- Setup update system
+    self:setupUpdateSystem()
+    
+    return self
+end
+
+function LeaderboardManager:initializeLeaderboards()
+    for _, category in ipairs(LEADERBOARD_CATEGORIES) do
+        self.leaderboards[category] = {}
+        self:loadLeaderboard(category)
+    end
+end
+
+function LeaderboardManager:loadLeaderboard(category)
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(category)
+    end)
+    
+    if success and data then
+        self.leaderboards[category] = data
+        print("Loaded leaderboard for", category)
+    else
+        self.leaderboards[category] = {}
+        print("Created new leaderboard for", category)
+    end
+end
+
+function LeaderboardManager:saveLeaderboard(category)
+    local success = pcall(function()
+        self.dataStore:SetAsync(category, self.leaderboards[category])
+    end)
+    
+    if success then
+        print("Saved leaderboard for", category)
+    else
+        warn("Failed to save leaderboard for", category)
+    end
+end
+
+function LeaderboardManager:updatePlayerScore(player, category, score)
+    if not self.leaderboards[category] then
+        return false
+    end
+    
+    local userId = player.UserId
+    local playerName = player.Name
+    
+    -- Update player data
+    self.playerData[userId] = self.playerData[userId] or {}
+    self.playerData[userId][category] = score
+    self.playerData[userId].name = playerName
+    
+    -- Update leaderboard
+    local leaderboard = self.leaderboards[category]
+    local found = false
+    
+    for i, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            entry.score = score
+            entry.name = playerName
+            entry.updatedAt = os.time()
+            found = true
+            break
+        end
+    end
+    
+    if not found then
+        table.insert(leaderboard, {
+            userId = userId,
+            name = playerName,
+            score = score,
+            updatedAt = os.time()
+        })
+    end
+    
+    -- Sort leaderboard
+    table.sort(leaderboard, function(a, b)
+        return a.score > b.score
+    end)
+    
+    -- Trim to max size
+    if #leaderboard > MAX_LEADERBOARD_SIZE then
+        for i = MAX_LEADERBOARD_SIZE + 1, #leaderboard do
+            leaderboard[i] = nil
+        end
+    end
+    
+    -- Save leaderboard
+    self:saveLeaderboard(category)
+    
+    -- Fire update event
+    self:fireLeaderboardUpdate(category)
+    
+    return true
+end
+
+function LeaderboardManager:getLeaderboard(category, limit)
+    local leaderboard = self.leaderboards[category] or {}
+    limit = limit or 10
+    
+    local result = {}
+    for i = 1, math.min(limit, #leaderboard) do
+        table.insert(result, leaderboard[i])
+    end
+    
+    return result
+end
+
+function LeaderboardManager:getPlayerRank(player, category)
+    local leaderboard = self.leaderboards[category] or {}
+    local userId = player.UserId
+    
+    for i, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            return i
+        end
+    end
+    
+    return nil
+end
+
+function LeaderboardManager:getPlayerScore(player, category)
+    local leaderboard = self.leaderboards[category] or {}
+    local userId = player.UserId
+    
+    for _, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            return entry.score
+        end
+    end
+    
+    return 0
+end
+
+function LeaderboardManager:setupUpdateSystem()
+    -- Update leaderboards periodically
+    for _, category in ipairs(LEADERBOARD_CATEGORIES) do
+        local connection = RunService.Heartbeat:Connect(function()
+            -- Update every UPDATE_INTERVAL seconds
+            if tick() % UPDATE_INTERVAL < 1 then
+                self:updateLeaderboardFromPlayers(category)
+            end
+        end)
+        
+        self.updateConnections[category] = connection
+    end
+end
+
+function LeaderboardManager:updateLeaderboardFromPlayers(category)
+    for _, player in ipairs(Players:GetPlayers()) do
+        -- Get player data from your data manager
+        local playerData = self:getPlayerDataFromManager(player)
+        if playerData and playerData.stats[category] then
+            self:updatePlayerScore(player, category, playerData.stats[category])
+        end
+    end
+end
+
+function LeaderboardManager:getPlayerDataFromManager(player)
+    -- This would connect to your PlayerDataManager
+    -- For now, return mock data
+    return {
+        stats = {
+            coins = math.random(1000, 10000),
+            kills = math.random(0, 500),
+            wins = math.random(0, 100),
+            level = math.random(1, 50),
+            playtime = math.random(3600, 86400)
+        }
+    }
+end
+
+function LeaderboardManager:fireLeaderboardUpdate(category)
+    -- Create remote event for client updates
+    local remoteEvent = ReplicatedStorage:FindFirstChild("LeaderboardUpdate")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "LeaderboardUpdate"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    local leaderboard = self:getLeaderboard(category, 10)
+    remoteEvent:FireAllClients(category, leaderboard)
+end
+
+function LeaderboardManager:getTopPlayers(category, count)
+    return self:getLeaderboard(category, count)
+end
+
+function LeaderboardManager:getPlayerSurroundings(player, category, range)
+    local leaderboard = self.leaderboards[category] or {}
+    local userId = player.UserId
+    local playerIndex = nil
+    
+    -- Find player position
+    for i, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            playerIndex = i
+            break
+        end
+    end
+    
+    if not playerIndex then
+        return {}
+    end
+    
+    -- Get surrounding players
+    local startIndex = math.max(1, playerIndex - range)
+    local endIndex = math.min(#leaderboard, playerIndex + range)
+    
+    local result = {}
+    for i = startIndex, endIndex do
+        table.insert(result, leaderboard[i])
+    end
+    
+    return result
+end
+
+-- Example usage
+local leaderboardManager = LeaderboardManager.new()
+
+-- Update player scores
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player data to load
+    
+    -- Update various leaderboards
+    leaderboardManager:updatePlayerScore(player, "coins", 1000)
+    leaderboardManager:updatePlayerScore(player, "kills", 5)
+    leaderboardManager:updatePlayerScore(player, "wins", 1)
+    leaderboardManager:updatePlayerScore(player, "level", 2)
+    leaderboardManager:updatePlayerScore(player, "playtime", 3600)
+    
+    print("Updated leaderboards for", player.Name)
+end)
+
+-- Get leaderboard data
+local function displayLeaderboard(category)
+    local topPlayers = leaderboardManager:getTopPlayers(category, 5)
+    print("Top 5 players for", category, ":")
+    
+    for i, player in ipairs(topPlayers) do
+        print(i .. ". " .. player.name .. " - " .. player.score)
+    end
+end
+
+-- Display leaderboards
+displayLeaderboard("coins")
+displayLeaderboard("kills")`,
+        color: 'green'
+      },
+      {
+        title: 'Group & Team Management',
+        content: `Implement group systems, team management, and player organization features.
+
+**Group Management Features:**
+- **Group Creation**: Allow players to create and join groups
+- **Group Permissions**: Role-based access control
+- **Group Activities**: Shared goals and challenges
+- **Group Chat**: Communication systems
+- **Group Rewards**: Shared benefits and bonuses
+
+**Team Management Systems:**
+- **Team Formation**: Automatic or manual team creation
+- **Team Balancing**: Fair team distribution
+- **Team Objectives**: Shared goals and missions
+- **Team Communication**: Coordination tools
+- **Team Statistics**: Performance tracking
+
+**Player Organization:**
+- **Friend Systems**: Social connections
+- **Guild Systems**: Long-term player groups
+- **Clan Systems**: Competitive player groups
+- **Mentor Systems**: Player guidance and teaching`,
+        codeExample: `-- Comprehensive group and team management system
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local GroupManager = {}
+GroupManager.__index = GroupManager
+
+-- Group configuration
+local MAX_GROUP_SIZE = 10
+local MAX_TEAM_SIZE = 4
+local GROUP_CREATION_COST = 100
+
+-- Group roles
+local GROUP_ROLES = {
+    OWNER = "Owner",
+    ADMIN = "Admin", 
+    MODERATOR = "Moderator",
+    MEMBER = "Member"
+}
+
+-- Group permissions
+local GROUP_PERMISSIONS = {
+    [GROUP_ROLES.OWNER] = {
+        kick = true,
+        promote = true,
+        demote = true,
+        disband = true,
+        invite = true,
+        editSettings = true
+    },
+    [GROUP_ROLES.ADMIN] = {
+        kick = true,
+        promote = true,
+        demote = true,
+        invite = true,
+        editSettings = false
+    },
+    [GROUP_ROLES.MODERATOR] = {
+        kick = true,
+        invite = true,
+        editSettings = false
+    },
+    [GROUP_ROLES.MEMBER] = {
+        kick = false,
+        invite = false,
+        editSettings = false
+    }
+}
+
+function GroupManager.new()
+    local self = setmetatable({}, GroupManager)
+    
+    -- Group data
+    self.groups = {}
+    self.playerGroups = {}
+    self.teamAssignments = {}
+    
+    -- Group ID counter
+    self.nextGroupId = 1
+    
+    -- Setup events
+    self:setupEvents()
+    
+    return self
+end
+
+function GroupManager:setupEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:initializePlayer(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:cleanupPlayer(player)
+    end)
+end
+
+function GroupManager:initializePlayer(player)
+    self.playerGroups[player.UserId] = nil
+    self.teamAssignments[player.UserId] = nil
+end
+
+function GroupManager:cleanupPlayer(player)
+    local groupId = self.playerGroups[player.UserId]
+    if groupId then
+        self:removePlayerFromGroup(player, groupId)
+    end
+end
+
+function GroupManager:createGroup(player, groupName, description)
+    -- Check if player is already in a group
+    if self.playerGroups[player.UserId] then
+        return false, "Player is already in a group"
+    end
+    
+    -- Check if player has enough coins (example)
+    local playerData = self:getPlayerData(player)
+    if playerData and playerData.stats.coins < GROUP_CREATION_COST then
+        return false, "Not enough coins to create group"
+    end
+    
+    -- Create group
+    local groupId = self.nextGroupId
+    self.nextGroupId = self.nextGroupId + 1
+    
+    local group = {
+        id = groupId,
+        name = groupName,
+        description = description,
+        owner = player.UserId,
+        members = {
+            [player.UserId] = {
+                userId = player.UserId,
+                name = player.Name,
+                role = GROUP_ROLES.OWNER,
+                joinedAt = os.time()
+            }
+        },
+        settings = {
+            maxSize = MAX_GROUP_SIZE,
+            isPublic = true,
+            allowInvites = true,
+            requireApproval = false
+        },
+        stats = {
+            totalMembers = 1,
+            totalActivity = 0,
+            level = 1,
+            experience = 0
+        },
+        createdAt = os.time()
+    }
+    
+    self.groups[groupId] = group
+    self.playerGroups[player.UserId] = groupId
+    
+    -- Deduct creation cost
+    if playerData then
+        playerData.stats.coins = playerData.stats.coins - GROUP_CREATION_COST
+    end
+    
+    -- Fire group created event
+    self:fireGroupEvent("GroupCreated", groupId, player)
+    
+    return true, "Group created successfully"
+end
+
+function GroupManager:joinGroup(player, groupId)
+    -- Check if player is already in a group
+    if self.playerGroups[player.UserId] then
+        return false, "Player is already in a group"
+    end
+    
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    -- Check if group is full
+    if group.stats.totalMembers >= group.settings.maxSize then
+        return false, "Group is full"
+    end
+    
+    -- Add player to group
+    group.members[player.UserId] = {
+        userId = player.UserId,
+        name = player.Name,
+        role = GROUP_ROLES.MEMBER,
+        joinedAt = os.time()
+    }
+    
+    group.stats.totalMembers = group.stats.totalMembers + 1
+    self.playerGroups[player.UserId] = groupId
+    
+    -- Fire group joined event
+    self:fireGroupEvent("PlayerJoined", groupId, player)
+    
+    return true, "Joined group successfully"
+end
+
+function GroupManager:leaveGroup(player, groupId)
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    local member = group.members[player.UserId]
+    if not member then
+        return false, "Player is not in this group"
+    end
+    
+    -- Check if player is the owner
+    if member.role == GROUP_ROLES.OWNER then
+        return false, "Owner cannot leave group. Transfer ownership or disband group."
+    end
+    
+    -- Remove player from group
+    group.members[player.UserId] = nil
+    group.stats.totalMembers = group.stats.totalMembers - 1
+    self.playerGroups[player.UserId] = nil
+    
+    -- Fire group left event
+    self:fireGroupEvent("PlayerLeft", groupId, player)
+    
+    -- Check if group is empty
+    if group.stats.totalMembers == 0 then
+        self:disbandGroup(groupId)
+    end
+    
+    return true, "Left group successfully"
+end
+
+function GroupManager:kickPlayer(kicker, targetPlayer, groupId)
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    local kickerMember = group.members[kicker.UserId]
+    local targetMember = group.members[targetPlayer.UserId]
+    
+    if not kickerMember or not targetMember then
+        return false, "Player not in group"
+    end
+    
+    -- Check permissions
+    if not self:hasPermission(kickerMember.role, "kick") then
+        return false, "Insufficient permissions"
+    end
+    
+    -- Check if target is owner
+    if targetMember.role == GROUP_ROLES.OWNER then
+        return false, "Cannot kick group owner"
+    end
+    
+    -- Check if kicker is trying to kick someone with higher or equal role
+    if not self:canModifyRole(kickerMember.role, targetMember.role) then
+        return false, "Cannot kick player with higher or equal role"
+    end
+    
+    -- Remove target from group
+    group.members[targetPlayer.UserId] = nil
+    group.stats.totalMembers = group.stats.totalMembers - 1
+    self.playerGroups[targetPlayer.UserId] = nil
+    
+    -- Fire group kicked event
+    self:fireGroupEvent("PlayerKicked", groupId, targetPlayer, kicker)
+    
+    return true, "Player kicked successfully"
+end
+
+function GroupManager:promotePlayer(promoter, targetPlayer, groupId, newRole)
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    local promoterMember = group.members[promoter.UserId]
+    local targetMember = group.members[targetPlayer.UserId]
+    
+    if not promoterMember or not targetMember then
+        return false, "Player not in group"
+    end
+    
+    -- Check permissions
+    if not self:hasPermission(promoterMember.role, "promote") then
+        return false, "Insufficient permissions"
+    end
+    
+    -- Check if promoter can modify target's role
+    if not self:canModifyRole(promoterMember.role, targetMember.role) then
+        return false, "Cannot promote player with higher or equal role"
+    end
+    
+    -- Update target's role
+    targetMember.role = newRole
+    
+    -- Fire group promoted event
+    self:fireGroupEvent("PlayerPromoted", groupId, targetPlayer, promoter, newRole)
+    
+    return true, "Player promoted successfully"
+end
+
+function GroupManager:disbandGroup(groupId)
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    -- Remove all players from group
+    for userId, _ in pairs(group.members) do
+        self.playerGroups[userId] = nil
+    end
+    
+    -- Remove group
+    self.groups[groupId] = nil
+    
+    -- Fire group disbanded event
+    self:fireGroupEvent("GroupDisbanded", groupId)
+    
+    return true, "Group disbanded successfully"
+end
+
+function GroupManager:hasPermission(role, permission)
+    local permissions = GROUP_PERMISSIONS[role]
+    return permissions and permissions[permission] or false
+end
+
+function GroupManager:canModifyRole(modifierRole, targetRole)
+    local roleHierarchy = {
+        [GROUP_ROLES.OWNER] = 4,
+        [GROUP_ROLES.ADMIN] = 3,
+        [GROUP_ROLES.MODERATOR] = 2,
+        [GROUP_ROLES.MEMBER] = 1
+    }
+    
+    return roleHierarchy[modifierRole] > roleHierarchy[targetRole]
+end
+
+function GroupManager:getPlayerGroup(player)
+    local groupId = self.playerGroups[player.UserId]
+    if groupId then
+        return self.groups[groupId]
+    end
+    return nil
+end
+
+function GroupManager:getGroupMembers(groupId)
+    local group = self.groups[groupId]
+    if not group then
+        return {}
+    end
+    
+    local members = {}
+    for _, member in pairs(group.members) do
+        table.insert(members, member)
+    end
+    
+    return members
+end
+
+function GroupManager:createTeam(players, teamName)
+    local teamId = "team_" .. os.time() .. "_" .. math.random(1000, 9999)
+    
+    local team = {
+        id = teamId,
+        name = teamName or "Team " .. teamId,
+        members = {},
+        leader = players[1].UserId,
+        createdAt = os.time(),
+        stats = {
+            wins = 0,
+            losses = 0,
+            totalGames = 0
+        }
+    }
+    
+    -- Add players to team
+    for _, player in ipairs(players) do
+        team.members[player.UserId] = {
+            userId = player.UserId,
+            name = player.Name,
+            role = player.UserId == team.leader and "Leader" or "Member"
+        }
+        
+        self.teamAssignments[player.UserId] = teamId
+    end
+    
+    -- Fire team created event
+    self:fireTeamEvent("TeamCreated", teamId, players)
+    
+    return team
+end
+
+function GroupManager:disbandTeam(teamId)
+    -- Remove all players from team
+    for userId, _ in pairs(self.teamAssignments) do
+        if self.teamAssignments[userId] == teamId then
+            self.teamAssignments[userId] = nil
+        end
+    end
+    
+    -- Fire team disbanded event
+    self:fireTeamEvent("TeamDisbanded", teamId)
+end
+
+function GroupManager:getPlayerTeam(player)
+    local teamId = self.teamAssignments[player.UserId]
+    return teamId
+end
+
+function GroupManager:fireGroupEvent(eventName, groupId, player, extraData)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("GroupEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "GroupEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    local eventData = {
+        event = eventName,
+        groupId = groupId,
+        player = player and {
+            userId = player.UserId,
+            name = player.Name
+        } or nil,
+        extraData = extraData,
+        timestamp = os.time()
+    }
+    
+    remoteEvent:FireAllClients(eventData)
+end
+
+function GroupManager:fireTeamEvent(eventName, teamId, players, extraData)
+    local remoteEvent = ReplicatedStorage:FindFirstChild("TeamEvent")
+    if not remoteEvent then
+        remoteEvent = Instance.new("RemoteEvent")
+        remoteEvent.Name = "TeamEvent"
+        remoteEvent.Parent = ReplicatedStorage
+    end
+    
+    local eventData = {
+        event = eventName,
+        teamId = teamId,
+        players = players and {
+            {userId = p.UserId, name = p.Name} for _, p in ipairs(players)
+        } or nil,
+        extraData = extraData,
+        timestamp = os.time()
+    }
+    
+    remoteEvent:FireAllClients(eventData)
+end
+
+function GroupManager:getPlayerData(player)
+    -- This would connect to your PlayerDataManager
+    -- For now, return mock data
+    return {
+        stats = {
+            coins = 1000,
+            level = 5
+        }
+    }
+end
+
+-- Example usage
+local groupManager = GroupManager.new()
+
+-- Create a group
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    -- Create a group
+    local success, message = groupManager:createGroup(player, "Test Group", "A test group for learning")
+    if success then
+        print("Group created:", message)
+    else
+        print("Failed to create group:", message)
+    end
+end)
+
+-- Join a group
+local function joinGroup(player, groupId)
+    local success, message = groupManager:joinGroup(player, groupId)
+    if success then
+        print("Joined group:", message)
+    else
+        print("Failed to join group:", message)
+    end
+end
+
+-- Create a team
+local function createTeam(players)
+    local team = groupManager:createTeam(players, "Dream Team")
+    print("Created team:", team.name, "with", #players, "players")
+    return team
+end`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Player Data & Leaderboards - Comprehensive Learning Example
+-- Master player data management and leaderboard systems
+
+print("=== PLAYER DATA & LEADERBOARDS DEMO ===")
+print("Learning player data management and leaderboard systems...")
+
+-- 1. PLAYER DATA MANAGEMENT
+print("\\n1. DEMONSTRATING PLAYER DATA MANAGEMENT...")
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local PlayerDataManager = {}
+PlayerDataManager.__index = PlayerDataManager
+
+-- Default player data structure
+local DEFAULT_DATA = {
+    stats = {
+        level = 1,
+        experience = 0,
+        coins = 100,
+        gems = 0,
+        kills = 0,
+        deaths = 0,
+        wins = 0,
+        losses = 0,
+        playtime = 0,
+        joinDate = os.time()
+    },
+    inventory = {
+        tools = {},
+        cosmetics = {},
+        collectibles = {}
+    },
+    progress = {
+        achievements = {},
+        unlocks = {},
+        milestones = {}
+    },
+    settings = {
+        musicVolume = 0.5,
+        sfxVolume = 0.5,
+        graphicsQuality = "Medium",
+        keybinds = {}
+    }
+}
+
+function PlayerDataManager.new()
+    local self = setmetatable({}, PlayerDataManager)
+    
+    -- Data stores
+    self.dataStore = DataStoreService:GetDataStore("PlayerData_v2")
+    self.backupStore = DataStoreService:GetDataStore("PlayerData_Backup_v2")
+    
+    -- Player data cache
+    self.playerData = {}
+    self.autoSaveConnections = {}
+    
+    -- Setup player events
+    self:setupPlayerEvents()
+    
+    return self
+end
+
+function PlayerDataManager:setupPlayerEvents()
+    Players.PlayerAdded:Connect(function(player)
+        self:loadPlayerData(player)
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        self:savePlayerData(player)
+        self:cleanupPlayerData(player)
+    end)
+end
+
+function PlayerDataManager:loadPlayerData(player)
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(player.UserId)
+    end)
+    
+    if success and data then
+        -- Validate and merge with default data
+        self.playerData[player] = self:validateData(data)
+        print("Loaded data for", player.Name)
+    else
+        -- Create new player data
+        self.playerData[player] = self:deepCopy(DEFAULT_DATA)
+        print("Created new data for", player.Name)
+    end
+    
+    -- Mark for save to ensure data is stored
+    self.playerData[player].needsSave = true
+    
+    -- Fire data loaded event
+    self:fireDataLoaded(player)
+end
+
+function PlayerDataManager:savePlayerData(player)
+    local data = self.playerData[player]
+    if not data then return end
+    
+    -- Remove temporary data
+    local saveData = self:deepCopy(data)
+    saveData.needsSave = nil
+    
+    local success = pcall(function()
+        self.dataStore:SetAsync(player.UserId, saveData)
+    end)
+    
+    if success then
+        print("Saved data for", player.Name)
+        data.needsSave = false
+        
+        -- Backup data
+        self:backupPlayerData(player, saveData)
+    else
+        warn("Failed to save data for", player.Name)
+    end
+end
+
+function PlayerDataManager:backupPlayerData(player, data)
+    pcall(function()
+        self.backupStore:SetAsync(player.UserId, data)
+    end)
+end
+
+function PlayerDataManager:validateData(data)
+    local validatedData = self:deepCopy(DEFAULT_DATA)
+    
+    -- Validate stats
+    if data.stats then
+        for key, value in pairs(data.stats) do
+            if validatedData.stats[key] ~= nil then
+                if type(value) == type(validatedData.stats[key]) then
+                    validatedData.stats[key] = value
+                end
+            end
+        end
+    end
+    
+    -- Validate inventory
+    if data.inventory then
+        for category, items in pairs(data.inventory) do
+            if validatedData.inventory[category] then
+                validatedData.inventory[category] = items
+            end
+        end
+    end
+    
+    -- Validate progress
+    if data.progress then
+        for category, items in pairs(data.progress) do
+            if validatedData.progress[category] then
+                validatedData.progress[category] = items
+            end
+        end
+    end
+    
+    -- Validate settings
+    if data.settings then
+        for key, value in pairs(data.settings) do
+            if validatedData.settings[key] ~= nil then
+                if type(value) == type(validatedData.settings[key]) then
+                    validatedData.settings[key] = value
+                end
+            end
+        end
+    end
+    
+    return validatedData
+end
+
+function PlayerDataManager:getPlayerData(player)
+    return self.playerData[player]
+end
+
+function PlayerDataManager:updateStat(player, statName, value)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.stats[statName] ~= nil then
+        data.stats[statName] = value
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:addStat(player, statName, amount)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.stats[statName] ~= nil then
+        data.stats[statName] = data.stats[statName] + amount
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:addItem(player, category, itemId, itemData)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.inventory[category] then
+        data.inventory[category][itemId] = itemData
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:removeItem(player, category, itemId)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if data.inventory[category] and data.inventory[category][itemId] then
+        data.inventory[category][itemId] = nil
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:unlockAchievement(player, achievementId)
+    local data = self.playerData[player]
+    if not data then return false end
+    
+    if not data.progress.achievements[achievementId] then
+        data.progress.achievements[achievementId] = {
+            unlocked = true,
+            unlockedAt = os.time()
+        }
+        data.needsSave = true
+        return true
+    end
+    
+    return false
+end
+
+function PlayerDataManager:fireDataLoaded(player)
+    -- Fire custom event for other systems
+    local bindableEvent = Instance.new("BindableEvent")
+    bindableEvent.Name = "PlayerDataLoaded"
+    bindableEvent.Parent = player
+    
+    bindableEvent:Fire(self.playerData[player])
+end
+
+function PlayerDataManager:deepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = self:deepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+-- 2. LEADERBOARD SYSTEM
+print("\\n2. DEMONSTRATING LEADERBOARD SYSTEM...")
+
+local LeaderboardManager = {}
+LeaderboardManager.__index = LeaderboardManager
+
+-- Leaderboard categories
+local LEADERBOARD_CATEGORIES = {
+    "coins",
+    "kills", 
+    "wins",
+    "level",
+    "playtime"
+}
+
+function LeaderboardManager.new()
+    local self = setmetatable({}, LeaderboardManager)
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("LeaderboardData_v1")
+    
+    -- Leaderboard data
+    self.leaderboards = {}
+    self.playerData = {}
+    
+    -- Initialize leaderboards
+    self:initializeLeaderboards()
+    
+    return self
+end
+
+function LeaderboardManager:initializeLeaderboards()
+    for _, category in ipairs(LEADERBOARD_CATEGORIES) do
+        self.leaderboards[category] = {}
+        self:loadLeaderboard(category)
+    end
+end
+
+function LeaderboardManager:loadLeaderboard(category)
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync(category)
+    end)
+    
+    if success and data then
+        self.leaderboards[category] = data
+        print("Loaded leaderboard for", category)
+    else
+        self.leaderboards[category] = {}
+        print("Created new leaderboard for", category)
+    end
+end
+
+function LeaderboardManager:saveLeaderboard(category)
+    local success = pcall(function()
+        self.dataStore:SetAsync(category, self.leaderboards[category])
+    end)
+    
+    if success then
+        print("Saved leaderboard for", category)
+    else
+        warn("Failed to save leaderboard for", category)
+    end
+end
+
+function LeaderboardManager:updatePlayerScore(player, category, score)
+    if not self.leaderboards[category] then
+        return false
+    end
+    
+    local userId = player.UserId
+    local playerName = player.Name
+    
+    -- Update player data
+    self.playerData[userId] = self.playerData[userId] or {}
+    self.playerData[userId][category] = score
+    self.playerData[userId].name = playerName
+    
+    -- Update leaderboard
+    local leaderboard = self.leaderboards[category]
+    local found = false
+    
+    for i, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            entry.score = score
+            entry.name = playerName
+            entry.updatedAt = os.time()
+            found = true
+            break
+        end
+    end
+    
+    if not found then
+        table.insert(leaderboard, {
+            userId = userId,
+            name = playerName,
+            score = score,
+            updatedAt = os.time()
+        })
+    end
+    
+    -- Sort leaderboard
+    table.sort(leaderboard, function(a, b)
+        return a.score > b.score
+    end)
+    
+    -- Save leaderboard
+    self:saveLeaderboard(category)
+    
+    return true
+end
+
+function LeaderboardManager:getLeaderboard(category, limit)
+    local leaderboard = self.leaderboards[category] or {}
+    limit = limit or 10
+    
+    local result = {}
+    for i = 1, math.min(limit, #leaderboard) do
+        table.insert(result, leaderboard[i])
+    end
+    
+    return result
+end
+
+function LeaderboardManager:getPlayerRank(player, category)
+    local leaderboard = self.leaderboards[category] or {}
+    local userId = player.UserId
+    
+    for i, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            return i
+        end
+    end
+    
+    return nil
+end
+
+function LeaderboardManager:getPlayerScore(player, category)
+    local leaderboard = self.leaderboards[category] or {}
+    local userId = player.UserId
+    
+    for _, entry in ipairs(leaderboard) do
+        if entry.userId == userId then
+            return entry.score
+        end
+    end
+    
+    return 0
+end
+
+-- 3. GROUP & TEAM MANAGEMENT
+print("\\n3. DEMONSTRATING GROUP & TEAM MANAGEMENT...")
+
+local GroupManager = {}
+GroupManager.__index = GroupManager
+
+-- Group roles
+local GROUP_ROLES = {
+    OWNER = "Owner",
+    ADMIN = "Admin", 
+    MODERATOR = "Moderator",
+    MEMBER = "Member"
+}
+
+function GroupManager.new()
+    local self = setmetatable({}, GroupManager)
+    
+    -- Group data
+    self.groups = {}
+    self.playerGroups = {}
+    self.teamAssignments = {}
+    
+    -- Group ID counter
+    self.nextGroupId = 1
+    
+    return self
+end
+
+function GroupManager:createGroup(player, groupName, description)
+    -- Check if player is already in a group
+    if self.playerGroups[player.UserId] then
+        return false, "Player is already in a group"
+    end
+    
+    -- Create group
+    local groupId = self.nextGroupId
+    self.nextGroupId = self.nextGroupId + 1
+    
+    local group = {
+        id = groupId,
+        name = groupName,
+        description = description,
+        owner = player.UserId,
+        members = {
+            [player.UserId] = {
+                userId = player.UserId,
+                name = player.Name,
+                role = GROUP_ROLES.OWNER,
+                joinedAt = os.time()
+            }
+        },
+        settings = {
+            maxSize = 10,
+            isPublic = true,
+            allowInvites = true,
+            requireApproval = false
+        },
+        stats = {
+            totalMembers = 1,
+            totalActivity = 0,
+            level = 1,
+            experience = 0
+        },
+        createdAt = os.time()
+    }
+    
+    self.groups[groupId] = group
+    self.playerGroups[player.UserId] = groupId
+    
+    return true, "Group created successfully"
+end
+
+function GroupManager:joinGroup(player, groupId)
+    -- Check if player is already in a group
+    if self.playerGroups[player.UserId] then
+        return false, "Player is already in a group"
+    end
+    
+    local group = self.groups[groupId]
+    if not group then
+        return false, "Group not found"
+    end
+    
+    -- Check if group is full
+    if group.stats.totalMembers >= group.settings.maxSize then
+        return false, "Group is full"
+    end
+    
+    -- Add player to group
+    group.members[player.UserId] = {
+        userId = player.UserId,
+        name = player.Name,
+        role = GROUP_ROLES.MEMBER,
+        joinedAt = os.time()
+    }
+    
+    group.stats.totalMembers = group.stats.totalMembers + 1
+    self.playerGroups[player.UserId] = groupId
+    
+    return true, "Joined group successfully"
+end
+
+function GroupManager:getPlayerGroup(player)
+    local groupId = self.playerGroups[player.UserId]
+    if groupId then
+        return self.groups[groupId]
+    end
+    return nil
+end
+
+function GroupManager:createTeam(players, teamName)
+    local teamId = "team_" .. os.time() .. "_" .. math.random(1000, 9999)
+    
+    local team = {
+        id = teamId,
+        name = teamName or "Team " .. teamId,
+        members = {},
+        leader = players[1].UserId,
+        createdAt = os.time(),
+        stats = {
+            wins = 0,
+            losses = 0,
+            totalGames = 0
+        }
+    }
+    
+    -- Add players to team
+    for _, player in ipairs(players) do
+        team.members[player.UserId] = {
+            userId = player.UserId,
+            name = player.Name,
+            role = player.UserId == team.leader and "Leader" or "Member"
+        }
+        
+        self.teamAssignments[player.UserId] = teamId
+    end
+    
+    return team
+end
+
+function GroupManager:getPlayerTeam(player)
+    local teamId = self.teamAssignments[player.UserId]
+    return teamId
+end
+
+-- 4. DEMO THE SYSTEMS
+print("\\n4. RUNNING SYSTEM DEMONSTRATIONS...")
+
+-- Create managers
+local dataManager = PlayerDataManager.new()
+local leaderboardManager = LeaderboardManager.new()
+local groupManager = GroupManager.new()
+
+-- Simulate player data operations
+local function simulatePlayerData()
+    print("\\n--- Simulating Player Data Operations ---")
+    
+    -- Create mock player
+    local mockPlayer = {UserId = 12345, Name = "TestPlayer"}
+    
+    -- Load player data
+    dataManager:loadPlayerData(mockPlayer)
+    
+    -- Update stats
+    dataManager:addStat(mockPlayer, "coins", 500)
+    dataManager:addStat(mockPlayer, "kills", 10)
+    dataManager:addStat(mockPlayer, "wins", 3)
+    dataManager:addStat(mockPlayer, "level", 5)
+    dataManager:addStat(mockPlayer, "playtime", 7200)
+    
+    -- Add items
+    dataManager:addItem(mockPlayer, "tools", "sword_001", {
+        name = "Iron Sword",
+        damage = 25,
+        durability = 100
+    })
+    
+    -- Unlock achievement
+    dataManager:unlockAchievement(mockPlayer, "first_win")
+    
+    print("Player data operations completed!")
+end
+
+-- Simulate leaderboard operations
+local function simulateLeaderboard()
+    print("\\n--- Simulating Leaderboard Operations ---")
+    
+    -- Create mock players
+    local mockPlayers = {
+        {UserId = 11111, Name = "Player1"},
+        {UserId = 22222, Name = "Player2"},
+        {UserId = 33333, Name = "Player3"},
+        {UserId = 44444, Name = "Player4"},
+        {UserId = 55555, Name = "Player5"}
+    }
+    
+    -- Update leaderboards
+    for i, player in ipairs(mockPlayers) do
+        leaderboardManager:updatePlayerScore(player, "coins", math.random(1000, 10000))
+        leaderboardManager:updatePlayerScore(player, "kills", math.random(0, 100))
+        leaderboardManager:updatePlayerScore(player, "wins", math.random(0, 50))
+        leaderboardManager:updatePlayerScore(player, "level", math.random(1, 25))
+        leaderboardManager:updatePlayerScore(player, "playtime", math.random(3600, 86400))
+    end
+    
+    -- Display leaderboards
+    for _, category in ipairs(LEADERBOARD_CATEGORIES) do
+        local topPlayers = leaderboardManager:getLeaderboard(category, 3)
+        print("\\nTop 3 players for", category, ":")
+        
+        for i, player in ipairs(topPlayers) do
+            print(i .. ". " .. player.name .. " - " .. player.score)
+        end
+    end
+    
+    print("\\nLeaderboard operations completed!")
+end
+
+-- Simulate group operations
+local function simulateGroup()
+    print("\\n--- Simulating Group Operations ---")
+    
+    -- Create mock players
+    local mockPlayers = {
+        {UserId = 11111, Name = "GroupOwner"},
+        {UserId = 22222, Name = "GroupMember1"},
+        {UserId = 33333, Name = "GroupMember2"},
+        {UserId = 44444, Name = "GroupMember3"}
+    }
+    
+    -- Create group
+    local success, message = groupManager:createGroup(mockPlayers[1], "Test Group", "A test group for learning")
+    if success then
+        print("Group created:", message)
+        
+        -- Join group
+        for i = 2, #mockPlayers do
+            local joinSuccess, joinMessage = groupManager:joinGroup(mockPlayers[i], 1)
+            if joinSuccess then
+                print("Player joined:", joinMessage)
+            end
+        end
+        
+        -- Create team
+        local team = groupManager:createTeam(mockPlayers, "Dream Team")
+        print("Created team:", team.name, "with", #mockPlayers, "players")
+        
+        -- Display group info
+        local group = groupManager:getPlayerGroup(mockPlayers[1])
+        if group then
+            print("Group name:", group.name)
+            print("Group members:", group.stats.totalMembers)
+            print("Group created:", os.date("%Y-%m-%d %H:%M:%S", group.createdAt))
+        end
+    else
+        print("Failed to create group:", message)
+    end
+    
+    print("\\nGroup operations completed!")
+end
+
+-- Run simulations
+simulatePlayerData()
+simulateLeaderboard()
+simulateGroup()
+
+print("\\n=== PLAYER DATA & LEADERBOARDS DEMO COMPLETE ===")
+print("You've learned player data management and leaderboard systems!")`,
+    challenge: {
+      tests: [
+        { description: 'Use DataStoreService to save and load player data', type: 'code_contains', value: 'DataStoreService' },
+        { description: 'Create leaderboard system with player rankings', type: 'code_contains', value: 'leaderboard' },
+        { description: 'Implement group management with roles and permissions', type: 'code_contains', value: 'group' }
+      ],
+      hints: [
+        'Use DataStoreService:GetDataStore() to create data stores',
+        'Use dataStore:GetAsync() and dataStore:SetAsync() for data operations',
+        'Create leaderboard arrays and sort them by score',
+        'Use pcall() to handle data store errors safely',
+        'Implement role-based permissions for group management'
+      ],
+      successMessage: 'Excellent! You now understand player data management and leaderboard systems. These skills are essential for creating engaging multiplayer experiences!'
+    }
+  },
+
   // === ADVANCED GAME MECHANICS LESSONS ===
   'ai-and-pathfinding': {
     title: 'AI & Pathfinding Systems',
