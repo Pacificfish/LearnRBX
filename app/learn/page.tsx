@@ -1,26 +1,84 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Lock, BookOpen } from 'lucide-react';
-import { createServerSupabaseClient, getUser, hasActiveSubscription } from '@/lib/supabase/server';
+import { Lock, BookOpen, ChevronDown, ChevronRight, Play } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { Track, Module } from '@/types/database';
 
-export default async function LearnPage() {
-  const supabase = await createServerSupabaseClient();
-  const user = await getUser();
-  const hasSubscription = user ? await hasActiveSubscription(user.id) : false;
+export default function LearnPage() {
+  const [tracks, setTracks] = useState<(Track & { modules: (Module & { lessons: any[] })[] })[]>([]);
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
 
-  // Fetch tracks with modules
-  const { data: tracks } = await supabase
-    .from('tracks')
-    .select(`
-      *,
-      modules:modules(
-        *,
-        lessons:lessons(*)
-      )
-    `)
-    .order('is_premium', { ascending: true });
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+      
+      // Fetch user and subscription status
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+        setHasSubscription(!!subscription);
+      }
+
+      // Fetch tracks with modules
+      const { data: tracksData } = await supabase
+        .from('tracks')
+        .select(`
+          *,
+          modules:modules(
+            *,
+            lessons:lessons(*)
+          )
+        `)
+        .order('is_premium', { ascending: true });
+
+      setTracks(tracksData || []);
+      setIsLoading(false);
+    }
+
+    fetchData();
+  }, []);
+
+  const toggleModule = (moduleId: string) => {
+    const newExpanded = new Set(expandedModules);
+    if (newExpanded.has(moduleId)) {
+      newExpanded.delete(moduleId);
+    } else {
+      newExpanded.add(moduleId);
+    }
+    setExpandedModules(newExpanded);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">Learning Tracks</h1>
+            <p className="text-muted-foreground text-lg">
+              Choose a track and start your Roblox scripting journey
+            </p>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading tracks...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -67,23 +125,71 @@ export default async function LearnPage() {
                         const moduleUrl = firstLesson
                           ? `/learn/${track.slug}/${module.id}/${firstLesson.slug}`
                           : '#';
+                        const isExpanded = expandedModules.has(module.id);
+                        const sortedLessons = module.lessons?.sort((a, b) => a.index_in_module - b.index_in_module) || [];
 
                         return (
-                          <Link
-                            key={module.id}
-                            href={isLocked ? '/pricing' : moduleUrl}
-                            className="block"
-                          >
-                            <div className="flex items-center gap-3 p-3 rounded-lg border hover:border-primary hover:bg-accent transition-colors">
-                              <BookOpen className="w-5 h-5 text-primary" />
-                              <div className="flex-1">
-                                <div className="font-medium">{module.title}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {module.lessons?.length || 0} lessons
+                          <div key={module.id} className="border rounded-lg">
+                            {/* Module Header */}
+                            <div className="flex items-center gap-3 p-3">
+                              <button
+                                onClick={() => toggleModule(module.id)}
+                                className="flex items-center gap-2 flex-1 text-left hover:bg-accent rounded-md p-1 -m-1 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                )}
+                                <BookOpen className="w-5 h-5 text-primary" />
+                                <div className="flex-1">
+                                  <div className="font-medium">{module.title}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {module.lessons?.length || 0} lessons
+                                  </div>
+                                </div>
+                              </button>
+                              <Link
+                                href={isLocked ? '/pricing' : moduleUrl}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                              >
+                                <Play className="w-3 h-3" />
+                                Start
+                              </Link>
+                            </div>
+
+                            {/* Expanded Lessons List */}
+                            {isExpanded && (
+                              <div className="border-t bg-muted/30">
+                                <div className="p-3 space-y-2">
+                                  {sortedLessons.map((lesson, index) => (
+                                    <Link
+                                      key={lesson.id}
+                                      href={isLocked ? '/pricing' : `/learn/${track.slug}/${module.id}/${lesson.slug}`}
+                                      className="flex items-center gap-3 p-2 rounded-md hover:bg-background transition-colors group"
+                                    >
+                                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                                        {index + 1}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm group-hover:text-primary transition-colors">
+                                          {lesson.title}
+                                        </div>
+                                        {lesson.description && (
+                                          <div className="text-xs text-muted-foreground line-clamp-1">
+                                            {lesson.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                      {isLocked && (
+                                        <Lock className="w-4 h-4 text-muted-foreground" />
+                                      )}
+                                    </Link>
+                                  ))}
                                 </div>
                               </div>
-                            </div>
-                          </Link>
+                            )}
+                          </div>
                         );
                       })}
                   </div>
