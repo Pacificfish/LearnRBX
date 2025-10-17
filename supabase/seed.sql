@@ -145,7 +145,9 @@ BEGIN
     (module_networking_id, 'networking-architecture-patterns', 'Networking Architecture & Patterns', '/content/lessons/networking-architecture-patterns.mdx', '/content/challenges/networking-architecture-patterns.json', 4),
     (module_networking_id, 'advanced-networking-systems', 'Advanced Networking & Replication', '/content/lessons/advanced-networking-systems.mdx', '/content/challenges/advanced-networking-systems.json', 5),
     (module_data_security_id, 'data-encryption-security', 'Data Encryption & Security', '/content/lessons/data-encryption-security.mdx', '/content/challenges/data-encryption-security.json', 1),
-    (module_data_security_id, 'performance-optimization-advanced', 'Advanced Performance Optimization', '/content/lessons/performance-optimization-advanced.mdx', '/content/challenges/performance-optimization-advanced.json', 2)
+    (module_data_security_id, 'performance-optimization-advanced', 'Advanced Performance Optimization', '/content/lessons/performance-optimization-advanced.mdx', '/content/challenges/performance-optimization-advanced.json', 2),
+    (module_advanced_mechanics_id, 'game-passes-developer-products', 'Game Passes & Developer Products', '/content/lessons/game-passes-developer-products.mdx', '/content/challenges/game-passes-developer-products.json', 8),
+    (module_advanced_mechanics_id, 'advanced-character-systems', 'Advanced Character Systems', '/content/lessons/advanced-character-systems.mdx', '/content/challenges/advanced-character-systems.json', 9)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

@@ -27934,6 +27934,3196 @@ print("\\nData security demo complete!")`,
       hints: ['Always validate data from clients on the server', 'Implement rate limiting to prevent abuse', 'Use checksums to detect data tampering', 'Never trust client-side data'],
       successMessage: 'Excellent! You understand data security and anti-cheat measures.'
     }
+  },
+
+  // === GAME PASSES & DEVELOPER PRODUCTS ===
+  'game-passes-developer-products': {
+    title: 'Game Passes & Developer Products',
+    description: 'Implement monetization systems with game passes and developer products for your Roblox games',
+    sections: [
+      {
+        title: 'Game Passes vs Developer Products',
+        content: `Game passes and developer products are two primary monetization methods in Roblox games. Understanding the differences is crucial for effective monetization.
+
+**Game Passes:**
+- **One-time purchase** - Players buy once and keep forever
+- **Permanent benefits** - Usually provide permanent advantages or cosmetics
+- **Higher price point** - Typically $5-$50+ Robux
+- **Examples**: VIP access, special abilities, exclusive items, double XP
+
+**Developer Products:**
+- **Consumable purchases** - Players can buy multiple times
+- **Temporary benefits** - Usually provide consumable items or temporary boosts
+- **Lower price point** - Typically $1-$10 Robux
+- **Examples**: In-game currency, health potions, temporary speed boosts, cosmetic items
+
+**When to Use Each:**
+- **Game Passes**: For permanent features, VIP access, special abilities
+- **Developer Products**: For consumables, in-game currency, temporary boosts`,
+        codeExample: `-- Game Passes and Developer Products system
+
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Game Pass IDs (replace with your actual game pass IDs)
+local GAME_PASSES = {
+    VIP_ACCESS = 123456789, -- Replace with actual game pass ID
+    DOUBLE_XP = 123456790,
+    PREMIUM_ITEMS = 123456791
+}
+
+-- Developer Product IDs (replace with your actual product IDs)
+local DEVELOPER_PRODUCTS = {
+    COINS_100 = 123456792, -- 100 coins for 10 Robux
+    COINS_500 = 123456793, -- 500 coins for 50 Robux
+    HEALTH_POTION = 123456794, -- Health potion for 5 Robux
+    SPEED_BOOST = 123456795 -- Speed boost for 15 Robux
+}
+
+-- Player data storage
+local playerData = {}
+
+-- Setup purchase events
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, wasPurchased)
+    if wasPurchased then
+        print("Game pass purchased by", player.Name, "ID:", gamePassId)
+        grantGamePassBenefits(player, gamePassId)
+    end
+end)
+
+MarketplaceService.PromptProductPurchaseFinished:Connect(function(player, productId, wasPurchased)
+    if wasPurchased then
+        print("Developer product purchased by", player.Name, "ID:", productId)
+        grantProductBenefits(player, productId)
+    end
+end)
+
+-- Grant game pass benefits
+function grantGamePassBenefits(player, gamePassId)
+    local playerData = getPlayerData(player)
+    
+    -- Find game pass name
+    local passName = nil
+    for name, id in pairs(GAME_PASSES) do
+        if id == gamePassId then
+            passName = name
+            break
+        end
+    end
+    
+    if passName then
+        playerData.gamePasses[passName] = true
+        
+        -- Grant specific benefits
+        if passName == "VIP_ACCESS" then
+            grantVIPAccess(player)
+        elseif passName == "DOUBLE_XP" then
+            grantDoubleXP(player)
+        elseif passName == "PREMIUM_ITEMS" then
+            grantPremiumItems(player)
+        end
+        
+        print("Game pass benefits granted:", passName, "to", player.Name)
+    end
+end
+
+-- Grant developer product benefits
+function grantProductBenefits(player, productId)
+    local playerData = getPlayerData(player)
+    
+    -- Find product name
+    local productName = nil
+    for name, id in pairs(DEVELOPER_PRODUCTS) do
+        if id == productId then
+            productName = name
+            break
+        end
+    end
+    
+    if productName then
+        -- Grant specific benefits
+        if productName == "COINS_100" then
+            playerData.coins = playerData.coins + 100
+            showNotification(player, "100 Coins Added!")
+        elseif productName == "COINS_500" then
+            playerData.coins = playerData.coins + 500
+            showNotification(player, "500 Coins Added!")
+        elseif productName == "HEALTH_POTION" then
+            giveHealthPotion(player)
+            showNotification(player, "Health Potion Used!")
+        elseif productName == "SPEED_BOOST" then
+            giveSpeedBoost(player)
+            showNotification(player, "Speed Boost Activated!")
+        end
+        
+        print("Product benefits granted:", productName, "to", player.Name)
+    end
+end
+
+-- VIP Access benefits
+function grantVIPAccess(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 20 -- Increased walk speed
+            humanoid.JumpPower = 60 -- Increased jump power
+        end
+    end
+    
+    -- Add VIP effects
+    addVIPEffects(player)
+end
+
+-- Double XP benefits
+function grantDoubleXP(player)
+    local playerData = getPlayerData(player)
+    playerData.doubleXP = true
+end
+
+-- Premium items benefits
+function grantPremiumItems(player)
+    local playerData = getPlayerData(player)
+    playerData.premiumItems = true
+end
+
+-- VIP effects
+function addVIPEffects(player)
+    local character = player.Character
+    if character then
+        local head = character:FindFirstChild("Head")
+        if head then
+            local attachment = Instance.new("Attachment")
+            attachment.Name = "VIPAttachment"
+            attachment.Parent = head
+            
+            local particles = Instance.new("ParticleEmitter")
+            particles.Parent = attachment
+            particles.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+            particles.Lifetime = NumberRange.new(1, 2)
+            particles.Rate = 50
+            particles.Speed = NumberRange.new(2, 5)
+            particles.Color = ColorSequence.new(Color3.new(1, 1, 0)) -- Gold color
+        end
+    end
+end
+
+-- Health potion
+function giveHealthPotion(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Health = humanoid.MaxHealth -- Full heal
+        end
+    end
+end
+
+-- Speed boost
+function giveSpeedBoost(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            local originalSpeed = humanoid.WalkSpeed
+            humanoid.WalkSpeed = originalSpeed * 2 -- Double speed
+            
+            -- Remove boost after 30 seconds
+            wait(30)
+            if humanoid then
+                humanoid.WalkSpeed = originalSpeed
+            end
+        end
+    end
+end
+
+-- Notification system
+function showNotification(player, message)
+    local playerGui = player:FindFirstChild("PlayerGui")
+    if playerGui then
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "PurchaseNotification"
+        screenGui.Parent = playerGui
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 100)
+        frame.Position = UDim2.new(0.5, -150, 0, 50)
+        frame.BackgroundColor3 = Color3.new(0, 0.8, 0)
+        frame.BorderSizePixel = 0
+        frame.Parent = screenGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = message
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextScaled = true
+        label.Font = Enum.Font.GothamBold
+        label.Parent = frame
+        
+        -- Animate and remove
+        local tween = game:GetService("TweenService"):Create(
+            frame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -150, 0, -100)}
+        )
+        
+        wait(2)
+        tween:Play()
+        tween.Completed:Connect(function()
+            screenGui:Destroy()
+        end)
+    end
+end
+
+-- Player data management
+function getPlayerData(player)
+    if not playerData[player.UserId] then
+        playerData[player.UserId] = {
+            coins = 0,
+            gamePasses = {},
+            purchaseHistory = {}
+        }
+    end
+    return playerData[player.UserId]
+end
+
+-- Purchase prompting
+function promptGamePassPurchase(player, passName)
+    local passId = GAME_PASSES[passName]
+    if passId then
+        MarketplaceService:PromptGamePassPurchase(player, passId)
+    end
+end
+
+function promptProductPurchase(player, productName)
+    local productId = DEVELOPER_PRODUCTS[productName]
+    if productId then
+        MarketplaceService:PromptProductPurchase(player, productId)
+    end
+end
+
+-- Check ownership
+function hasGamePass(player, passName)
+    local playerData = getPlayerData(player)
+    return playerData.gamePasses[passName] or false
+end
+
+print("Game passes and developer products system implemented!")`,
+        color: 'blue'
+      },
+      {
+        title: 'Setting Up Game Passes & Products',
+        content: `Before you can use game passes and developer products in your code, you need to set them up in Roblox Studio and the Developer Hub.
+
+**Setting Up Game Passes:**
+1. Go to the **Developer Hub** (create.roblox.com)
+2. Navigate to your game's **Monetization** section
+3. Click **"Create Game Pass"**
+4. Fill in the details:
+   - **Name**: "VIP Access", "Double XP", etc.
+   - **Description**: What benefits the pass provides
+   - **Price**: Set in Robux (typically $5-$50+)
+   - **Icon**: Upload an attractive icon
+5. **Copy the Game Pass ID** - you'll need this in your code
+
+**Setting Up Developer Products:**
+1. In the same **Monetization** section
+2. Click **"Create Developer Product"**
+3. Fill in the details:
+   - **Name**: "100 Coins", "Health Potion", etc.
+   - **Description**: What the product does
+   - **Price**: Set in Robux (typically $1-$10)
+   - **Icon**: Upload an appropriate icon
+4. **Copy the Product ID** - you'll need this in your code
+
+**Important Notes:**
+- Game passes are **permanent** - players keep them forever
+- Developer products are **consumable** - players can buy them multiple times
+- Always test purchases in **Studio** before publishing
+- Use **MarketplaceService** to handle purchases in your code`,
+        codeExample: `-- Setting up game passes and developer products
+
+local MarketplaceService = game:GetService("MarketplaceService")
+
+-- 1. GAME PASS SETUP
+-- Replace these IDs with your actual game pass IDs from Developer Hub
+local GAME_PASSES = {
+    VIP_ACCESS = 123456789, -- Replace with actual ID
+    DOUBLE_XP = 123456790,  -- Replace with actual ID
+    PREMIUM_ITEMS = 123456791 -- Replace with actual ID
+}
+
+-- 2. DEVELOPER PRODUCT SETUP  
+-- Replace these IDs with your actual product IDs from Developer Hub
+local DEVELOPER_PRODUCTS = {
+    COINS_100 = 123456792,    -- 100 coins for 10 Robux
+    COINS_500 = 123456793,    -- 500 coins for 50 Robux
+    HEALTH_POTION = 123456794, -- Health potion for 5 Robux
+    SPEED_BOOST = 123456795   -- Speed boost for 15 Robux
+}
+
+-- 3. PURCHASE PROMPTING
+local function promptGamePassPurchase(player, passName)
+    local passId = GAME_PASSES[passName]
+    if passId then
+        -- This will show the purchase prompt to the player
+        MarketplaceService:PromptGamePassPurchase(player, passId)
+    else
+        warn("Game pass not found:", passName)
+    end
+end
+
+local function promptProductPurchase(player, productName)
+    local productId = DEVELOPER_PRODUCTS[productName]
+    if productId then
+        -- This will show the purchase prompt to the player
+        MarketplaceService:PromptProductPurchase(player, productId)
+    else
+        warn("Developer product not found:", productName)
+    end
+end
+
+-- 4. CHECKING OWNERSHIP
+local function checkGamePassOwnership(player, passName)
+    local passId = GAME_PASSES[passName]
+    if passId then
+        local success, hasPass = pcall(function()
+            return MarketplaceService:UserOwnsGamePassAsync(player.UserId, passId)
+        end)
+        
+        if success then
+            return hasPass
+        else
+            warn("Failed to check game pass ownership:", passName)
+            return false
+        end
+    end
+    return false
+end
+
+-- 5. PURCHASE EVENT HANDLING
+-- Connect to purchase events
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, wasPurchased)
+    if wasPurchased then
+        print("Game pass purchased by", player.Name, "ID:", gamePassId)
+        -- Grant benefits here
+    end
+end)
+
+MarketplaceService.PromptProductPurchaseFinished:Connect(function(player, productId, wasPurchased)
+    if wasPurchased then
+        print("Developer product purchased by", player.Name, "ID:", productId)
+        -- Grant benefits here
+    end
+end)
+
+-- 6. EXAMPLE USAGE
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+    -- Check if player has VIP access
+    if checkGamePassOwnership(player, "VIP_ACCESS") then
+        print(player.Name, "has VIP access!")
+        -- Grant VIP benefits
+    end
+    
+    -- Create purchase buttons
+    local playerGui = player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "PurchaseUI"
+    screenGui.Parent = playerGui
+    
+    -- VIP Access button
+    local vipButton = Instance.new("TextButton")
+    vipButton.Size = UDim2.new(0, 150, 0, 40)
+    vipButton.Position = UDim2.new(0, 20, 0, 20)
+    vipButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    vipButton.Text = "Buy VIP Access"
+    vipButton.TextColor3 = Color3.new(1, 1, 1)
+    vipButton.Font = Enum.Font.GothamBold
+    vipButton.TextSize = 16
+    vipButton.Parent = screenGui
+    
+    vipButton.MouseButton1Click:Connect(function()
+        promptGamePassPurchase(player, "VIP_ACCESS")
+    end)
+    
+    -- Coins button
+    local coinsButton = Instance.new("TextButton")
+    coinsButton.Size = UDim2.new(0, 150, 0, 40)
+    coinsButton.Position = UDim2.new(0, 20, 0, 80)
+    coinsButton.BackgroundColor3 = Color3.new(1, 0.8, 0)
+    coinsButton.Text = "Buy 100 Coins"
+    coinsButton.TextColor3 = Color3.new(0, 0, 0)
+    coinsButton.Font = Enum.Font.GothamBold
+    coinsButton.TextSize = 16
+    coinsButton.Parent = screenGui
+    
+    coinsButton.MouseButton1Click:Connect(function()
+        promptProductPurchase(player, "COINS_100")
+    end)
+end)
+
+print("Game passes and developer products system set up!")`,
+        color: 'green'
+      },
+      {
+        title: 'Monetization Best Practices',
+        content: `Implementing effective monetization requires careful planning and user experience considerations. Here are the best practices for game passes and developer products.
+
+**Pricing Strategy:**
+- **Game Passes**: Price based on value provided (VIP access: $10-25, Double XP: $5-15)
+- **Developer Products**: Price competitively (100 coins: $1-2, Health potion: $0.50-1)
+- **Test different prices** to find the sweet spot for your audience
+- **Consider your target audience** - younger players have less spending power
+
+**User Experience:**
+- **Clear benefits**: Players should understand exactly what they're buying
+- **Fair pricing**: Don't make the game pay-to-win
+- **Free alternatives**: Provide ways to earn items without paying
+- **No pressure**: Make purchases optional, not required
+
+**Technical Implementation:**
+- **Always use pcall()** when checking ownership to prevent errors
+- **Store purchase data** for analytics and support
+- **Handle edge cases** like network failures during purchase
+- **Test thoroughly** in Studio before publishing
+
+**Legal & Ethical Considerations:**
+- **Follow Roblox ToS** for monetization
+- **Be transparent** about what players are buying
+- **Provide support** for purchase issues
+- **Respect player privacy** and data`,
+        codeExample: `-- Monetization best practices implementation
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+
+-- Configuration
+local CONFIG = {
+    -- Pricing tiers
+    PRICING = {
+        VIP_ACCESS = 25, -- 25 Robux
+        DOUBLE_XP = 10,  -- 10 Robux
+        COINS_100 = 2,   -- 2 Robux
+        HEALTH_POTION = 1 -- 1 Robux
+    },
+    
+    -- Free alternatives
+    FREE_ALTERNATIVES = {
+        COINS_PER_HOUR = 10, -- Free coins per hour
+        HEALTH_POTION_COOLDOWN = 300 -- 5 minutes between free potions
+    }
+}
+
+-- Player data storage
+local playerData = {}
+local dataStore = DataStoreService:GetDataStore("PlayerMonetizationData")
+
+-- Load player data
+function loadPlayerData(player)
+    local success, data = pcall(function()
+        return dataStore:GetAsync(tostring(player.UserId))
+    end)
+    
+    if success and data then
+        playerData[player.UserId] = data
+    else
+        -- Initialize new player data
+        playerData[player.UserId] = {
+            coins = 0,
+            gamePasses = {},
+            purchaseHistory = {},
+            freeCoinsLastClaimed = 0,
+            freePotionLastUsed = 0,
+            totalSpent = 0
+        }
+    end
+end
+
+-- Save player data
+function savePlayerData(player)
+    local playerData = playerData[player.UserId]
+    if playerData then
+        pcall(function()
+            dataStore:SetAsync(tostring(player.UserId), playerData)
+        end)
+    end
+end
+
+-- Check game pass ownership
+function checkGamePassOwnership(player, passName)
+    local passId = GAME_PASSES[passName]
+    if passId then
+        local success, hasPass = pcall(function()
+            return MarketplaceService:UserOwnsGamePassAsync(player.UserId, passId)
+        end)
+        
+        if success then
+            return hasPass
+        else
+            warn("Failed to check game pass ownership:", passName)
+            return false
+        end
+    end
+    return false
+end
+
+-- Grant game pass benefits
+function grantGamePassBenefits(player, passName)
+    if passName == "VIP_ACCESS" then
+        grantVIPAccess(player)
+    elseif passName == "DOUBLE_XP" then
+        grantDoubleXP(player)
+    end
+    
+    print("Game pass benefits granted:", passName, "to", player.Name)
+end
+
+-- Grant VIP access
+function grantVIPAccess(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 20
+            humanoid.JumpPower = 60
+        end
+    end
+    
+    -- Add VIP effects
+    addVIPEffects(player)
+end
+
+-- Grant double XP
+function grantDoubleXP(player)
+    local playerData = playerData[player.UserId]
+    if playerData then
+        playerData.doubleXP = true
+    end
+end
+
+-- Add VIP effects
+function addVIPEffects(player)
+    local character = player.Character
+    if character then
+        local head = character:FindFirstChild("Head")
+        if head then
+            local attachment = Instance.new("Attachment")
+            attachment.Name = "VIPAttachment"
+            attachment.Parent = head
+            
+            local particles = Instance.new("ParticleEmitter")
+            particles.Parent = attachment
+            particles.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+            particles.Lifetime = NumberRange.new(1, 2)
+            particles.Rate = 50
+            particles.Speed = NumberRange.new(2, 5)
+            particles.Color = ColorSequence.new(Color3.new(1, 1, 0))
+        end
+    end
+end
+
+-- Give free coins
+function giveFreeCoins(player)
+    local playerData = playerData[player.UserId]
+    if playerData then
+        local currentTime = tick()
+        if currentTime - playerData.freeCoinsLastClaimed >= 3600 then
+            playerData.coins = playerData.coins + CONFIG.FREE_ALTERNATIVES.COINS_PER_HOUR
+            playerData.freeCoinsLastClaimed = currentTime
+            
+            showNotification(player, "Free coins earned: " .. CONFIG.FREE_ALTERNATIVES.COINS_PER_HOUR)
+            savePlayerData(player)
+        end
+    end
+end
+
+-- Show notification
+function showNotification(player, message)
+    local playerGui = player:FindFirstChild("PlayerGui")
+    if playerGui then
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "Notification"
+        screenGui.Parent = playerGui
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 80)
+        frame.Position = UDim2.new(0.5, -150, 0, 50)
+        frame.BackgroundColor3 = Color3.new(0, 0.8, 0)
+        frame.BorderSizePixel = 0
+        frame.Parent = screenGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = message
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextScaled = true
+        label.Font = Enum.Font.GothamBold
+        label.Parent = frame
+        
+        -- Animate and remove
+        local tween = game:GetService("TweenService"):Create(
+            frame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -150, 0, -100)}
+        )
+        
+        wait(2)
+        tween:Play()
+        tween.Completed:Connect(function()
+            screenGui:Destroy()
+        end)
+    end
+end
+
+-- Handle game pass purchase
+function handleGamePassPurchase(player, gamePassId, wasPurchased)
+    if wasPurchased then
+        local playerData = playerData[player.UserId]
+        if playerData then
+            -- Log purchase
+            table.insert(playerData.purchaseHistory, {
+                type = "gamepass",
+                id = gamePassId,
+                timestamp = tick(),
+                price = getGamePassPrice(gamePassId)
+            })
+            
+            playerData.totalSpent = playerData.totalSpent + getGamePassPrice(gamePassId)
+            
+            -- Grant benefits
+            local passName = getGamePassName(gamePassId)
+            if passName then
+                playerData.gamePasses[passName] = true
+                grantGamePassBenefits(player, passName)
+            end
+            
+            -- Save data
+            savePlayerData(player)
+            
+            print("Game pass purchased:", passName, "by", player.Name)
+        end
+    end
+end
+
+-- Handle product purchase
+function handleProductPurchase(player, productId, wasPurchased)
+    if wasPurchased then
+        local playerData = playerData[player.UserId]
+        if playerData then
+            -- Log purchase
+            table.insert(playerData.purchaseHistory, {
+                type = "product",
+                id = productId,
+                timestamp = tick(),
+                price = getProductPrice(productId)
+            })
+            
+            playerData.totalSpent = playerData.totalSpent + getProductPrice(productId)
+            
+            -- Grant benefits
+            local productName = getProductName(productId)
+            if productName then
+                grantProductBenefits(player, productName)
+            end
+            
+            -- Save data
+            savePlayerData(player)
+            
+            print("Developer product purchased:", productName, "by", player.Name)
+        end
+    end
+end
+
+-- Grant product benefits
+function grantProductBenefits(player, productName)
+    local playerData = playerData[player.UserId]
+    if not playerData then return end
+    
+    if productName == "COINS_100" then
+        playerData.coins = playerData.coins + 100
+        showNotification(player, "100 Coins Added!")
+    elseif productName == "COINS_500" then
+        playerData.coins = playerData.coins + 500
+        showNotification(player, "500 Coins Added!")
+    elseif productName == "HEALTH_POTION" then
+        giveHealthPotion(player)
+        showNotification(player, "Health Potion Used!")
+    end
+end
+
+-- Give health potion
+function giveHealthPotion(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Health = humanoid.MaxHealth
+        end
+    end
+end
+
+-- Get game pass price
+function getGamePassPrice(gamePassId)
+    for name, id in pairs(GAME_PASSES) do
+        if id == gamePassId then
+            return CONFIG.PRICING[name] or 0
+        end
+    end
+    return 0
+end
+
+-- Get product price
+function getProductPrice(productId)
+    for name, id in pairs(DEVELOPER_PRODUCTS) do
+        if id == productId then
+            return CONFIG.PRICING[name] or 0
+        end
+    end
+    return 0
+end
+
+-- Get game pass name
+function getGamePassName(gamePassId)
+    for name, id in pairs(GAME_PASSES) do
+        if id == gamePassId then
+            return name
+        end
+    end
+    return nil
+end
+
+-- Get product name
+function getProductName(productId)
+    for name, id in pairs(DEVELOPER_PRODUCTS) do
+        if id == productId then
+            return name
+        end
+    end
+    return nil
+end
+
+-- Connect to purchase events
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, wasPurchased)
+    handleGamePassPurchase(player, gamePassId, wasPurchased)
+end)
+
+MarketplaceService.PromptProductPurchaseFinished:Connect(function(player, productId, wasPurchased)
+    handleProductPurchase(player, productId, wasPurchased)
+end)
+
+-- Player events
+Players.PlayerAdded:Connect(function(player)
+    loadPlayerData(player)
+    checkGamePassOwnership(player)
+    
+    -- Start free alternatives
+    spawn(function()
+        while player.Parent do
+            wait(3600) -- 1 hour
+            giveFreeCoins(player)
+        end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    savePlayerData(player)
+    playerData[player.UserId] = nil
+end)
+
+print("Monetization best practices system implemented!")`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Game Passes & Developer Products Implementation
+
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local DataStoreService = game:GetService("DataStoreService")
+
+-- Game Pass IDs (replace with your actual IDs from Developer Hub)
+local GAME_PASSES = {
+    VIP_ACCESS = 123456789, -- Replace with actual game pass ID
+    DOUBLE_XP = 123456790,  -- Replace with actual game pass ID
+    PREMIUM_ITEMS = 123456791 -- Replace with actual game pass ID
+}
+
+-- Developer Product IDs (replace with your actual IDs from Developer Hub)
+local DEVELOPER_PRODUCTS = {
+    COINS_100 = 123456792,    -- 100 coins for 10 Robux
+    COINS_500 = 123456793,    -- 500 coins for 50 Robux
+    HEALTH_POTION = 123456794, -- Health potion for 5 Robux
+    SPEED_BOOST = 123456795   -- Speed boost for 15 Robux
+}
+
+-- Player data storage
+local playerData = {}
+
+-- 1. SETUP PURCHASE EVENTS
+MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, wasPurchased)
+    if wasPurchased then
+        print("Game pass purchased by", player.Name, "ID:", gamePassId)
+        grantGamePassBenefits(player, gamePassId)
+    end
+end)
+
+MarketplaceService.PromptProductPurchaseFinished:Connect(function(player, productId, wasPurchased)
+    if wasPurchased then
+        print("Developer product purchased by", player.Name, "ID:", productId)
+        grantProductBenefits(player, productId)
+    end
+end)
+
+-- 2. GRANT GAME PASS BENEFITS
+function grantGamePassBenefits(player, gamePassId)
+    local playerData = getPlayerData(player)
+    
+    -- Find game pass name
+    local passName = nil
+    for name, id in pairs(GAME_PASSES) do
+        if id == gamePassId then
+            passName = name
+            break
+        end
+    end
+    
+    if passName then
+        playerData.gamePasses[passName] = true
+        
+        -- Grant specific benefits
+        if passName == "VIP_ACCESS" then
+            grantVIPAccess(player)
+        elseif passName == "DOUBLE_XP" then
+            grantDoubleXP(player)
+        elseif passName == "PREMIUM_ITEMS" then
+            grantPremiumItems(player)
+        end
+        
+        print("Game pass benefits granted:", passName, "to", player.Name)
+    end
+end
+
+-- 3. GRANT DEVELOPER PRODUCT BENEFITS
+function grantProductBenefits(player, productId)
+    local playerData = getPlayerData(player)
+    
+    -- Find product name
+    local productName = nil
+    for name, id in pairs(DEVELOPER_PRODUCTS) do
+        if id == productId then
+            productName = name
+            break
+        end
+    end
+    
+    if productName then
+        -- Grant specific benefits
+        if productName == "COINS_100" then
+            playerData.coins = playerData.coins + 100
+            showNotification(player, "100 Coins Added!")
+        elseif productName == "COINS_500" then
+            playerData.coins = playerData.coins + 500
+            showNotification(player, "500 Coins Added!")
+        elseif productName == "HEALTH_POTION" then
+            giveHealthPotion(player)
+            showNotification(player, "Health Potion Used!")
+        elseif productName == "SPEED_BOOST" then
+            giveSpeedBoost(player)
+            showNotification(player, "Speed Boost Activated!")
+        end
+        
+        print("Product benefits granted:", productName, "to", player.Name)
+    end
+end
+
+-- 4. VIP ACCESS BENEFITS
+function grantVIPAccess(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 20 -- Increased walk speed
+            humanoid.JumpPower = 60 -- Increased jump power
+        end
+    end
+    
+    -- Add VIP effects
+    addVIPEffects(player)
+end
+
+-- 5. DOUBLE XP BENEFITS
+function grantDoubleXP(player)
+    local playerData = getPlayerData(player)
+    playerData.doubleXP = true
+end
+
+-- 6. PREMIUM ITEMS BENEFITS
+function grantPremiumItems(player)
+    local playerData = getPlayerData(player)
+    playerData.premiumItems = true
+end
+
+-- 7. VIP EFFECTS
+function addVIPEffects(player)
+    local character = player.Character
+    if character then
+        local head = character:FindFirstChild("Head")
+        if head then
+            local attachment = Instance.new("Attachment")
+            attachment.Name = "VIPAttachment"
+            attachment.Parent = head
+            
+            local particles = Instance.new("ParticleEmitter")
+            particles.Parent = attachment
+            particles.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+            particles.Lifetime = NumberRange.new(1, 2)
+            particles.Rate = 50
+            particles.Speed = NumberRange.new(2, 5)
+            particles.Color = ColorSequence.new(Color3.new(1, 1, 0)) -- Gold color
+        end
+    end
+end
+
+-- 8. HEALTH POTION
+function giveHealthPotion(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.Health = humanoid.MaxHealth -- Full heal
+        end
+    end
+end
+
+-- 9. SPEED BOOST
+function giveSpeedBoost(player)
+    local character = player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            local originalSpeed = humanoid.WalkSpeed
+            humanoid.WalkSpeed = originalSpeed * 2 -- Double speed
+            
+            -- Remove boost after 30 seconds
+            wait(30)
+            if humanoid then
+                humanoid.WalkSpeed = originalSpeed
+            end
+        end
+    end
+end
+
+-- 10. NOTIFICATION SYSTEM
+function showNotification(player, message)
+    local playerGui = player:FindFirstChild("PlayerGui")
+    if playerGui then
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "PurchaseNotification"
+        screenGui.Parent = playerGui
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 300, 0, 100)
+        frame.Position = UDim2.new(0.5, -150, 0, 50)
+        frame.BackgroundColor3 = Color3.new(0, 0.8, 0)
+        frame.BorderSizePixel = 0
+        frame.Parent = screenGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 10)
+        corner.Parent = frame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = message
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextScaled = true
+        label.Font = Enum.Font.GothamBold
+        label.Parent = frame
+        
+        -- Animate and remove
+        local tween = game:GetService("TweenService"):Create(
+            frame,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -150, 0, -100)}
+        )
+        
+        wait(2)
+        tween:Play()
+        tween.Completed:Connect(function()
+            screenGui:Destroy()
+        end)
+    end
+end
+
+-- 11. PLAYER DATA MANAGEMENT
+function getPlayerData(player)
+    if not playerData[player.UserId] then
+        playerData[player.UserId] = {
+            coins = 0,
+            gamePasses = {},
+            purchaseHistory = {}
+        }
+    end
+    return playerData[player.UserId]
+end
+
+-- 12. PURCHASE PROMPTING
+function promptGamePassPurchase(player, passName)
+    local passId = GAME_PASSES[passName]
+    if passId then
+        MarketplaceService:PromptGamePassPurchase(player, passId)
+    end
+end
+
+function promptProductPurchase(player, productName)
+    local productId = DEVELOPER_PRODUCTS[productName]
+    if productId then
+        MarketplaceService:PromptProductPurchase(player, productId)
+    end
+end
+
+-- 13. CHECK OWNERSHIP
+function hasGamePass(player, passName)
+    local playerData = getPlayerData(player)
+    return playerData.gamePasses[passName] or false
+end
+
+-- 14. CREATE PURCHASE UI
+Players.PlayerAdded:Connect(function(player)
+    wait(2) -- Wait for player to load
+    
+    local playerGui = player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "PurchaseUI"
+    screenGui.Parent = playerGui
+    
+    -- VIP Access button
+    local vipButton = Instance.new("TextButton")
+    vipButton.Size = UDim2.new(0, 150, 0, 40)
+    vipButton.Position = UDim2.new(0, 20, 0, 20)
+    vipButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    vipButton.Text = "Buy VIP Access"
+    vipButton.TextColor3 = Color3.new(1, 1, 1)
+    vipButton.Font = Enum.Font.GothamBold
+    vipButton.TextSize = 16
+    vipButton.Parent = screenGui
+    
+    vipButton.MouseButton1Click:Connect(function()
+        promptGamePassPurchase(player, "VIP_ACCESS")
+    end)
+    
+    -- Coins button
+    local coinsButton = Instance.new("TextButton")
+    coinsButton.Size = UDim2.new(0, 150, 0, 40)
+    coinsButton.Position = UDim2.new(0, 20, 0, 80)
+    coinsButton.BackgroundColor3 = Color3.new(1, 0.8, 0)
+    coinsButton.Text = "Buy 100 Coins"
+    coinsButton.TextColor3 = Color3.new(0, 0, 0)
+    coinsButton.Font = Enum.Font.GothamBold
+    coinsButton.TextSize = 16
+    coinsButton.Parent = screenGui
+    
+    coinsButton.MouseButton1Click:Connect(function()
+        promptProductPurchase(player, "COINS_100")
+    end)
+    
+    print("Purchase UI created for", player.Name)
+end)
+
+print("\\n=== GAME PASSES & DEVELOPER PRODUCTS SYSTEM COMPLETE ===")
+print("You've learned how to implement monetization with game passes and developer products!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement game pass purchase system with MarketplaceService', type: 'code_contains', value: 'PromptGamePassPurchase' },
+        { description: 'Create developer product purchase handling', type: 'code_contains', value: 'PromptProductPurchase' },
+        { description: 'Add purchase event handling and benefits granting', type: 'code_contains', value: 'PromptGamePassPurchaseFinished' }
+      ],
+      hints: [
+        'Use MarketplaceService to prompt purchases and check ownership',
+        'Always use pcall() when checking game pass ownership to prevent errors',
+        'Implement clear benefits for each game pass and developer product',
+        'Store purchase data for analytics and player support',
+        'Provide free alternatives to maintain fair gameplay'
+      ],
+      successMessage: 'Excellent! You now understand how to implement game passes and developer products for monetization. These skills are essential for creating profitable Roblox games!'
+    }
+  },
+
+  // === ADVANCED CHARACTER SYSTEMS ===
+  'advanced-character-systems': {
+    title: 'Advanced Character Systems',
+    description: 'Master advanced character manipulation, customization, and interaction systems for engaging gameplay',
+    sections: [
+      {
+        title: 'Character State Management',
+        content: `Advanced character systems require sophisticated state management to handle complex interactions, animations, and behaviors. Understanding how to manage character states is crucial for creating engaging gameplay.
+
+**Character States:**
+- **Idle**: Default state when character is not performing actions
+- **Walking/Running**: Movement states with different speeds and animations
+- **Jumping**: Airborne state with physics and landing detection
+- **Attacking**: Combat state with damage dealing and cooldowns
+- **Stunned**: Temporary state preventing actions
+- **Dead**: End state requiring respawn or revival
+
+**State Transitions:**
+- **Valid transitions**: Define which states can transition to others
+- **Conditions**: Requirements for state changes (health, cooldowns, etc.)
+- **Animations**: Play appropriate animations for each state
+- **Effects**: Apply visual/audio effects during state changes
+
+**State Machine Benefits:**
+- **Predictable behavior**: Clear rules for character actions
+- **Easy debugging**: Know exactly what state a character is in
+- **Modular design**: Easy to add new states and behaviors
+- **Performance**: Only run code relevant to current state`,
+        codeExample: `-- Advanced Character State Management System
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Character State Machine
+local CharacterStateMachine = {}
+CharacterStateMachine.__index = CharacterStateMachine
+
+-- Define character states
+local CHARACTER_STATES = {
+    IDLE = "Idle",
+    WALKING = "Walking",
+    RUNNING = "Running",
+    JUMPING = "Jumping",
+    ATTACKING = "Attacking",
+    STUNNED = "Stunned",
+    DEAD = "Dead"
+}
+
+-- State transition rules
+local STATE_TRANSITIONS = {
+    [CHARACTER_STATES.IDLE] = {CHARACTER_STATES.WALKING, CHARACTER_STATES.JUMPING, CHARACTER_STATES.ATTACKING},
+    [CHARACTER_STATES.WALKING] = {CHARACTER_STATES.IDLE, CHARACTER_STATES.RUNNING, CHARACTER_STATES.JUMPING, CHARACTER_STATES.ATTACKING},
+    [CHARACTER_STATES.RUNNING] = {CHARACTER_STATES.WALKING, CHARACTER_STATES.IDLE, CHARACTER_STATES.JUMPING, CHARACTER_STATES.ATTACKING},
+    [CHARACTER_STATES.JUMPING] = {CHARACTER_STATES.IDLE, CHARACTER_STATES.WALKING, CHARACTER_STATES.RUNNING},
+    [CHARACTER_STATES.ATTACKING] = {CHARACTER_STATES.IDLE, CHARACTER_STATES.WALKING, CHARACTER_STATES.RUNNING},
+    [CHARACTER_STATES.STUNNED] = {CHARACTER_STATES.IDLE, CHARACTER_STATES.DEAD},
+    [CHARACTER_STATES.DEAD] = {CHARACTER_STATES.IDLE} -- Respawn
+}
+
+function CharacterStateMachine.new(player)
+    local self = setmetatable({}, CharacterStateMachine)
+    
+    self.player = player
+    self.character = player.Character
+    self.humanoid = self.character:WaitForChild("Humanoid")
+    self.rootPart = self.character:WaitForChild("HumanoidRootPart")
+    
+    -- State properties
+    self.currentState = CHARACTER_STATES.IDLE
+    self.previousState = nil
+    self.stateStartTime = tick()
+    self.stateData = {}
+    
+    -- Character properties
+    self.health = self.humanoid.MaxHealth
+    self.maxHealth = self.humanoid.MaxHealth
+    self.speed = 16
+    self.jumpPower = 50
+    self.attackCooldown = 0
+    self.stunDuration = 0
+    
+    -- Input tracking
+    self.keysPressed = {}
+    self.movementVector = Vector3.new(0, 0, 0)
+    
+    self:setupConnections()
+    self:initializeState()
+    
+    return self
+end
+
+function CharacterStateMachine:setupConnections()
+    -- Health monitoring
+    self.humanoid.HealthChanged:Connect(function(health)
+        self.health = health
+        if health <= 0 and self.currentState ~= CHARACTER_STATES.DEAD then
+            self:changeState(CHARACTER_STATES.DEAD)
+        end
+    end)
+    
+    -- Input handling
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            self.keysPressed[input.KeyCode] = true
+            self:updateMovementVector()
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            self.keysPressed[input.KeyCode] = nil
+            self:updateMovementVector()
+        end
+    end)
+    
+    -- Jump detection
+    self.humanoid.Jumping:Connect(function()
+        if self:canTransitionTo(CHARACTER_STATES.JUMPING) then
+            self:changeState(CHARACTER_STATES.JUMPING)
+        end
+    end)
+    
+    -- Landing detection
+    self.humanoid.Landed:Connect(function()
+        if self.currentState == CHARACTER_STATES.JUMPING then
+            self:changeState(CHARACTER_STATES.IDLE)
+        end
+    end)
+    
+    -- Run loop
+    RunService.Heartbeat:Connect(function()
+        self:update()
+    end)
+end
+
+function CharacterStateMachine:updateMovementVector()
+    local movement = Vector3.new(0, 0, 0)
+    
+    if self.keysPressed[Enum.KeyCode.W] or self.keysPressed[Enum.KeyCode.A] or 
+       self.keysPressed[Enum.KeyCode.S] or self.keysPressed[Enum.KeyCode.D] then
+        
+        if self.keysPressed[Enum.KeyCode.W] then
+            movement = movement + Vector3.new(0, 0, -1)
+        end
+        if self.keysPressed[Enum.KeyCode.S] then
+            movement = movement + Vector3.new(0, 0, 1)
+        end
+        if self.keysPressed[Enum.KeyCode.A] then
+            movement = movement + Vector3.new(-1, 0, 0)
+        end
+        if self.keysPressed[Enum.KeyCode.D] then
+            movement = movement + Vector3.new(1, 0, 0)
+        end
+        
+        movement = movement.Unit
+    end
+    
+    self.movementVector = movement
+end
+
+function CharacterStateMachine:canTransitionTo(newState)
+    local validTransitions = STATE_TRANSITIONS[self.currentState]
+    if not validTransitions then return false end
+    
+    for _, validState in ipairs(validTransitions) do
+        if validState == newState then
+            return true
+        end
+    end
+    
+    return false
+end
+
+function CharacterStateMachine:changeState(newState)
+    if not self:canTransitionTo(newState) then
+        warn("Invalid state transition from", self.currentState, "to", newState)
+        return false
+    end
+    
+    -- Exit current state
+    self:exitState(self.currentState)
+    
+    -- Update state
+    self.previousState = self.currentState
+    self.currentState = newState
+    self.stateStartTime = tick()
+    self.stateData = {}
+    
+    -- Enter new state
+    self:enterState(newState)
+    
+    print("State changed:", self.previousState, "->", self.currentState)
+    return true
+end
+
+function CharacterStateMachine:enterState(state)
+    if state == CHARACTER_STATES.IDLE then
+        self:enterIdleState()
+    elseif state == CHARACTER_STATES.WALKING then
+        self:enterWalkingState()
+    elseif state == CHARACTER_STATES.RUNNING then
+        self:enterRunningState()
+    elseif state == CHARACTER_STATES.JUMPING then
+        self:enterJumpingState()
+    elseif state == CHARACTER_STATES.ATTACKING then
+        self:enterAttackingState()
+    elseif state == CHARACTER_STATES.STUNNED then
+        self:enterStunnedState()
+    elseif state == CHARACTER_STATES.DEAD then
+        self:enterDeadState()
+    end
+end
+
+function CharacterStateMachine:exitState(state)
+    if state == CHARACTER_STATES.IDLE then
+        self:exitIdleState()
+    elseif state == CHARACTER_STATES.WALKING then
+        self:exitWalkingState()
+    elseif state == CHARACTER_STATES.RUNNING then
+        self:exitRunningState()
+    elseif state == CHARACTER_STATES.JUMPING then
+        self:exitJumpingState()
+    elseif state == CHARACTER_STATES.ATTACKING then
+        self:exitAttackingState()
+    elseif state == CHARACTER_STATES.STUNNED then
+        self:exitStunnedState()
+    elseif state == CHARACTER_STATES.DEAD then
+        self:exitDeadState()
+    end
+end
+
+function CharacterStateMachine:enterIdleState()
+    self.humanoid.WalkSpeed = 0
+    self.humanoid.JumpPower = self.jumpPower
+    
+    -- Play idle animation
+    self:playAnimation("Idle")
+    
+    print("Entered idle state")
+end
+
+function CharacterStateMachine:exitIdleState()
+    -- Clean up idle state
+end
+
+function CharacterStateMachine:enterWalkingState()
+    self.humanoid.WalkSpeed = self.speed
+    self.humanoid.JumpPower = self.jumpPower
+    
+    -- Play walking animation
+    self:playAnimation("Walk")
+    
+    print("Entered walking state")
+end
+
+function CharacterStateMachine:exitWalkingState()
+    -- Clean up walking state
+end
+
+function CharacterStateMachine:enterRunningState()
+    self.humanoid.WalkSpeed = self.speed * 1.5
+    self.humanoid.JumpPower = self.jumpPower
+    
+    -- Play running animation
+    self:playAnimation("Run")
+    
+    print("Entered running state")
+end
+
+function CharacterStateMachine:exitRunningState()
+    -- Clean up running state
+end
+
+function CharacterStateMachine:enterJumpingState()
+    -- Store jump start time
+    self.stateData.jumpStartTime = tick()
+    
+    -- Play jumping animation
+    self:playAnimation("Jump")
+    
+    print("Entered jumping state")
+end
+
+function CharacterStateMachine:exitJumpingState()
+    -- Clean up jumping state
+end
+
+function CharacterStateMachine:enterAttackingState()
+    -- Set attack cooldown
+    self.attackCooldown = 1 -- 1 second cooldown
+    
+    -- Play attack animation
+    self:playAnimation("Attack")
+    
+    -- Deal damage after animation delay
+    wait(0.5)
+    self:dealDamage()
+    
+    print("Entered attacking state")
+end
+
+function CharacterStateMachine:exitAttackingState()
+    -- Clean up attacking state
+end
+
+function CharacterStateMachine:enterStunnedState()
+    -- Set stun duration
+    self.stunDuration = 2 -- 2 seconds
+    
+    -- Disable movement
+    self.humanoid.WalkSpeed = 0
+    self.humanoid.JumpPower = 0
+    
+    -- Play stunned animation
+    self:playAnimation("Stunned")
+    
+    print("Entered stunned state")
+end
+
+function CharacterStateMachine:exitStunnedState()
+    -- Re-enable movement
+    self.humanoid.WalkSpeed = self.speed
+    self.humanoid.JumpPower = self.jumpPower
+end
+
+function CharacterStateMachine:enterDeadState()
+    -- Disable all movement
+    self.humanoid.WalkSpeed = 0
+    self.humanoid.JumpPower = 0
+    
+    -- Play death animation
+    self:playAnimation("Death")
+    
+    -- Respawn after delay
+    wait(3)
+    self:respawn()
+    
+    print("Entered dead state")
+end
+
+function CharacterStateMachine:exitDeadState()
+    -- Clean up dead state
+end
+
+function CharacterStateMachine:playAnimation(animationName)
+    -- Simple animation system (in real implementation, use Animation objects)
+    print("Playing animation:", animationName)
+end
+
+function CharacterStateMachine:dealDamage()
+    -- Deal damage to nearby enemies
+    local region = Region3.new(
+        self.rootPart.Position - Vector3.new(5, 5, 5),
+        self.rootPart.Position + Vector3.new(5, 5, 5)
+    )
+    
+    for _, part in pairs(workspace:ReadVoxels(region, 4)) do
+        local humanoid = part.Parent:FindFirstChild("Humanoid")
+        if humanoid and humanoid ~= self.humanoid then
+            humanoid.Health = humanoid.Health - 20
+        end
+    end
+end
+
+function CharacterStateMachine:respawn()
+    -- Respawn the character
+    self.health = self.maxHealth
+    self.humanoid.Health = self.maxHealth
+    self:changeState(CHARACTER_STATES.IDLE)
+end
+
+function CharacterStateMachine:update()
+    local currentTime = tick()
+    local stateDuration = currentTime - self.stateStartTime
+    
+    -- Update cooldowns
+    if self.attackCooldown > 0 then
+        self.attackCooldown = self.attackCooldown - RunService.Heartbeat:Wait()
+    end
+    
+    if self.stunDuration > 0 then
+        self.stunDuration = self.stunDuration - RunService.Heartbeat:Wait()
+        if self.stunDuration <= 0 and self.currentState == CHARACTER_STATES.STUNNED then
+            self:changeState(CHARACTER_STATES.IDLE)
+        end
+    end
+    
+    -- State-specific updates
+    if self.currentState == CHARACTER_STATES.IDLE then
+        self:updateIdleState()
+    elseif self.currentState == CHARACTER_STATES.WALKING then
+        self:updateWalkingState()
+    elseif self.currentState == CHARACTER_STATES.RUNNING then
+        self:updateRunningState()
+    elseif self.currentState == CHARACTER_STATES.JUMPING then
+        self:updateJumpingState()
+    elseif self.currentState == CHARACTER_STATES.ATTACKING then
+        self:updateAttackingState()
+    end
+end
+
+function CharacterStateMachine:updateIdleState()
+    -- Check for movement input
+    if self.movementVector.Magnitude > 0 then
+        if self.keysPressed[Enum.KeyCode.LeftShift] then
+            self:changeState(CHARACTER_STATES.RUNNING)
+        else
+            self:changeState(CHARACTER_STATES.WALKING)
+        end
+    end
+    
+    -- Check for attack input
+    if self.keysPressed[Enum.KeyCode.Space] and self.attackCooldown <= 0 then
+        self:changeState(CHARACTER_STATES.ATTACKING)
+    end
+end
+
+function CharacterStateMachine:updateWalkingState()
+    -- Check if movement stopped
+    if self.movementVector.Magnitude == 0 then
+        self:changeState(CHARACTER_STATES.IDLE)
+    elseif self.keysPressed[Enum.KeyCode.LeftShift] then
+        self:changeState(CHARACTER_STATES.RUNNING)
+    end
+    
+    -- Check for attack input
+    if self.keysPressed[Enum.KeyCode.Space] and self.attackCooldown <= 0 then
+        self:changeState(CHARACTER_STATES.ATTACKING)
+    end
+end
+
+function CharacterStateMachine:updateRunningState()
+    -- Check if movement stopped
+    if self.movementVector.Magnitude == 0 then
+        self:changeState(CHARACTER_STATES.IDLE)
+    elseif not self.keysPressed[Enum.KeyCode.LeftShift] then
+        self:changeState(CHARACTER_STATES.WALKING)
+    end
+    
+    -- Check for attack input
+    if self.keysPressed[Enum.KeyCode.Space] and self.attackCooldown <= 0 then
+        self:changeState(CHARACTER_STATES.ATTACKING)
+    end
+end
+
+function CharacterStateMachine:updateJumpingState()
+    -- Check if landed (handled by humanoid.Landed event)
+    -- Additional jump logic can go here
+end
+
+function CharacterStateMachine:updateAttackingState()
+    -- Attack state is temporary, will auto-transition back to idle
+    if stateDuration >= 1 then -- Attack duration
+        self:changeState(CHARACTER_STATES.IDLE)
+    end
+end
+
+-- Create character state machine for each player
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Wait for character to fully load
+        local stateMachine = CharacterStateMachine.new(player)
+        print("Character state machine created for", player.Name)
+    end)
+end)
+
+print("Advanced Character State Management System loaded!")`,
+        color: 'blue'
+      },
+      {
+        title: 'Character Customization Systems',
+        content: `Character customization is essential for player engagement and monetization. A robust customization system allows players to personalize their characters with accessories, clothing, colors, and special effects.
+
+**Customization Categories:**
+- **Accessories**: Hats, glasses, backpacks, tools
+- **Clothing**: Shirts, pants, t-shirts, shorts
+- **Body**: Skin color, face, body type
+- **Effects**: Auras, particles, trails
+- **Animations**: Custom walk, idle, and action animations
+
+**Implementation Strategy:**
+- **Modular system**: Separate systems for different customization types
+- **Data persistence**: Save customization choices to DataStore
+- **Real-time updates**: Apply changes immediately without respawning
+- **Performance optimization**: Use efficient attachment and parenting methods
+
+**Advanced Features:**
+- **Layered customization**: Multiple accessories that can be combined
+- **Conditional items**: Items that unlock based on achievements or purchases
+- **Preview system**: Let players preview items before purchasing
+- **Outfit saving**: Save and load complete character outfits`,
+        codeExample: `-- Advanced Character Customization System
+
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local TweenService = game:GetService("TweenService")
+
+-- Character Customization Manager
+local CharacterCustomization = {}
+CharacterCustomization.__index = CharacterCustomization
+
+-- Customization categories
+local CUSTOMIZATION_CATEGORIES = {
+    ACCESSORIES = "Accessories",
+    CLOTHING = "Clothing",
+    BODY = "Body",
+    EFFECTS = "Effects",
+    ANIMATIONS = "Animations"
+}
+
+-- Available customization items
+local CUSTOMIZATION_ITEMS = {
+    -- Accessories
+    HAT_1 = {id = 123456789, category = CUSTOMIZATION_CATEGORIES.ACCESSORIES, name = "Cool Hat", price = 50},
+    HAT_2 = {id = 123456790, category = CUSTOMIZATION_CATEGORIES.ACCESSORIES, name = "Wizard Hat", price = 100},
+    GLASSES_1 = {id = 123456791, category = CUSTOMIZATION_CATEGORIES.ACCESSORIES, name = "Sunglasses", price = 25},
+    
+    -- Clothing
+    SHIRT_1 = {id = 123456792, category = CUSTOMIZATION_CATEGORIES.CLOTHING, name = "Red Shirt", price = 30},
+    PANTS_1 = {id = 123456793, category = CUSTOMIZATION_CATEGORIES.CLOTHING, name = "Blue Pants", price = 30},
+    
+    -- Effects
+    AURA_1 = {id = 123456794, category = CUSTOMIZATION_CATEGORIES.EFFECTS, name = "Fire Aura", price = 200},
+    TRAIL_1 = {id = 123456795, category = CUSTOMIZATION_CATEGORIES.EFFECTS, name = "Rainbow Trail", price = 150}
+}
+
+function CharacterCustomization.new(player)
+    local self = setmetatable({}, CharacterCustomization)
+    
+    self.player = player
+    self.character = player.Character
+    self.humanoid = self.character:WaitForChild("Humanoid")
+    self.rootPart = self.character:WaitForChild("HumanoidRootPart")
+    
+    -- Customization data
+    self.customizationData = {
+        accessories = {},
+        clothing = {},
+        body = {},
+        effects = {},
+        animations = {}
+    }
+    
+    -- Data store
+    self.dataStore = DataStoreService:GetDataStore("PlayerCustomization_" .. player.UserId)
+    
+    -- Load customization data
+    self:loadCustomizationData()
+    
+    return self
+end
+
+function CharacterCustomization:loadCustomizationData()
+    local success, data = pcall(function()
+        return self.dataStore:GetAsync("customization")
+    end)
+    
+    if success and data then
+        self.customizationData = data
+        print("Loaded customization data for", self.player.Name)
+    else
+        print("No customization data found for", self.player.Name, "- using defaults")
+    end
+    
+    -- Apply loaded customizations
+    self:applyAllCustomizations()
+end
+
+function CharacterCustomization:saveCustomizationData()
+    local success = pcall(function()
+        self.dataStore:SetAsync("customization", self.customizationData)
+    end)
+    
+    if success then
+        print("Saved customization data for", self.player.Name)
+    else
+        warn("Failed to save customization data for", self.player.Name)
+    end
+end
+
+function CharacterCustomization:applyAllCustomizations()
+    -- Apply accessories
+    for _, accessoryId in pairs(self.customizationData.accessories) do
+        self:applyAccessory(accessoryId)
+    end
+    
+    -- Apply clothing
+    for category, itemId in pairs(self.customizationData.clothing) do
+        self:applyClothing(category, itemId)
+    end
+    
+    -- Apply body customizations
+    for property, value in pairs(self.customizationData.body) do
+        self:applyBodyCustomization(property, value)
+    end
+    
+    -- Apply effects
+    for _, effectId in pairs(self.customizationData.effects) do
+        self:applyEffect(effectId)
+    end
+    
+    -- Apply animations
+    for _, animationId in pairs(self.customizationData.animations) do
+        self:applyAnimation(animationId)
+    end
+end
+
+function CharacterCustomization:applyAccessory(accessoryId)
+    local accessoryData = CUSTOMIZATION_ITEMS[accessoryId]
+    if not accessoryData then return end
+    
+    -- Create accessory
+    local accessory = Instance.new("Accessory")
+    accessory.Name = accessoryData.name
+    
+    -- Create handle
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Material = Enum.Material.Neon
+    handle.BrickColor = BrickColor.new("Bright red")
+    handle.Parent = accessory
+    
+    -- Create mesh
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.Sphere
+    mesh.Parent = handle
+    
+    -- Attach to character
+    accessory.Parent = self.character
+    
+    print("Applied accessory:", accessoryData.name)
+end
+
+function CharacterCustomization:applyClothing(category, itemId)
+    local itemData = CUSTOMIZATION_ITEMS[itemId]
+    if not itemData then return end
+    
+    -- Create clothing item
+    local clothing = Instance.new(category == "Shirt" and "Shirt" or "Pants")
+    clothing.Name = itemData.name
+    
+    -- Create texture
+    local texture = Instance.new("StringValue")
+    texture.Name = category == "Shirt" and "ShirtTemplate" or "PantsTemplate"
+    texture.Value = "rbxasset://textures/body.png" -- Placeholder texture
+    texture.Parent = clothing
+    
+    -- Apply to character
+    clothing.Parent = self.character
+    
+    print("Applied clothing:", itemData.name)
+end
+
+function CharacterCustomization:applyBodyCustomization(property, value)
+    if property == "skinColor" then
+        -- Apply skin color to all body parts
+        for _, part in pairs(self.character:GetChildren()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                part.BrickColor = BrickColor.new(value)
+            end
+        end
+    elseif property == "face" then
+        -- Apply face texture
+        local head = self.character:FindFirstChild("Head")
+        if head then
+            local face = head:FindFirstChild("face")
+            if face then
+                face.Texture = value
+            end
+        end
+    end
+    
+    print("Applied body customization:", property, "=", value)
+end
+
+function CharacterCustomization:applyEffect(effectId)
+    local effectData = CUSTOMIZATION_ITEMS[effectId]
+    if not effectData then return end
+    
+    if effectId == "AURA_1" then
+        self:createFireAura()
+    elseif effectId == "TRAIL_1" then
+        self:createRainbowTrail()
+    end
+    
+    print("Applied effect:", effectData.name)
+end
+
+function CharacterCustomization:createFireAura()
+    local head = self.character:FindFirstChild("Head")
+    if not head then return end
+    
+    -- Create attachment
+    local attachment = Instance.new("Attachment")
+    attachment.Name = "FireAuraAttachment"
+    attachment.Parent = head
+    
+    -- Create particle emitter
+    local particles = Instance.new("ParticleEmitter")
+    particles.Parent = attachment
+    particles.Texture = "rbxasset://textures/particles/fire_main.dds"
+    particles.Lifetime = NumberRange.new(0.5, 1.5)
+    particles.Rate = 100
+    particles.SpreadAngle = Vector2.new(45, 45)
+    particles.Speed = NumberRange.new(2, 8)
+    particles.Color = ColorSequence.new(Color3.new(1, 0.5, 0)) -- Orange fire
+    particles.Size = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.5),
+        NumberSequenceKeypoint.new(0.5, 1),
+        NumberSequenceKeypoint.new(1, 0)
+    }
+end
+
+function CharacterCustomization:createRainbowTrail()
+    local rootPart = self.character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    -- Create trail
+    local trail = Instance.new("Trail")
+    trail.Parent = rootPart
+    trail.Attachment0 = rootPart:FindFirstChild("RootRigAttachment")
+    trail.Attachment1 = rootPart:FindFirstChild("RootRigAttachment")
+    trail.Lifetime = 1
+    trail.MinLength = 0
+    trail.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(1, 1)
+    }
+    trail.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)), -- Red
+        ColorSequenceKeypoint.new(0.2, Color3.new(1, 0.5, 0)), -- Orange
+        ColorSequenceKeypoint.new(0.4, Color3.new(1, 1, 0)), -- Yellow
+        ColorSequenceKeypoint.new(0.6, Color3.new(0, 1, 0)), -- Green
+        ColorSequenceKeypoint.new(0.8, Color3.new(0, 0, 1)), -- Blue
+        ColorSequenceKeypoint.new(1, Color3.new(0.5, 0, 1)) -- Purple
+    }
+end
+
+function CharacterCustomization:applyAnimation(animationId)
+    -- Animation system would go here
+    print("Applied animation:", animationId)
+end
+
+function CharacterCustomization:addAccessory(accessoryId)
+    if not CUSTOMIZATION_ITEMS[accessoryId] then
+        warn("Invalid accessory ID:", accessoryId)
+        return false
+    end
+    
+    -- Check if already owned
+    for _, ownedId in pairs(self.customizationData.accessories) do
+        if ownedId == accessoryId then
+            warn("Accessory already owned:", accessoryId)
+            return false
+        end
+    end
+    
+    -- Add to customization data
+    table.insert(self.customizationData.accessories, accessoryId)
+    
+    -- Apply immediately
+    self:applyAccessory(accessoryId)
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Added accessory:", accessoryId)
+    return true
+end
+
+function CharacterCustomization:removeAccessory(accessoryId)
+    -- Find and remove from customization data
+    for i, ownedId in pairs(self.customizationData.accessories) do
+        if ownedId == accessoryId then
+            table.remove(self.customizationData.accessories, i)
+            break
+        end
+    end
+    
+    -- Remove from character
+    local accessory = self.character:FindFirstChild(CUSTOMIZATION_ITEMS[accessoryId].name)
+    if accessory then
+        accessory:Destroy()
+    end
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Removed accessory:", accessoryId)
+end
+
+function CharacterCustomization:setClothing(category, itemId)
+    if not CUSTOMIZATION_ITEMS[itemId] then
+        warn("Invalid clothing item ID:", itemId)
+        return false
+    end
+    
+    -- Remove existing clothing of same category
+    local existingClothing = self.character:FindFirstChild(category)
+    if existingClothing then
+        existingClothing:Destroy()
+    end
+    
+    -- Add new clothing
+    self.customizationData.clothing[category] = itemId
+    self:applyClothing(category, itemId)
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Set clothing:", category, "=", itemId)
+    return true
+end
+
+function CharacterCustomization:setBodyCustomization(property, value)
+    self.customizationData.body[property] = value
+    self:applyBodyCustomization(property, value)
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Set body customization:", property, "=", value)
+end
+
+function CharacterCustomization:addEffect(effectId)
+    if not CUSTOMIZATION_ITEMS[effectId] then
+        warn("Invalid effect ID:", effectId)
+        return false
+    end
+    
+    -- Check if already applied
+    for _, ownedId in pairs(self.customizationData.effects) do
+        if ownedId == effectId then
+            warn("Effect already applied:", effectId)
+            return false
+        end
+    end
+    
+    -- Add to customization data
+    table.insert(self.customizationData.effects, effectId)
+    
+    -- Apply immediately
+    self:applyEffect(effectId)
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Added effect:", effectId)
+    return true
+end
+
+function CharacterCustomization:removeEffect(effectId)
+    -- Find and remove from customization data
+    for i, ownedId in pairs(self.customizationData.effects) do
+        if ownedId == effectId then
+            table.remove(self.customizationData.effects, i)
+            break
+        end
+    end
+    
+    -- Remove from character (implementation depends on effect type)
+    if effectId == "AURA_1" then
+        local attachment = self.character.Head:FindFirstChild("FireAuraAttachment")
+        if attachment then
+            attachment:Destroy()
+        end
+    elseif effectId == "TRAIL_1" then
+        local trail = self.rootPart:FindFirstChild("Trail")
+        if trail then
+            trail:Destroy()
+        end
+    end
+    
+    -- Save data
+    self:saveCustomizationData()
+    
+    print("Removed effect:", effectId)
+end
+
+function CharacterCustomization:getOwnedItems()
+    return {
+        accessories = self.customizationData.accessories,
+        clothing = self.customizationData.clothing,
+        body = self.customizationData.body,
+        effects = self.customizationData.effects,
+        animations = self.customizationData.animations
+    }
+end
+
+function CharacterCustomization:createCustomizationUI()
+    local playerGui = self.player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CustomizationUI"
+    screenGui.Parent = playerGui
+    
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 600, 0, 400)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = mainFrame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.BackgroundTransparency = 1
+    title.Text = "Character Customization"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    -- Category buttons
+    local categoryFrame = Instance.new("Frame")
+    categoryFrame.Size = UDim2.new(0, 150, 1, -50)
+    categoryFrame.Position = UDim2.new(0, 0, 0, 50)
+    categoryFrame.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    categoryFrame.Parent = mainFrame
+    
+    local categoryCorner = Instance.new("UICorner")
+    categoryCorner.CornerRadius = UDim.new(0, 10)
+    categoryCorner.Parent = categoryFrame
+    
+    -- Accessories button
+    local accessoriesButton = Instance.new("TextButton")
+    accessoriesButton.Size = UDim2.new(1, -20, 0, 40)
+    accessoriesButton.Position = UDim2.new(0, 10, 0, 10)
+    accessoriesButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    accessoriesButton.Text = "Accessories"
+    accessoriesButton.TextColor3 = Color3.new(1, 1, 1)
+    accessoriesButton.Font = Enum.Font.Gotham
+    accessoriesButton.TextSize = 16
+    accessoriesButton.Parent = categoryFrame
+    
+    local accessoriesCorner = Instance.new("UICorner")
+    accessoriesCorner.CornerRadius = UDim.new(0, 5)
+    accessoriesCorner.Parent = accessoriesButton
+    
+    -- Effects button
+    local effectsButton = Instance.new("TextButton")
+    effectsButton.Size = UDim2.new(1, -20, 0, 40)
+    effectsButton.Position = UDim2.new(0, 10, 0, 60)
+    effectsButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    effectsButton.Text = "Effects"
+    effectsButton.TextColor3 = Color3.new(1, 1, 1)
+    effectsButton.Font = Enum.Font.Gotham
+    effectsButton.TextSize = 16
+    effectsButton.Parent = categoryFrame
+    
+    local effectsCorner = Instance.new("UICorner")
+    effectsCorner.CornerRadius = UDim.new(0, 5)
+    effectsCorner.Parent = effectsButton
+    
+    -- Close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 100, 0, 30)
+    closeButton.Position = UDim2.new(1, -110, 0, 10)
+    closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
+    closeButton.Text = "Close"
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.Gotham
+    closeButton.TextSize = 14
+    closeButton.Parent = mainFrame
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 5)
+    closeCorner.Parent = closeButton
+    
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+    
+    print("Customization UI created for", self.player.Name)
+end
+
+-- Create customization system for each player
+local customizationSystems = {}
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Wait for character to fully load
+        customizationSystems[player.UserId] = CharacterCustomization.new(player)
+        print("Character customization system created for", player.Name)
+    end)
+end)
+
+-- Example usage
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(2) -- Wait for customization system to load
+        
+        local customization = customizationSystems[player.UserId]
+        if customization then
+            -- Add some default accessories
+            customization:addAccessory("HAT_1")
+            customization:addAccessory("GLASSES_1")
+            
+            -- Add effects
+            customization:addEffect("AURA_1")
+            customization:addEffect("TRAIL_1")
+            
+            -- Set body customization
+            customization:setBodyCustomization("skinColor", "Bright blue")
+            
+            -- Create UI
+            customization:createCustomizationUI()
+        end
+    end)
+end)
+
+print("Advanced Character Customization System loaded!")`,
+        color: 'green'
+      },
+      {
+        title: 'Character Interaction Systems',
+        content: `Character interaction systems enable players to interact with each other and the environment in meaningful ways. This includes social features, combat systems, and environmental interactions.
+
+**Interaction Types:**
+- **Player-to-Player**: Handshakes, hugs, high-fives, trading
+- **Player-to-Environment**: Opening doors, picking up items, using tools
+- **Combat Interactions**: Attacking, blocking, special abilities
+- **Social Interactions**: Chat, emotes, group activities
+
+**Implementation Considerations:**
+- **Network synchronization**: Ensure all players see interactions correctly
+- **Permission systems**: Control who can interact with what
+- **Animation coordination**: Sync animations between players
+- **Feedback systems**: Provide visual and audio feedback for interactions
+
+**Advanced Features:**
+- **Interaction queues**: Handle multiple interaction requests
+- **Context-sensitive interactions**: Different interactions based on situation
+- **Interaction cooldowns**: Prevent spam and abuse
+- **Custom interaction types**: Create unique interaction mechanics`,
+        codeExample: `-- Advanced Character Interaction System
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Character Interaction Manager
+local CharacterInteraction = {}
+CharacterInteraction.__index = CharacterInteraction
+
+-- Interaction types
+local INTERACTION_TYPES = {
+    HANDSHAKE = "Handshake",
+    HUG = "Hug",
+    HIGH_FIVE = "HighFive",
+    TRADE = "Trade",
+    COMBAT = "Combat",
+    EMOTE = "Emote"
+}
+
+-- Interaction states
+local INTERACTION_STATES = {
+    IDLE = "Idle",
+    REQUESTING = "Requesting",
+    ACCEPTED = "Accepted",
+    IN_PROGRESS = "InProgress",
+    COMPLETED = "Completed",
+    CANCELLED = "Cancelled"
+}
+
+function CharacterInteraction.new(player)
+    local self = setmetatable({}, CharacterInteraction)
+    
+    self.player = player
+    self.character = player.Character
+    self.humanoid = self.character:WaitForChild("Humanoid")
+    self.rootPart = self.character:WaitForChild("HumanoidRootPart")
+    
+    -- Interaction data
+    self.currentInteraction = nil
+    self.interactionState = INTERACTION_STATES.IDLE
+    self.interactionQueue = {}
+    self.interactionCooldowns = {}
+    
+    -- Remote events
+    self:setupRemoteEvents()
+    
+    -- Input handling
+    self:setupInputHandling()
+    
+    return self
+end
+
+function CharacterInteraction:setupRemoteEvents()
+    -- Create remote events if they don't exist
+    local remoteEvents = ReplicatedStorage:FindFirstChild("InteractionEvents")
+    if not remoteEvents then
+        remoteEvents = Instance.new("Folder")
+        remoteEvents.Name = "InteractionEvents"
+        remoteEvents.Parent = ReplicatedStorage
+    end
+    
+    -- Interaction request event
+    local requestEvent = remoteEvents:FindFirstChild("RequestInteraction")
+    if not requestEvent then
+        requestEvent = Instance.new("RemoteEvent")
+        requestEvent.Name = "RequestInteraction"
+        requestEvent.Parent = remoteEvents
+    end
+    
+    -- Interaction response event
+    local responseEvent = remoteEvents:FindFirstChild("RespondToInteraction")
+    if not responseEvent then
+        responseEvent = Instance.new("RemoteEvent")
+        responseEvent.Name = "RespondToInteraction"
+        responseEvent.Parent = remoteEvents
+    end
+    
+    -- Interaction update event
+    local updateEvent = remoteEvents:FindFirstChild("UpdateInteraction")
+    if not updateEvent then
+        updateEvent = Instance.new("RemoteEvent")
+        updateEvent.Name = "UpdateInteraction"
+        updateEvent.Parent = remoteEvents
+    end
+    
+    -- Connect to events
+    requestEvent.OnServerEvent:Connect(function(sender, targetPlayer, interactionType)
+        self:handleInteractionRequest(sender, targetPlayer, interactionType)
+    end)
+    
+    responseEvent.OnServerEvent:Connect(function(sender, requestId, accepted)
+        self:handleInteractionResponse(sender, requestId, accepted)
+    end)
+    
+    updateEvent.OnServerEvent:Connect(function(sender, interactionData)
+        self:handleInteractionUpdate(sender, interactionData)
+    end)
+end
+
+function CharacterInteraction:setupInputHandling()
+    -- Right-click to interact
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            self:handleRightClick()
+        end
+    end)
+end
+
+function CharacterInteraction:handleRightClick()
+    -- Find target player
+    local targetPlayer = self:getTargetPlayer()
+    if not targetPlayer then return end
+    
+    -- Check if we can interact
+    if not self:canInteract() then
+        self:showMessage("Cannot interact right now")
+        return
+    end
+    
+    -- Show interaction menu
+    self:showInteractionMenu(targetPlayer)
+end
+
+function CharacterInteraction:getTargetPlayer()
+    -- Raycast to find target
+    local camera = workspace.CurrentCamera
+    local unitRay = camera:ScreenPointToRay(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {self.character}
+    
+    local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 100, raycastParams)
+    
+    if raycastResult and raycastResult.Instance then
+        local hitCharacter = raycastResult.Instance.Parent
+        if hitCharacter:FindFirstChild("Humanoid") then
+            return Players:GetPlayerFromCharacter(hitCharacter)
+        end
+    end
+    
+    return nil
+end
+
+function CharacterInteraction:canInteract()
+    -- Check if not in another interaction
+    if self.interactionState ~= INTERACTION_STATES.IDLE then
+        return false
+    end
+    
+    -- Check cooldowns
+    for interactionType, cooldownEnd in pairs(self.interactionCooldowns) do
+        if tick() < cooldownEnd then
+            return false
+        end
+    end
+    
+    return true
+end
+
+function CharacterInteraction:showInteractionMenu(targetPlayer)
+    local playerGui = self.player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InteractionMenu"
+    screenGui.Parent = playerGui
+    
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 200, 0, 300)
+    mainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
+    mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = mainFrame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = "Interact with " .. targetPlayer.Name
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    -- Interaction buttons
+    local interactions = {
+        {type = INTERACTION_TYPES.HANDSHAKE, name = "Handshake", color = Color3.new(0, 0.5, 1)},
+        {type = INTERACTION_TYPES.HUG, name = "Hug", color = Color3.new(0, 0.8, 0)},
+        {type = INTERACTION_TYPES.HIGH_FIVE, name = "High Five", color = Color3.new(1, 0.8, 0)},
+        {type = INTERACTION_TYPES.TRADE, name = "Trade", color = Color3.new(1, 0.5, 0)},
+        {type = INTERACTION_TYPES.EMOTE, name = "Emote", color = Color3.new(0.8, 0, 0.8)}
+    }
+    
+    for i, interaction in ipairs(interactions) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(1, -20, 0, 40)
+        button.Position = UDim2.new(0, 10, 0, 50 + (i - 1) * 50)
+        button.BackgroundColor3 = interaction.color
+        button.Text = interaction.name
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.Font = Enum.Font.Gotham
+        button.TextSize = 16
+        button.Parent = mainFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 5)
+        buttonCorner.Parent = button
+        
+        button.MouseButton1Click:Connect(function()
+            self:requestInteraction(targetPlayer, interaction.type)
+            screenGui:Destroy()
+        end)
+    end
+    
+    -- Close button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(1, -20, 0, 30)
+    closeButton.Position = UDim2.new(0, 10, 1, -40)
+    closeButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)
+    closeButton.Text = "Close"
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.Gotham
+    closeButton.TextSize = 14
+    closeButton.Parent = mainFrame
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 5)
+    closeCorner.Parent = closeButton
+    
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+    
+    -- Auto-close after 10 seconds
+    wait(10)
+    if screenGui.Parent then
+        screenGui:Destroy()
+    end
+end
+
+function CharacterInteraction:requestInteraction(targetPlayer, interactionType)
+    -- Check cooldown
+    if self.interactionCooldowns[interactionType] and tick() < self.interactionCooldowns[interactionType] then
+        self:showMessage("Interaction on cooldown")
+        return
+    end
+    
+    -- Create interaction request
+    local requestId = tick()
+    local interactionRequest = {
+        id = requestId,
+        requester = self.player,
+        target = targetPlayer,
+        type = interactionType,
+        timestamp = tick()
+    }
+    
+    -- Send request to target player
+    local targetInteraction = self:getTargetInteractionSystem(targetPlayer)
+    if targetInteraction then
+        targetInteraction:receiveInteractionRequest(interactionRequest)
+    end
+    
+    -- Set cooldown
+    self.interactionCooldowns[interactionType] = tick() + 5 -- 5 second cooldown
+    
+    self:showMessage("Interaction request sent to " .. targetPlayer.Name)
+end
+
+function CharacterInteraction:receiveInteractionRequest(request)
+    -- Show request UI
+    self:showInteractionRequestUI(request)
+end
+
+function CharacterInteraction:showInteractionRequestUI(request)
+    local playerGui = self.player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InteractionRequest"
+    screenGui.Parent = playerGui
+    
+    -- Main frame
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 300, 0, 150)
+    mainFrame.Position = UDim2.new(0, 20, 0, 20)
+    mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = mainFrame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = request.requester.Name .. " wants to " .. request.type
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    -- Accept button
+    local acceptButton = Instance.new("TextButton")
+    acceptButton.Size = UDim2.new(0, 100, 0, 40)
+    acceptButton.Position = UDim2.new(0, 20, 1, -60)
+    acceptButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+    acceptButton.Text = "Accept"
+    acceptButton.TextColor3 = Color3.new(1, 1, 1)
+    acceptButton.Font = Enum.Font.Gotham
+    acceptButton.TextSize = 16
+    acceptButton.Parent = mainFrame
+    
+    local acceptCorner = Instance.new("UICorner")
+    acceptCorner.CornerRadius = UDim.new(0, 5)
+    acceptCorner.Parent = acceptButton
+    
+    acceptButton.MouseButton1Click:Connect(function()
+        self:respondToInteraction(request.id, true)
+        screenGui:Destroy()
+    end)
+    
+    -- Decline button
+    local declineButton = Instance.new("TextButton")
+    declineButton.Size = UDim2.new(0, 100, 0, 40)
+    declineButton.Position = UDim2.new(1, -120, 1, -60)
+    declineButton.BackgroundColor3 = Color3.new(1, 0, 0)
+    declineButton.Text = "Decline"
+    declineButton.TextColor3 = Color3.new(1, 1, 1)
+    declineButton.Font = Enum.Font.Gotham
+    declineButton.TextSize = 16
+    declineButton.Parent = mainFrame
+    
+    local declineCorner = Instance.new("UICorner")
+    declineCorner.CornerRadius = UDim.new(0, 5)
+    declineCorner.Parent = declineButton
+    
+    declineButton.MouseButton1Click:Connect(function()
+        self:respondToInteraction(request.id, false)
+        screenGui:Destroy()
+    end)
+    
+    -- Auto-decline after 15 seconds
+    wait(15)
+    if screenGui.Parent then
+        self:respondToInteraction(request.id, false)
+        screenGui:Destroy()
+    end
+end
+
+function CharacterInteraction:respondToInteraction(requestId, accepted)
+    -- Send response back to requester
+    local requester = self:getRequesterFromRequestId(requestId)
+    if requester then
+        local requesterInteraction = self:getTargetInteractionSystem(requester)
+        if requesterInteraction then
+            requesterInteraction:handleInteractionResponse(requestId, accepted)
+        end
+    end
+end
+
+function CharacterInteraction:handleInteractionResponse(requestId, accepted)
+    if accepted then
+        self:showMessage("Interaction accepted!")
+        -- Start interaction
+        self:startInteraction(requestId)
+    else
+        self:showMessage("Interaction declined")
+        self.interactionState = INTERACTION_STATES.IDLE
+    end
+end
+
+function CharacterInteraction:startInteraction(requestId)
+    self.interactionState = INTERACTION_STATES.IN_PROGRESS
+    
+    -- Find the interaction type from the request
+    local interactionType = self:getInteractionTypeFromRequestId(requestId)
+    if not interactionType then return end
+    
+    -- Execute the interaction
+    if interactionType == INTERACTION_TYPES.HANDSHAKE then
+        self:executeHandshake()
+    elseif interactionType == INTERACTION_TYPES.HUG then
+        self:executeHug()
+    elseif interactionType == INTERACTION_TYPES.HIGH_FIVE then
+        self:executeHighFive()
+    elseif interactionType == INTERACTION_TYPES.TRADE then
+        self:executeTrade()
+    elseif interactionType == INTERACTION_TYPES.EMOTE then
+        self:executeEmote()
+    end
+    
+    -- Complete interaction
+    wait(3) -- Interaction duration
+    self:completeInteraction()
+end
+
+function CharacterInteraction:executeHandshake()
+    -- Move characters closer
+    self:moveToInteractionPosition()
+    
+    -- Play handshake animation
+    self:playInteractionAnimation("Handshake")
+    
+    print("Executing handshake interaction")
+end
+
+function CharacterInteraction:executeHug()
+    -- Move characters closer
+    self:moveToInteractionPosition()
+    
+    -- Play hug animation
+    self:playInteractionAnimation("Hug")
+    
+    print("Executing hug interaction")
+end
+
+function CharacterInteraction:executeHighFive()
+    -- Move characters closer
+    self:moveToInteractionPosition()
+    
+    -- Play high five animation
+    self:playInteractionAnimation("HighFive")
+    
+    print("Executing high five interaction")
+end
+
+function CharacterInteraction:executeTrade()
+    -- Open trade UI
+    self:openTradeUI()
+    
+    print("Executing trade interaction")
+end
+
+function CharacterInteraction:executeEmote()
+    -- Play emote animation
+    self:playInteractionAnimation("Emote")
+    
+    print("Executing emote interaction")
+end
+
+function CharacterInteraction:moveToInteractionPosition()
+    -- Move both characters to face each other
+    local targetPlayer = self:getTargetPlayer()
+    if not targetPlayer then return end
+    
+    local targetCharacter = targetPlayer.Character
+    if not targetCharacter then return end
+    
+    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetRootPart then return end
+    
+    -- Calculate positions
+    local direction = (targetRootPart.Position - self.rootPart.Position).Unit
+    local distance = 4 -- Interaction distance
+    
+    local newPosition = targetRootPart.Position - direction * distance
+    newPosition = Vector3.new(newPosition.X, self.rootPart.Position.Y, newPosition.Z)
+    
+    -- Tween to position
+    local tween = TweenService:Create(
+        self.rootPart,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Position = newPosition}
+    )
+    tween:Play()
+    
+    -- Face each other
+    local lookDirection = (targetRootPart.Position - self.rootPart.Position).Unit
+    local lookCFrame = CFrame.lookAt(self.rootPart.Position, self.rootPart.Position + lookDirection)
+    
+    local lookTween = TweenService:Create(
+        self.rootPart,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {CFrame = lookCFrame}
+    )
+    lookTween:Play()
+end
+
+function CharacterInteraction:playInteractionAnimation(animationName)
+    -- Simple animation system (in real implementation, use Animation objects)
+    print("Playing interaction animation:", animationName)
+    
+    -- Create visual effect
+    local effect = Instance.new("Part")
+    effect.Name = "InteractionEffect"
+    effect.Size = Vector3.new(2, 2, 2)
+    effect.Position = self.rootPart.Position
+    effect.Material = Enum.Material.Neon
+    effect.BrickColor = BrickColor.new("Bright yellow")
+    effect.Anchored = true
+    effect.CanCollide = false
+    effect.Parent = workspace
+    
+    -- Create mesh
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.Sphere
+    mesh.Parent = effect
+    
+    -- Animate effect
+    local tween = TweenService:Create(
+        effect,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = Vector3.new(0, 0, 0), Transparency = 1}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+function CharacterInteraction:openTradeUI()
+    -- Trade UI implementation would go here
+    print("Opening trade UI")
+end
+
+function CharacterInteraction:completeInteraction()
+    self.interactionState = INTERACTION_STATES.COMPLETED
+    self.currentInteraction = nil
+    
+    -- Reset after a short delay
+    wait(1)
+    self.interactionState = INTERACTION_STATES.IDLE
+    
+    print("Interaction completed")
+end
+
+function CharacterInteraction:showMessage(message)
+    local playerGui = self.player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InteractionMessage"
+    screenGui.Parent = playerGui
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 50)
+    frame.Position = UDim2.new(0.5, -150, 0, 100)
+    frame.BackgroundColor3 = Color3.new(0, 0, 0)
+    frame.BackgroundTransparency = 0.3
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = message
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextScaled = true
+    label.Font = Enum.Font.Gotham
+    label.Parent = frame
+    
+    -- Animate and remove
+    local tween = TweenService:Create(
+        frame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -150, 0, 50)}
+    )
+    
+    wait(2)
+    tween:Play()
+    tween.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end
+
+function CharacterInteraction:getTargetInteractionSystem(targetPlayer)
+    -- This would return the interaction system for the target player
+    -- In a real implementation, you'd store these in a global table
+    return nil -- Placeholder
+end
+
+function CharacterInteraction:getRequesterFromRequestId(requestId)
+    -- This would return the requester from the request ID
+    -- In a real implementation, you'd store active requests
+    return nil -- Placeholder
+end
+
+function CharacterInteraction:getInteractionTypeFromRequestId(requestId)
+    -- This would return the interaction type from the request ID
+    -- In a real implementation, you'd store active requests
+    return INTERACTION_TYPES.HANDSHAKE -- Placeholder
+end
+
+-- Create interaction system for each player
+local interactionSystems = {}
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Wait for character to fully load
+        interactionSystems[player.UserId] = CharacterInteraction.new(player)
+        print("Character interaction system created for", player.Name)
+    end)
+end)
+
+print("Advanced Character Interaction System loaded!")`,
+        color: 'purple'
+      }
+    ],
+    defaultCode: `-- Advanced Character Systems Implementation
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local DataStoreService = game:GetService("DataStoreService")
+
+-- 1. CHARACTER STATE MACHINE
+local CharacterStateMachine = {}
+CharacterStateMachine.__index = CharacterStateMachine
+
+local CHARACTER_STATES = {
+    IDLE = "Idle",
+    WALKING = "Walking",
+    RUNNING = "Running",
+    JUMPING = "Jumping",
+    ATTACKING = "Attacking",
+    STUNNED = "Stunned",
+    DEAD = "Dead"
+}
+
+function CharacterStateMachine.new(player)
+    local self = setmetatable({}, CharacterStateMachine)
+    
+    self.player = player
+    self.character = player.Character
+    self.humanoid = self.character:WaitForChild("Humanoid")
+    self.rootPart = self.character:WaitForChild("HumanoidRootPart")
+    
+    self.currentState = CHARACTER_STATES.IDLE
+    self.stateStartTime = tick()
+    self.keysPressed = {}
+    
+    self:setupConnections()
+    return self
+end
+
+function CharacterStateMachine:setupConnections()
+    self.humanoid.HealthChanged:Connect(function(health)
+        if health <= 0 and self.currentState ~= CHARACTER_STATES.DEAD then
+            self:changeState(CHARACTER_STATES.DEAD)
+        end
+    end)
+    
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            self.keysPressed[input.KeyCode] = true
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            self.keysPressed[input.KeyCode] = nil
+        end
+    end)
+    
+    RunService.Heartbeat:Connect(function()
+        self:update()
+    end)
+end
+
+function CharacterStateMachine:changeState(newState)
+    self.currentState = newState
+    self.stateStartTime = tick()
+    print("State changed to:", newState)
+end
+
+function CharacterStateMachine:update()
+    if self.currentState == CHARACTER_STATES.IDLE then
+        if self.keysPressed[Enum.KeyCode.W] or self.keysPressed[Enum.KeyCode.A] or 
+           self.keysPressed[Enum.KeyCode.S] or self.keysPressed[Enum.KeyCode.D] then
+            self:changeState(CHARACTER_STATES.WALKING)
+        end
+    elseif self.currentState == CHARACTER_STATES.WALKING then
+        if not (self.keysPressed[Enum.KeyCode.W] or self.keysPressed[Enum.KeyCode.A] or 
+                self.keysPressed[Enum.KeyCode.S] or self.keysPressed[Enum.KeyCode.D]) then
+            self:changeState(CHARACTER_STATES.IDLE)
+        end
+    end
+end
+
+-- 2. CHARACTER CUSTOMIZATION SYSTEM
+local CharacterCustomization = {}
+CharacterCustomization.__index = CharacterCustomization
+
+function CharacterCustomization.new(player)
+    local self = setmetatable({}, CharacterCustomization)
+    
+    self.player = player
+    self.character = player.Character
+    self.customizationData = {
+        accessories = {},
+        clothing = {},
+        effects = {}
+    }
+    
+    self:loadCustomizationData()
+    return self
+end
+
+function CharacterCustomization:loadCustomizationData()
+    -- Load from DataStore
+    print("Loading customization data for", self.player.Name)
+end
+
+function CharacterCustomization:addAccessory(accessoryName)
+    table.insert(self.customizationData.accessories, accessoryName)
+    self:applyAccessory(accessoryName)
+    print("Added accessory:", accessoryName)
+end
+
+function CharacterCustomization:applyAccessory(accessoryName)
+    local accessory = Instance.new("Accessory")
+    accessory.Name = accessoryName
+    
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Material = Enum.Material.Neon
+    handle.BrickColor = BrickColor.new("Bright red")
+    handle.Parent = accessory
+    
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.Sphere
+    mesh.Parent = handle
+    
+    accessory.Parent = self.character
+end
+
+function CharacterCustomization:addEffect(effectName)
+    table.insert(self.customizationData.effects, effectName)
+    self:applyEffect(effectName)
+    print("Added effect:", effectName)
+end
+
+function CharacterCustomization:applyEffect(effectName)
+    if effectName == "FireAura" then
+        self:createFireAura()
+    elseif effectName == "RainbowTrail" then
+        self:createRainbowTrail()
+    end
+end
+
+function CharacterCustomization:createFireAura()
+    local head = self.character:FindFirstChild("Head")
+    if not head then return end
+    
+    local attachment = Instance.new("Attachment")
+    attachment.Name = "FireAuraAttachment"
+    attachment.Parent = head
+    
+    local particles = Instance.new("ParticleEmitter")
+    particles.Parent = attachment
+    particles.Texture = "rbxasset://textures/particles/fire_main.dds"
+    particles.Lifetime = NumberRange.new(0.5, 1.5)
+    particles.Rate = 100
+    particles.Speed = NumberRange.new(2, 8)
+    particles.Color = ColorSequence.new(Color3.new(1, 0.5, 0))
+end
+
+function CharacterCustomization:createRainbowTrail()
+    local rootPart = self.character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+    
+    local trail = Instance.new("Trail")
+    trail.Parent = rootPart
+    trail.Lifetime = 1
+    trail.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)),
+        ColorSequenceKeypoint.new(0.5, Color3.new(0, 1, 0)),
+        ColorSequenceKeypoint.new(1, Color3.new(0, 0, 1))
+    }
+end
+
+-- 3. CHARACTER INTERACTION SYSTEM
+local CharacterInteraction = {}
+CharacterInteraction.__index = CharacterInteraction
+
+function CharacterInteraction.new(player)
+    local self = setmetatable({}, CharacterInteraction)
+    
+    self.player = player
+    self.character = player.Character
+    self.interactionState = "Idle"
+    
+    self:setupInputHandling()
+    return self
+end
+
+function CharacterInteraction:setupInputHandling()
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            self:handleRightClick()
+        end
+    end)
+end
+
+function CharacterInteraction:handleRightClick()
+    local targetPlayer = self:getTargetPlayer()
+    if not targetPlayer then return end
+    
+    self:showInteractionMenu(targetPlayer)
+end
+
+function CharacterInteraction:getTargetPlayer()
+    local camera = workspace.CurrentCamera
+    local unitRay = camera:ScreenPointToRay(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {self.character}
+    
+    local raycastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * 100, raycastParams)
+    
+    if raycastResult and raycastResult.Instance then
+        local hitCharacter = raycastResult.Instance.Parent
+        if hitCharacter:FindFirstChild("Humanoid") then
+            return Players:GetPlayerFromCharacter(hitCharacter)
+        end
+    end
+    
+    return nil
+end
+
+function CharacterInteraction:showInteractionMenu(targetPlayer)
+    local playerGui = self.player:WaitForChild("PlayerGui")
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "InteractionMenu"
+    screenGui.Parent = playerGui
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 200, 0, 200)
+    mainFrame.Position = UDim2.new(0.5, -100, 0.5, -100)
+    mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = mainFrame
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.BackgroundTransparency = 1
+    title.Text = "Interact with " .. targetPlayer.Name
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    local handshakeButton = Instance.new("TextButton")
+    handshakeButton.Size = UDim2.new(1, -20, 0, 40)
+    handshakeButton.Position = UDim2.new(0, 10, 0, 50)
+    handshakeButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    handshakeButton.Text = "Handshake"
+    handshakeButton.TextColor3 = Color3.new(1, 1, 1)
+    handshakeButton.Font = Enum.Font.Gotham
+    handshakeButton.TextSize = 16
+    handshakeButton.Parent = mainFrame
+    
+    handshakeButton.MouseButton1Click:Connect(function()
+        self:executeHandshake(targetPlayer)
+        screenGui:Destroy()
+    end)
+    
+    local hugButton = Instance.new("TextButton")
+    hugButton.Size = UDim2.new(1, -20, 0, 40)
+    hugButton.Position = UDim2.new(0, 10, 0, 100)
+    hugButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+    hugButton.Text = "Hug"
+    hugButton.TextColor3 = Color3.new(1, 1, 1)
+    hugButton.Font = Enum.Font.Gotham
+    hugButton.TextSize = 16
+    hugButton.Parent = mainFrame
+    
+    hugButton.MouseButton1Click:Connect(function()
+        self:executeHug(targetPlayer)
+        screenGui:Destroy()
+    end)
+    
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(1, -20, 0, 30)
+    closeButton.Position = UDim2.new(0, 10, 1, -40)
+    closeButton.BackgroundColor3 = Color3.new(0.5, 0.5, 0.5)
+    closeButton.Text = "Close"
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.Font = Enum.Font.Gotham
+    closeButton.TextSize = 14
+    closeButton.Parent = mainFrame
+    
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+end
+
+function CharacterInteraction:executeHandshake(targetPlayer)
+    self:moveToInteractionPosition(targetPlayer)
+    self:playInteractionAnimation("Handshake")
+    print("Executing handshake with", targetPlayer.Name)
+end
+
+function CharacterInteraction:executeHug(targetPlayer)
+    self:moveToInteractionPosition(targetPlayer)
+    self:playInteractionAnimation("Hug")
+    print("Executing hug with", targetPlayer.Name)
+end
+
+function CharacterInteraction:moveToInteractionPosition(targetPlayer)
+    local targetCharacter = targetPlayer.Character
+    if not targetCharacter then return end
+    
+    local targetRootPart = targetCharacter:FindFirstChild("HumanoidRootPart")
+    if not targetRootPart then return end
+    
+    local direction = (targetRootPart.Position - self.character.HumanoidRootPart.Position).Unit
+    local distance = 4
+    
+    local newPosition = targetRootPart.Position - direction * distance
+    newPosition = Vector3.new(newPosition.X, self.character.HumanoidRootPart.Position.Y, newPosition.Z)
+    
+    local tween = TweenService:Create(
+        self.character.HumanoidRootPart,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Position = newPosition}
+    )
+    tween:Play()
+end
+
+function CharacterInteraction:playInteractionAnimation(animationName)
+    local effect = Instance.new("Part")
+    effect.Name = "InteractionEffect"
+    effect.Size = Vector3.new(2, 2, 2)
+    effect.Position = self.character.HumanoidRootPart.Position
+    effect.Material = Enum.Material.Neon
+    effect.BrickColor = BrickColor.new("Bright yellow")
+    effect.Anchored = true
+    effect.CanCollide = false
+    effect.Parent = workspace
+    
+    local mesh = Instance.new("SpecialMesh")
+    mesh.MeshType = Enum.MeshType.Sphere
+    mesh.Parent = effect
+    
+    local tween = TweenService:Create(
+        effect,
+        TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Size = Vector3.new(0, 0, 0), Transparency = 1}
+    )
+    tween:Play()
+    
+    tween.Completed:Connect(function()
+        effect:Destroy()
+    end)
+end
+
+-- 4. CREATE SYSTEMS FOR EACH PLAYER
+local stateMachines = {}
+local customizationSystems = {}
+local interactionSystems = {}
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Wait for character to fully load
+        
+        -- Create state machine
+        stateMachines[player.UserId] = CharacterStateMachine.new(player)
+        
+        -- Create customization system
+        customizationSystems[player.UserId] = CharacterCustomization.new(player)
+        
+        -- Create interaction system
+        interactionSystems[player.UserId] = CharacterInteraction.new(player)
+        
+        -- Add some default customizations
+        customizationSystems[player.UserId]:addAccessory("Cool Hat")
+        customizationSystems[player.UserId]:addEffect("FireAura")
+        customizationSystems[player.UserId]:addEffect("RainbowTrail")
+        
+        print("Advanced character systems created for", player.Name)
+    end)
+end)
+
+print("\\n=== ADVANCED CHARACTER SYSTEMS COMPLETE ===")
+print("You've learned how to implement state machines, customization, and interactions!")`,
+    challenge: {
+      tests: [
+        { description: 'Implement character state machine with multiple states', type: 'code_contains', value: 'CHARACTER_STATES' },
+        { description: 'Create character customization system with accessories and effects', type: 'code_contains', value: 'addAccessory' },
+        { description: 'Add character interaction system with right-click menu', type: 'code_contains', value: 'handleRightClick' }
+      ],
+      hints: [
+        'Use state machines to manage character behavior and animations',
+        'Implement modular customization systems for accessories, clothing, and effects',
+        'Create interaction systems that allow players to interact with each other',
+        'Use TweenService for smooth character movements and animations',
+        'Store customization data in DataStore for persistence'
+      ],
+      successMessage: 'Excellent! You now understand advanced character systems including state management, customization, and interactions. These skills are essential for creating engaging character-based gameplay!'
+    }
   }
 };
 
