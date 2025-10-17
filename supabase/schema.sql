@@ -152,3 +152,22 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Chatbot conversations table
+create table public.chatbot_conversations (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  user_message text not null,
+  ai_response text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS for chatbot conversations
+alter table public.chatbot_conversations enable row level security;
+
+-- RLS policies for chatbot conversations
+create policy "Users can view their own chatbot conversations" on public.chatbot_conversations
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own chatbot conversations" on public.chatbot_conversations
+  for insert with check (auth.uid() = user_id);
+

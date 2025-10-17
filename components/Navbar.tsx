@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Code2, BookOpen, LayoutDashboard, CreditCard } from 'lucide-react';
+import { Code2, BookOpen, LayoutDashboard, CreditCard, Bot } from 'lucide-react';
 
 interface NavbarProps {
   user?: { id: string; email?: string } | null;
@@ -34,6 +34,12 @@ export function Navbar({ user, hasActiveSubscription }: NavbarProps) {
                   <Button variant={pathname === '/dashboard' ? 'default' : 'ghost'} size="sm" className="gap-2">
                     <LayoutDashboard className="w-4 h-4" />
                     Dashboard
+                  </Button>
+                </Link>
+                <Link href="/chatbot">
+                  <Button variant={pathname === '/chatbot' ? 'default' : 'ghost'} size="sm" className="gap-2">
+                    <Bot className="w-4 h-4" />
+                    AI Assistant
                   </Button>
                 </Link>
               </div>

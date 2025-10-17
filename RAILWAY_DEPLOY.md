@@ -38,11 +38,15 @@ NEXT_PUBLIC_SITE_URL=https://your-app.railway.app
 # STRIPE_SECRET_KEY=sk_test_...
 # STRIPE_PRICE_ID_MONTHLY=price_...
 # STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Optional - OpenAI (for AI chatbot feature)
+# OPENAI_API_KEY=sk-...
 ```
 
 **Important**: 
 - Replace `NEXT_PUBLIC_SITE_URL` with your actual Railway app URL after deployment
 - Stripe variables are optional - the app will work with placeholders for now
+- OpenAI API key is optional - the AI chatbot will show a "not configured" message if not set
 
 ## Step 4: Get Your App URL
 
