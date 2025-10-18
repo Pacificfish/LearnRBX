@@ -81,9 +81,9 @@ export async function GET(request: NextRequest) {
       .order('index_in_curriculum');
 
     const trackProgress = tracks?.map(track => {
-      const trackLessons = track.modules?.flatMap(module => module.lessons || []) || [];
+      const trackLessons = track.modules?.flatMap((module: any) => module.lessons || []) || [];
       const completedTrackLessons = progress?.filter(p => 
-        p.completed && trackLessons.some(lesson => lesson.id === p.lesson_id)
+        p.completed && trackLessons.some((lesson: any) => lesson.id === p.lesson_id)
       ).length || 0;
       
       return {
