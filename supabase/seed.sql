@@ -65,9 +65,10 @@ BEGIN
 
   -- Insert lessons for Roblox Studio Fundamentals module
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
-    (module_roblox_id, 'explorer-and-instances', 'Roblox Explorer & Instances', '/content/lessons/explorer-and-instances.mdx', '/content/challenges/explorer-and-instances.json', 1),
-    (module_roblox_id, 'events-touched-click', 'Roblox Events: Touched & Clicked', '/content/lessons/events-touched-click.mdx', '/content/challenges/events-touched-click.json', 2),
-    (module_roblox_id, 'client-server-remotes', 'Client vs Server Scripts & RemoteEvents', '/content/lessons/client-server-remotes.mdx', '/content/challenges/client-server-remotes.json', 3)
+    (module_roblox_id, 'script-types', 'Script Types: Local, Server & Module Scripts', '/content/lessons/script-types.mdx', '/content/challenges/script-types.json', 1),
+    (module_roblox_id, 'explorer-and-instances', 'Roblox Explorer & Instances', '/content/lessons/explorer-and-instances.mdx', '/content/challenges/explorer-and-instances.json', 2),
+    (module_roblox_id, 'events-touched-click', 'Roblox Events: Touched & Clicked', '/content/lessons/events-touched-click.mdx', '/content/challenges/events-touched-click.json', 3),
+    (module_roblox_id, 'client-server-remotes', 'Client vs Server Scripts & RemoteEvents', '/content/lessons/client-server-remotes.mdx', '/content/challenges/client-server-remotes.json', 4)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

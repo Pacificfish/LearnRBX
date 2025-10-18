@@ -442,6 +442,100 @@ end`,
     }
   },
 
+  'script-types': {
+    title: 'Script Types: Local, Server & Module Scripts',
+    description: 'Learn the fundamental differences between LocalScripts, Scripts, and ModuleScripts in Roblox Studio',
+    sections: [
+      {
+        title: 'Server Scripts (Script)',
+        content: 'Server Scripts run on the server and can access all game data, create objects, and handle game logic. They run once when the server starts and are perfect for game mechanics, data storage, and server-side validation. Server Scripts can access all services and have full permissions.',
+        codeExample: '-- Server Script (Script)\n-- Runs on the server, can access all game data\nlocal Players = game:GetService("Players")\nprint("Server script is running!")',
+        color: 'blue'
+      },
+      {
+        title: 'Local Scripts (LocalScript)',
+        content: 'Local Scripts run on each player\'s device (client-side) and can only access certain services. They\'re perfect for UI, input handling, and client-side effects. Local Scripts run for each player individually and have limited permissions for security.',
+        codeExample: '-- Local Script (LocalScript)\n-- Runs on each player\'s device\nlocal Players = game:GetService("Players")\nlocal player = Players.LocalPlayer\nprint("Local script running for:", player.Name)',
+        color: 'green'
+      },
+      {
+        title: 'Module Scripts (ModuleScript)',
+        content: 'Module Scripts are reusable code libraries that other scripts can import using `require()`. They don\'t run automatically - they must be required by other scripts. Perfect for organizing code, creating functions, and sharing code between scripts.',
+        codeExample: '-- Module Script (ModuleScript)\n-- Reusable code library\nlocal MyModule = {}\n\nfunction MyModule.sayHello(name)\n    return "Hello, " .. name .. "!"\nend\n\nreturn MyModule',
+        color: 'purple'
+      },
+      {
+        title: 'Where to Place Scripts',
+        content: 'Scripts go in ServerScriptService, LocalScripts go in StarterPlayerScripts or GUI objects, and ModuleScripts can go anywhere but are commonly placed in ReplicatedStorage for sharing between client and server.',
+        codeExample: '-- Script placement:\n-- Scripts → ServerScriptService\n-- LocalScripts → StarterPlayerScripts or GUI\n-- ModuleScripts → ReplicatedStorage (for sharing)',
+        color: 'orange'
+      }
+    ],
+    learningTask: {
+      title: 'Create Different Script Types',
+      description: 'Practice creating and understanding the different types of scripts in Roblox Studio.',
+      instructions: [
+        'Create a ModuleScript that exports a function called `calculateDamage`',
+        'The function should take weaponPower and playerLevel as parameters',
+        'Return the damage as weaponPower multiplied by playerLevel',
+        'Create a Server Script that requires your module and uses the function',
+        'Print the result of calculateDamage(10, 5)',
+        'Create a LocalScript that prints the local player\'s name'
+      ],
+      starterCode: `-- First, create a ModuleScript with this content:
+--[[
+local DamageCalculator = {}
+
+function DamageCalculator.calculateDamage(weaponPower, playerLevel)
+    return weaponPower * playerLevel
+end
+
+return DamageCalculator
+--]]
+
+-- Then create a Server Script with this content:
+--[[
+local DamageCalculator = require(game.ReplicatedStorage.DamageCalculator)
+local damage = DamageCalculator.calculateDamage(10, 5)
+print("Damage dealt:", damage)
+--]]
+
+-- Finally, create a LocalScript with this content:
+--[[
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+print("Local script running for:", player.Name)
+--]]
+
+-- For this exercise, just write the Server Script code below:
+`,
+      tests: [
+        { description: 'Create a function called calculateDamage', type: 'code_contains', value: 'function' },
+        { description: 'Use require() to import a module', type: 'code_contains', value: 'require(' },
+        { description: 'Call calculateDamage with parameters 10 and 5', type: 'code_contains', value: 'calculateDamage(10, 5)' },
+        { description: 'Print the damage result', type: 'code_contains', value: 'print(' },
+        { description: 'Access Players service', type: 'code_contains', value: 'game:GetService("Players")' }
+      ],
+      hints: [
+        'ModuleScripts use "return moduleName" at the end',
+        'Use require(modulePath) to import modules',
+        'Server Scripts can access all services',
+        'Local Scripts use Players.LocalPlayer to get the current player',
+        'Remember to use game:GetService() to access services'
+      ],
+      successMessage: 'Excellent! You now understand the three main script types in Roblox. This knowledge is essential for building professional Roblox games!'
+    },
+    challenge: {
+      tests: [
+        { description: 'Use require() to import a module', type: 'code_contains', value: 'require(' },
+        { description: 'Access a game service', type: 'code_contains', value: 'game:GetService(' },
+        { description: 'Create a function', type: 'code_contains', value: 'function' }
+      ],
+      hints: ['ModuleScripts: return moduleName', 'Server Scripts: full access to services', 'Local Scripts: limited access, player-specific'],
+      successMessage: 'Great! You understand the different script types in Roblox.'
+    }
+  },
+
   'explorer-and-instances': {
     title: 'Roblox Explorer & Instances',
     description: 'Learn about Roblox Studio\'s Explorer window and how to work with Instances in your scripts',
