@@ -53,6 +53,17 @@ create table public.progress (
   primary key (user_id, lesson_id)
 );
 
+-- Module assessments table (for non-gated module tests)
+create table public.module_assessments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  module_id uuid not null references public.modules(id) on delete cascade,
+  score int not null,
+  submitted_at timestamptz default now(),
+  details jsonb,
+  unique(user_id, module_id)
+);
+
 -- Subscriptions table
 create table public.subscriptions (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -77,6 +88,7 @@ alter table public.tracks enable row level security;
 alter table public.modules enable row level security;
 alter table public.lessons enable row level security;
 alter table public.progress enable row level security;
+alter table public.module_assessments enable row level security;
 alter table public.subscriptions enable row level security;
 alter table public.feature_requests enable row level security;
 
@@ -121,6 +133,19 @@ create policy "Users can insert own progress"
 
 create policy "Users can update own progress"
   on public.progress for update
+  using (auth.uid() = user_id);
+
+-- Module assessments: users can only see/modify their own assessments
+create policy "Users can view own module assessments"
+  on public.module_assessments for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own module assessments"
+  on public.module_assessments for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own module assessments"
+  on public.module_assessments for update
   using (auth.uid() = user_id);
 
 -- Subscriptions: users can only see their own subscription

@@ -7,6 +7,14 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
+  rewrites: async () => {
+    return [
+      {
+        source: '/content/:path*',
+        destination: '/api/content/:path*',
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     // Fengari requires certain polyfills
     if (!isServer) {

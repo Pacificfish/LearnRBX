@@ -1,0 +1,795 @@
+brand: LearnRBX
+version: 1
+tracks:
+  - slug: core-lua
+    title: Core Lua Programming (Free)
+    description: Start from zero and learn Lua fundamentals used in Roblox.
+    is_premium: false
+    modules:
+      - title: Lua Basics
+        lessons:
+          - slug: variables-and-print
+            title: Variables & print()
+            duration_min: 10
+            summary: Variables, strings, print().
+            objectives: ["Declare local variables", "Concatenate strings with ..", "Use print()"]
+            starterCode: "local msg = \"Hello, Player!\"\nprint(msg)"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: msg
+                description: "Defines msg"
+              - type: runtime
+                assert: output_contains
+                value: "Hello"
+                description: "Prints Hello"
+            hints: ["Use `local` to declare variables."]
+            successMessage: "Nice! First print done."
+          
+          - slug: data-types
+            title: Data Types & Operators
+            duration_min: 12
+            summary: Numbers, strings, booleans, math.
+            objectives: ["Use numbers and strings", "Do math"]
+            starterCode: "local a = 2\nlocal b = 5\nprint(a + b)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "7"
+            hints: ["Use `+` to add."]
+            successMessage: "Types & math basics complete."
+          
+          - slug: tables-basics
+            title: Tables & Arrays
+            duration_min: 15
+            summary: Create and access tables.
+            objectives: ["Create tables", "Access elements", "Use table length"]
+            starterCode: "local items = {\"coin\", \"gem\", \"key\"}\nprint(items[1])\nprint(#items)"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: items
+                description: "Defines items table"
+              - type: runtime
+                assert: output_contains
+                value: "coin"
+                description: "Prints first item"
+            hints: ["Use `{}` for tables, `[1]` for first element."]
+            successMessage: "Table basics mastered!"
+          
+          - slug: loops-basics
+            title: For & While Loops
+            duration_min: 15
+            summary: Iterate with for and while.
+            objectives: ["Use for loops", "Use while loops", "Count iterations"]
+            starterCode: "for i = 1, 5 do\n  print(\"Count: \" .. i)\nend"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Count: 3"
+                description: "Prints count 3"
+            hints: ["Use `for i = 1, 5 do` syntax."]
+            successMessage: "Loop mastery achieved!"
+          
+          - slug: functions-basics
+            title: Functions & Scope
+            duration_min: 18
+            summary: Define functions, return values, local scope.
+            objectives: ["Define functions", "Return values", "Understand local scope"]
+            starterCode: "local function greet(name)\n  return \"Hello, \" .. name\nend\nprint(greet(\"Player\"))"
+            tests:
+              - type: static
+                assert: function_exists
+                value: greet
+                description: "Defines greet function"
+              - type: runtime
+                assert: output_contains
+                value: "Player"
+                description: "Prints Player"
+            hints: ["Use `local function name(args)` syntax."]
+            successMessage: "Function fundamentals down!"
+          
+          - slug: conditionals
+            title: If/Else Statements
+            duration_min: 12
+            summary: Conditional logic and comparisons.
+            objectives: ["Use if/else", "Compare values", "Combine conditions"]
+            starterCode: "local level = 10\nif level >= 10 then\n  print(\"Access granted\")\nelse\n  print(\"Access denied\")\nend"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Access granted"
+                description: "Prints access granted"
+            hints: ["Use `>=` for greater than or equal."]
+            successMessage: "Conditional genius!"
+          
+          - slug: strings-patterns
+            title: String Operations
+            duration_min: 15
+            summary: String manipulation and patterns.
+            objectives: ["Concatenate strings", "Use string functions", "Pattern matching"]
+            starterCode: "local name = \"roblox\"\nprint(string.upper(name))\nprint(string.len(name))"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "ROBLOX"
+                description: "Prints uppercase"
+            hints: ["Use `string.upper()` to capitalize."]
+            successMessage: "String sorcerer!"
+          
+          - slug: modules-basics
+            title: Module Scripts (Basics)
+            duration_min: 15
+            summary: Create and require modules.
+            objectives: ["Return tables", "Export functions", "Require modules"]
+            starterCode: "local M = {}\nfunction M.add(a, b)\n  return a + b\nend\nreturn M"
+            tests:
+              - type: static
+                assert: regex_match
+                value: "return%s+M"
+                description: "Returns module table"
+              - type: static
+                assert: identifier_exists
+                value: M
+                description: "Defines module table"
+            hints: ["A module should `return` a table of functions."]
+            successMessage: "You built your first module!"
+        
+        module_test:
+          title: "Lua Basics Checkpoint"
+          questions:
+            - type: mc
+              prompt: "What concatenates strings in Lua?"
+              choices: ["+", "..", "&", "concat()"]
+              answerIndex: 1
+              explanation: "`..` concatenates strings."
+            - type: mc
+              prompt: "What does `local` control?"
+              choices: ["scope", "type", "mutability", "visibility"]
+              answerIndex: 0
+              explanation: "`local` controls variable scope."
+          codeTasks:
+            - starterCode: "local s = \"roblox\"\nprint(string.upper(s))"
+              tests:
+                - type: runtime
+                  assert: output_contains
+                  value: "ROBLOX"
+              hints: ["Use `string.upper()` to capitalize."]
+
+  - slug: studio-fundamentals
+    title: Roblox Studio Fundamentals (Premium)
+    description: Instances, Services, events, LocalScripts vs Scripts (simulated).
+    is_premium: true
+    modules:
+      - title: Studio & Instances
+        lessons:
+          - slug: studio-setup
+            title: Setting Up Roblox Studio
+            duration_min: 8
+            summary: Explorer, Properties, Output.
+            objectives: ["Navigate Studio", "Use Output"]
+            starterCode: "print(\"Studio ready\")"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Studio ready"
+            hints: ["Use Output to debug."]
+            successMessage: "Studio basics understood."
+          
+          - slug: instances-overview
+            title: Instances Overview
+            duration_min: 12
+            summary: What Instances are, naming conventions.
+            objectives: ["Describe Instances", "Understand hierarchy", "Use properties"]
+            starterCode: "-- Simulated example; in Studio you'd create Parts, etc.\nlocal Part = {Name = \"MyPart\", Color = \"Really red\"}\nprint(Part.Name)"
+            tests:
+              - type: static
+                assert: regex_match
+                value: "local%s+Part"
+                description: "Creates Part variable"
+            hints: ["Simulate Instance tables with fields to test logic."]
+            successMessage: "Instance basics understood."
+          
+          - slug: parts-properties
+            title: Parts & Properties
+            duration_min: 15
+            summary: Create and modify Parts.
+            objectives: ["Create Parts", "Set properties", "Position objects"]
+            starterCode: "local part = {Size = Vector3.new(4, 1, 2), Position = Vector3.new(0, 5, 0)}\nprint(\"Part size: \" .. tostring(part.Size))"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: part
+                description: "Defines part variable"
+            hints: ["Use Vector3.new() for 3D coordinates."]
+            successMessage: "Part creation mastered!"
+          
+          - slug: parenting-cloning
+            title: Parenting & Cloning
+            duration_min: 12
+            summary: Parent objects and clone instances.
+            objectives: ["Parent objects", "Clone instances", "Understand hierarchy"]
+            starterCode: "local parent = {Name = \"Parent\"}\nlocal child = {Name = \"Child\"}\nchild.Parent = parent\nprint(\"Child parented to: \" .. child.Parent.Name)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Parent"
+                description: "Shows parent name"
+            hints: ["Set `.Parent` property to parent objects."]
+            successMessage: "Parenting concepts clear!"
+        
+        module_test:
+          title: "Studio Fundamentals Checkpoint"
+          questions:
+            - type: mc
+              prompt: "Everything in Roblox is a(n) __?"
+              choices: ["Class", "Instance", "Prefab", "Object"]
+              answerIndex: 1
+              explanation: "Everything in Roblox is an Instance."
+            - type: mc
+              prompt: "What property sets an object's parent?"
+              choices: ["Parent", "Child", "Owner", "Container"]
+              answerIndex: 0
+              explanation: "The `Parent` property sets hierarchy."
+
+      - title: Services & Events
+        lessons:
+          - slug: services-basics
+            title: Roblox Services
+            duration_min: 10
+            summary: What Services are and how to access them.
+            objectives: ["Access Services", "Use game:GetService()", "Common Services"]
+            starterCode: "-- In Studio: local Players = game:GetService(\"Players\")\nlocal Players = {Name = \"Players\"}\nprint(\"Service: \" .. Players.Name)"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: "Players"
+                description: "Defines Players service"
+            hints: ["Use `game:GetService(\"ServiceName\")` to access services."]
+            successMessage: "Services basics learned!"
+          
+          - slug: events-basics
+            title: "Events: Touched & Click"
+            duration_min: 15
+            summary: Concept of events; create stub handlers.
+            objectives: ["Declare handlers", "Simulate event calls"]
+            starterCode: "local hits = 0\nlocal function onTouched()\n  hits = hits + 1\n  print(\"Touched! Hits: \" .. hits)\nend\nonTouched()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: onTouched
+                description: "Defines onTouched function"
+              - type: runtime
+                assert: output_contains
+                value: Touched!
+                description: "Prints touched message"
+            hints: ["Name your handler exactly as requested."]
+            successMessage: "Event handler ready."
+          
+          - slug: click-detectors
+            title: ClickDetectors
+            duration_min: 12
+            summary: Detect mouse clicks on objects.
+            objectives: ["Use ClickDetectors", "Handle clicks", "Mouse events"]
+            starterCode: "local clicks = 0\nlocal function onMouseClick()\n  clicks = clicks + 1\n  print(\"Clicked! Total: \" .. clicks)\nend\nonMouseClick()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: onMouseClick
+                description: "Defines click handler"
+            hints: ["ClickDetectors fire MouseClick events."]
+            successMessage: "Click detection working!"
+          
+          - slug: debounce-patterns
+            title: Debounce Patterns
+            duration_min: 15
+            summary: Prevent rapid-fire events.
+            objectives: ["Implement debounce", "Prevent spam", "Time-based logic"]
+            starterCode: "local lastTime = 0\nlocal function debouncedAction()\n  local now = tick()\n  if now - lastTime > 1 then\n    print(\"Action allowed\")\n    lastTime = now\n  else\n    print(\"Too soon!\")\n  end\nend\ndebouncedAction()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: debouncedAction
+                description: "Defines debounced function"
+            hints: ["Use `tick()` to get current time."]
+            successMessage: "Debounce pattern implemented!"
+
+  - slug: core-roblox-scripting
+    title: Core Roblox Scripting (Premium)
+    description: Events, remotes, Bindables, PlayerAdded, CharacterAdded, debounces.
+    is_premium: true
+    modules:
+      - title: Events & Communication
+        lessons:
+          - slug: touched-events
+            title: Touched Events
+            duration_min: 15
+            summary: Detect collisions.
+            objectives: ["Connect Touched", "Debounce"]
+            starterCode: "local hits = 0\nlocal function onTouched(hit)\n  hits = hits + 1\n  print(\"Touched by: \" .. hit.Name .. \" (\" .. hits .. \")\")\nend\n-- Simulate touch\nonTouched({Name = \"Player\"})"
+            tests:
+              - type: static
+                assert: regex_match
+                value: "local%s+hits"
+                description: "Creates hits counter"
+            hints: ["Create a counter to track touches."]
+            successMessage: "Event handler sketched."
+          
+          - slug: remote-events-intro
+            title: RemoteEvents (Introduction)
+            duration_min: 18
+            summary: Client-server communication basics.
+            objectives: ["Understand RemoteEvents", "Client to Server", "Server to Client"]
+            starterCode: "-- Server side\nlocal RemoteEvent = {Name = \"AddCoin\"}\nlocal function onCoinRequest(player, amount)\n  print(player.Name .. \" wants \" .. amount .. \" coins\")\nend\n-- Simulate call\nonCoinRequest({Name = \"Player1\"}, 10)"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: RemoteEvent
+                description: "Defines RemoteEvent"
+            hints: ["RemoteEvents enable client-server communication."]
+            successMessage: "RemoteEvent basics understood!"
+          
+          - slug: remote-events-advanced
+            title: RemoteEvents (Advanced)
+            duration_min: 20
+            summary: Advanced RemoteEvent patterns and security.
+            objectives: ["Validate data", "Handle errors", "Security patterns"]
+            starterCode: "local function validateCoinRequest(player, amount)\n  if type(amount) == \"number\" and amount > 0 and amount <= 100 then\n    print(\"Valid request: \" .. amount)\n    return true\n  else\n    print(\"Invalid request rejected\")\n    return false\n  end\nend\nvalidateCoinRequest({Name = \"Player1\"}, 50)"
+            tests:
+              - type: static
+                assert: function_exists
+                value: validateCoinRequest
+                description: "Defines validation function"
+            hints: ["Always validate data from clients."]
+            successMessage: "Advanced RemoteEvent patterns learned!"
+          
+          - slug: bindable-events
+            title: BindableEvents
+            duration_min: 15
+            summary: Server-side event communication.
+            objectives: ["Use BindableEvents", "Server communication", "Event connections"]
+            starterCode: "local BindableEvent = {Name = \"PlayerJoined\"}\nlocal function onPlayerJoined(playerName)\n  print(\"Player joined: \" .. playerName)\nend\n-- Simulate event\nonPlayerJoined(\"NewPlayer\")"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: BindableEvent
+                description: "Defines BindableEvent"
+            hints: ["BindableEvents work server-side only."]
+            successMessage: "BindableEvent communication ready!"
+          
+          - slug: player-character-events
+            title: PlayerAdded & CharacterAdded
+            duration_min: 18
+            summary: Handle player joining and character spawning.
+            objectives: ["Use PlayerAdded", "Use CharacterAdded", "Player lifecycle"]
+            starterCode: "local players = {}\nlocal function onPlayerAdded(player)\n  players[player.Name] = player\n  print(\"Player added: \" .. player.Name)\nend\nlocal function onCharacterAdded(character)\n  print(\"Character spawned: \" .. character.Name)\nend\n-- Simulate events\nonPlayerAdded({Name = \"Player1\"})\nonCharacterAdded({Name = \"Player1\"})"
+            tests:
+              - type: static
+                assert: function_exists
+                value: onPlayerAdded
+                description: "Defines PlayerAdded handler"
+              - type: static
+                assert: function_exists
+                value: onCharacterAdded
+                description: "Defines CharacterAdded handler"
+            hints: ["PlayerAdded fires when player joins, CharacterAdded when character spawns."]
+            successMessage: "Player lifecycle events handled!"
+        
+        module_test:
+          title: "Events & Remotes Checkpoint"
+          questions:
+            - type: mc
+              prompt: "Client ↔ Server messaging uses?"
+              choices: ["BindableEvents", "RemoteEvents", "Signals", "Functions"]
+              answerIndex: 1
+              explanation: "RemoteEvents enable client-server communication."
+            - type: mc
+              prompt: "What prevents rapid-fire events?"
+              choices: ["wait()", "debounce", "delay()", "pause()"]
+              answerIndex: 1
+              explanation: "Debounce prevents events from firing too rapidly."
+
+      - title: Data & Storage
+        lessons:
+          - slug: datastore-basics
+            title: DataStore Basics
+            duration_min: 20
+            summary: Save and load player data.
+            objectives: ["Use DataStore", "Save data", "Load data", "Handle errors"]
+            starterCode: "local function savePlayerData(playerId, data)\n  local success, result = pcall(function()\n    print(\"Saving data for \" .. playerId)\n    return \"success\"\n  end)\n  if success then\n    print(\"Data saved successfully\")\n  else\n    print(\"Save failed: \" .. result)\n  end\nend\nsavePlayerData(\"Player1\", {coins = 100})"
+            tests:
+              - type: static
+                assert: function_exists
+                value: savePlayerData
+                description: "Defines save function"
+            hints: ["Use `pcall()` to handle DataStore errors safely."]
+            successMessage: "DataStore basics mastered!"
+          
+          - slug: leaderboards-basics
+            title: Leaderboards (Stats)
+            duration_min: 15
+            summary: Track scores per player.
+            objectives: ["Stats table", "Increment/print"]
+            starterCode: "local score = 0\nlocal function addScore(points)\n  score = score + points\n  print(\"Score: \" .. score)\nend\naddScore(10)\naddScore(5)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Score:"
+                description: "Prints score"
+            hints: ["Concatenate with `..`."]
+            successMessage: "Leaderboard basics modeled."
+          
+          - slug: inventory-system
+            title: Inventory System
+            duration_min: 18
+            summary: Table-backed inventory add/remove/find.
+            objectives: ["Insert/remove items", "Count", "Search"]
+            starterCode: "local inventory = {\"Sword\", \"Potion\"}\nlocal function findItem(itemName)\n  for _, item in ipairs(inventory) do\n    if item == itemName then\n      print(\"Found \" .. item)\n      return true\n    end\n  end\n  print(\"Item not found\")\n  return false\nend\nfindItem(\"Sword\")"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Found Sword"
+                description: "Finds sword in inventory"
+            hints: ["Use `ipairs` for array-like inventory."]
+            successMessage: "Inventory online."
+          
+          - slug: currency-system
+            title: Currency System
+            duration_min: 16
+            summary: Track and manage player currency.
+            objectives: ["Track currency", "Add/remove coins", "Validate transactions"]
+            starterCode: "local coins = 100\nlocal function spendCoins(amount)\n  if coins >= amount then\n    coins = coins - amount\n    print(\"Spent \" .. amount .. \". Remaining: \" .. coins)\n    return true\n  else\n    print(\"Not enough coins!\")\n    return false\n  end\nend\nspendCoins(25)"
+            tests:
+              - type: static
+                assert: function_exists
+                value: spendCoins
+                description: "Defines spend function"
+            hints: ["Check if player has enough coins before spending."]
+            successMessage: "Currency system implemented!"
+
+  - slug: gameplay-systems
+    title: Gameplay Systems & Patterns (Premium)
+    description: Leaderboards, inventory, currency, AI, checkpoints, shops.
+    is_premium: true
+    modules:
+      - title: Player Systems
+        lessons:
+          - slug: leaderboards
+            title: Leaderboards (Stats)
+            duration_min: 14
+            summary: Track scores per player.
+            objectives: ["Stats table", "Increment/print"]
+            starterCode: "local score = 0\nlocal function addScore(points)\n  score = score + points\n  print(\"Score: \" .. score)\nend\naddScore(10)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Score:"
+                description: "Prints score"
+            hints: ["Concatenate with `..`."]
+            successMessage: "Leaderboard basics modeled."
+          
+          - slug: inventory-basics
+            title: Inventory Basics
+            duration_min: 15
+            summary: Table-backed inventory add/remove/find.
+            objectives: ["Insert/remove items", "Count", "Search"]
+            starterCode: "local inventory = {\"Sword\", \"Potion\"}\nfor _, item in ipairs(inventory) do\n  if item == \"Sword\" then\n    print(\"Found Sword\")\n  end\nend"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Found Sword"
+                description: "Finds sword in inventory"
+            hints: ["Use `ipairs` for array-like inventory."]
+            successMessage: "Inventory online."
+          
+          - slug: quest-system
+            title: Quest System
+            duration_min: 18
+            summary: Track quest progress and completion.
+            objectives: ["Track quests", "Update progress", "Complete quests"]
+            starterCode: "local quest = {name = \"Collect Coins\", target = 10, current = 0}\nlocal function updateQuest(amount)\n  quest.current = quest.current + amount\n  if quest.current >= quest.target then\n    print(\"Quest completed: \" .. quest.name)\n  else\n    print(\"Progress: \" .. quest.current .. \"/\" .. quest.target)\n  end\nend\nupdateQuest(5)"
+            tests:
+              - type: static
+                assert: function_exists
+                value: updateQuest
+                description: "Defines quest update function"
+            hints: ["Track current progress vs target."]
+            successMessage: "Quest system operational!"
+          
+          - slug: power-ups
+            title: Power-ups & Buffs
+            duration_min: 16
+            summary: Temporary player enhancements.
+            objectives: ["Apply power-ups", "Track duration", "Remove effects"]
+            starterCode: "local player = {speed = 16, jump = 50}\nlocal function applySpeedBoost()\n  player.speed = player.speed * 2\n  print(\"Speed boost applied! Speed: \" .. player.speed)\n  -- Simulate duration\n  player.speed = player.speed / 2\n  print(\"Speed boost expired. Speed: \" .. player.speed)\nend\napplySpeedBoost()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: applySpeedBoost
+                description: "Defines speed boost function"
+            hints: ["Multiply speed, then divide after duration."]
+            successMessage: "Power-up system ready!"
+        
+        module_test:
+          title: "Player Systems Checkpoint"
+          questions:
+            - type: mc
+              prompt: "A simple inventory uses which structure?"
+              choices: ["table", "arraylist", "map", "dictionary"]
+              answerIndex: 0
+              explanation: "Lua tables are perfect for inventory systems."
+            - type: mc
+              prompt: "What tracks player progress in quests?"
+              choices: ["current/target", "progress/complete", "done/total", "finished/all"]
+              answerIndex: 0
+              explanation: "current/target is a common quest progress pattern."
+
+      - title: NPCs & AI (Simulated)
+        lessons:
+          - slug: simple-npc-state
+            title: Simple NPC State Machine
+            duration_min: 15
+            summary: Idle/Patrol/Chase with table state.
+            objectives: ["Model states", "Transition logic"]
+            starterCode: "local npc = {state = \"Idle\", target = nil}\nlocal function updateNPC()\n  if npc.state == \"Idle\" then\n    npc.state = \"Patrol\"\n    print(\"NPC: Idle -> Patrol\")\n  elseif npc.state == \"Patrol\" then\n    npc.state = \"Chase\"\n    print(\"NPC: Patrol -> Chase\")\n  end\nend\nupdateNPC()\nprint(\"Final state: \" .. npc.state)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Chase"
+                description: "Reaches Chase state"
+            hints: ["Represent states as strings or enums table."]
+            successMessage: "State machine basics done."
+          
+          - slug: npc-movement
+            title: NPC Movement Patterns
+            duration_min: 18
+            summary: Basic movement and pathfinding concepts.
+            objectives: ["Move NPCs", "Follow paths", "Avoid obstacles"]
+            starterCode: "local npc = {position = Vector3.new(0, 0, 0), target = Vector3.new(10, 0, 0)}\nlocal function moveTowardsTarget()\n  local direction = (npc.target - npc.position).Unit\n  npc.position = npc.position + direction * 2\n  print(\"NPC moved to: \" .. tostring(npc.position))\nend\nmoveTowardsTarget()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: moveTowardsTarget
+                description: "Defines movement function"
+            hints: ["Use Vector3 math for movement calculations."]
+            successMessage: "NPC movement implemented!"
+          
+          - slug: ai-decision-making
+            title: AI Decision Making
+            duration_min: 20
+            summary: AI behavior trees and decision logic.
+            objectives: ["Create behavior trees", "Make decisions", "Handle priorities"]
+            starterCode: "local ai = {health = 100, distance = 5, hasWeapon = true}\nlocal function makeDecision()\n  if ai.health < 30 then\n    return \"Flee\"\n  elseif ai.distance < 3 and ai.hasWeapon then\n    return \"Attack\"\n  else\n    return \"Patrol\"\n  end\nend\nprint(\"AI Decision: \" .. makeDecision())"
+            tests:
+              - type: static
+                assert: function_exists
+                value: makeDecision
+                description: "Defines decision function"
+            hints: ["Use if/elseif/else for decision trees."]
+            successMessage: "AI decision making ready!"
+          
+          - slug: npc-interactions
+            title: NPC Interactions
+            duration_min: 16
+            summary: NPCs that react to players and environment.
+            objectives: ["Detect players", "React to events", "Communicate"]
+            starterCode: "local npc = {name = \"Guard\", mood = \"Neutral\"}\nlocal function onPlayerNear(playerName)\n  npc.mood = \"Alert\"\n  print(npc.name .. \" is now \" .. npc.mood .. \" because \" .. playerName .. \" is near\")\nend\nonPlayerNear(\"Player1\")"
+            tests:
+              - type: static
+                assert: function_exists
+                value: onPlayerNear
+                description: "Defines interaction function"
+            hints: ["Update NPC state based on player proximity."]
+            successMessage: "NPC interactions working!"
+
+  - slug: ui-effects
+    title: UI & Effects (Premium)
+    description: GUIs, buttons, dynamic labels, TweenService, particles, SFX.
+    is_premium: true
+    modules:
+      - title: GUI Foundations
+        lessons:
+          - slug: textlabels-buttons
+            title: TextLabels & Buttons
+            duration_min: 12
+            summary: Simulate UI callbacks.
+            objectives: ["Handle click", "Update label"]
+            starterCode: "local label = \"Start\"\nlocal function onButtonClick()\n  label = \"Clicked\"\n  print(label)\nend\nonButtonClick()"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Clicked"
+                description: "Updates label text"
+            hints: ["Update then print."]
+            successMessage: "UI callback simulated."
+          
+          - slug: gui-positioning
+            title: GUI Positioning & Layout
+            duration_min: 15
+            summary: Position and size GUI elements.
+            objectives: ["Use UDim2", "Position elements", "Size elements"]
+            starterCode: "local button = {\n  Position = UDim2.new(0.5, -50, 0.5, -25),\n  Size = UDim2.new(0, 100, 0, 50)\n}\nprint(\"Button positioned at: \" .. tostring(button.Position))"
+            tests:
+              - type: static
+                assert: identifier_exists
+                value: button
+                description: "Defines button with positioning"
+            hints: ["Use UDim2.new() for GUI positioning."]
+            successMessage: "GUI positioning mastered!"
+          
+          - slug: dynamic-ui
+            title: Dynamic UI Updates
+            duration_min: 14
+            summary: Update UI elements in real-time.
+            objectives: ["Update text", "Change colors", "Show/hide elements"]
+            starterCode: "local healthBar = {value = 100, maxValue = 100, visible = true}\nlocal function updateHealth(damage)\n  healthBar.value = healthBar.value - damage\n  if healthBar.value <= 0 then\n    healthBar.visible = false\n    print(\"Health bar hidden\")\n  else\n    print(\"Health: \" .. healthBar.value .. \"/\" .. healthBar.maxValue)\n  end\nend\nupdateHealth(25)"
+            tests:
+              - type: static
+                assert: function_exists
+                value: updateHealth
+                description: "Defines health update function"
+            hints: ["Update values and check visibility conditions."]
+            successMessage: "Dynamic UI updates working!"
+          
+          - slug: input-handling
+            title: User Input Handling
+            duration_min: 16
+            summary: Handle keyboard and mouse input.
+            objectives: ["Detect input", "Process commands", "Update UI"]
+            starterCode: "local input = \"\"\nlocal function processInput(key)\n  if key == \"Enter\" then\n    print(\"Command: \" .. input)\n    input = \"\"\n  else\n    input = input .. key\n  end\nend\nprocessInput(\"H\")\nprocessInput(\"i\")\nprocessInput(\"Enter\")"
+            tests:
+              - type: static
+                assert: function_exists
+                value: processInput
+                description: "Defines input processing function"
+            hints: ["Build input string, process on Enter."]
+            successMessage: "Input handling implemented!"
+        
+        module_test:
+          title: "GUI Checkpoint"
+          questions:
+            - type: mc
+              prompt: "Which service animates UI?"
+              choices: ["TweenService", "RunService", "GuiService", "UserInputService"]
+              answerIndex: 0
+              explanation: "TweenService is used for UI animations."
+            - type: mc
+              prompt: "What controls GUI element positioning?"
+              choices: ["Vector2", "UDim2", "CFrame", "Position3"]
+              answerIndex: 1
+              explanation: "UDim2 controls GUI positioning and sizing."
+
+      - title: Effects & Polish
+        lessons:
+          - slug: tweenservice-basics
+            title: TweenService Basics
+            duration_min: 18
+            summary: Animate properties with TweenService.
+            objectives: ["Create tweens", "Animate properties", "Use easing"]
+            starterCode: "local object = {Position = Vector3.new(0, 0, 0), Transparency = 0}\nlocal function animateObject()\n  -- Simulate tween\n  for i = 1, 10 do\n    object.Position = Vector3.new(i, 0, 0)\n    object.Transparency = i * 0.1\n  end\n  print(\"Animation complete. Final position: \" .. tostring(object.Position))\nend\nanimateObject()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: animateObject
+                description: "Defines animation function"
+            hints: ["Simulate tween by updating properties over time."]
+            successMessage: "TweenService basics learned!"
+          
+          - slug: particle-effects
+            title: Particle Effects
+            duration_min: 16
+            summary: Create visual effects with particles.
+            objectives: ["Create particles", "Configure properties", "Control emission"]
+            starterCode: "local particle = {\n  enabled = true,\n  rate = 50,\n  lifetime = 2,\n  color = Color3.fromRGB(255, 100, 100)\n}\nlocal function emitParticles()\n  if particle.enabled then\n    print(\"Emitting \" .. particle.rate .. \" particles per second\")\n    print(\"Particle color: \" .. tostring(particle.color))\n  end\nend\nemitParticles()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: emitParticles
+                description: "Defines particle emission function"
+            hints: ["Use Color3.fromRGB() for particle colors."]
+            successMessage: "Particle effects ready!"
+          
+          - slug: sound-effects
+            title: Sound Effects
+            duration_min: 14
+            summary: Add audio feedback to actions.
+            objectives: ["Play sounds", "Control volume", "Loop audio"]
+            starterCode: "local sound = {playing = false, volume = 0.5, looped = false}\nlocal function playSound()\n  sound.playing = true\n  print(\"Playing sound at volume: \" .. sound.volume)\n  if sound.looped then\n    print(\"Sound will loop\")\n  end\nend\nplaySound()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: playSound
+                description: "Defines sound playing function"
+            hints: ["Track playing state and properties."]
+            successMessage: "Sound effects implemented!"
+          
+          - slug: visual-feedback
+            title: Visual Feedback
+            duration_min: 15
+            summary: Provide visual feedback for player actions.
+            objectives: ["Show feedback", "Use colors", "Create highlights"]
+            starterCode: "local feedback = {message = \"\", color = \"white\", duration = 1}\nlocal function showFeedback(text, colorType)\n  feedback.message = text\n  feedback.color = colorType\n  print(\"Feedback: \" .. feedback.message .. \" (\" .. feedback.color .. \")\")\nend\nshowFeedback(\"Item collected!\", \"green\")"
+            tests:
+              - type: static
+                assert: function_exists
+                value: showFeedback
+                description: "Defines feedback function"
+            hints: ["Store message, color, and duration for feedback."]
+            successMessage: "Visual feedback system ready!"
+
+  - slug: capstones
+    title: Capstones & Advanced Topics (Premium)
+    description: Multi-lesson mini-projects combining systems.
+    is_premium: true
+    modules:
+      - title: Capstones
+        lessons:
+          - slug: coin-collector-capstone
+            title: "Capstone: Coin Collector"
+            duration_min: 25
+            summary: Combine pickups + UI score.
+            objectives: ["Combine systems", "Export starter"]
+            starterCode: "local score = 0\nlocal coins = {\"coin1\", \"coin2\", \"coin3\", \"coin4\", \"coin5\"}\nfor _, coin in ipairs(coins) do\n  score = score + 1\n  print(\"Collected \" .. coin .. \". Score: \" .. score)\nend\nprint(\"Final Score: \" .. score)"
+            tests:
+              - type: runtime
+                assert: output_contains
+                value: "Final Score:"
+                description: "Prints final score"
+            hints: ["Print final score."]
+            successMessage: "Capstone cleared—export starter."
+          
+          - slug: inventory-shop-capstone
+            title: "Capstone: Inventory & Shop"
+            duration_min: 30
+            summary: Complete inventory and shop system.
+            objectives: ["Build shop", "Manage inventory", "Handle transactions"]
+            starterCode: "local inventory = {}\nlocal shop = {[\"Sword\"] = 50, [\"Potion\"] = 25}\nlocal coins = 100\nlocal function buyItem(itemName)\n  if shop[itemName] and coins >= shop[itemName] then\n    coins = coins - shop[itemName]\n    table.insert(inventory, itemName)\n    print(\"Bought \" .. itemName .. \". Coins left: \" .. coins)\n    return true\n  else\n    print(\"Cannot buy \" .. itemName)\n    return false\n  end\nend\nbuyItem(\"Sword\")\nprint(\"Inventory: \" .. table.concat(inventory, \", \"))"
+            tests:
+              - type: static
+                assert: function_exists
+                value: buyItem
+                description: "Defines buy function"
+            hints: ["Check shop prices and player coins."]
+            successMessage: "Shop system complete!"
+          
+          - slug: npc-quest-capstone
+            title: "Capstone: NPC & Quest System"
+            duration_min: 35
+            summary: Interactive NPCs with quest system.
+            objectives: ["Create NPCs", "Design quests", "Track progress"]
+            starterCode: "local npc = {name = \"QuestGiver\", quests = {}}\nlocal player = {name = \"Player1\", activeQuests = {}}\nlocal function giveQuest(questName, description, reward)\n  local quest = {name = questName, description = description, reward = reward, completed = false}\n  table.insert(npc.quests, quest)\n  table.insert(player.activeQuests, quest)\n  print(\"Quest given: \" .. questName .. \" - \" .. description)\nend\ngiveQuest(\"Collect Coins\", \"Find 10 coins\", 100)\nprint(\"Player has \" .. #player.activeQuests .. \" active quests\")"
+            tests:
+              - type: static
+                assert: function_exists
+                value: giveQuest
+                description: "Defines quest giving function"
+            hints: ["Store quests in tables and track completion."]
+            successMessage: "NPC quest system operational!"
+          
+          - slug: complete-game-capstone
+            title: "Capstone: Complete Mini-Game"
+            duration_min: 40
+            summary: Full game with all systems combined.
+            objectives: ["Combine all systems", "Create complete game", "Polish and test"]
+            starterCode: "-- Complete mini-game combining all systems\nlocal game = {\n  player = {name = \"Player1\", health = 100, coins = 0, level = 1},\n  enemies = {{name = \"Goblin\", health = 50}, {name = \"Orc\", health = 80}},\n  items = {[\"Health Potion\"] = 25, [\"Sword\"] = 50}\n}\nlocal function gameLoop()\n  print(\"=== GAME START ===\")\n  print(\"Player: \" .. game.player.name)\n  print(\"Health: \" .. game.player.health)\n  print(\"Coins: \" .. game.player.coins)\n  print(\"Level: \" .. game.player.level)\n  print(\"Enemies defeated: \" .. #game.enemies)\n  print(\"Items available: \" .. table.concat(vim.tbl_keys(game.items), \", \"))\n  print(\"=== GAME COMPLETE ===\")\nend\ngameLoop()"
+            tests:
+              - type: static
+                assert: function_exists
+                value: gameLoop
+                description: "Defines main game loop"
+            hints: ["Combine all learned systems into one game."]
+            successMessage: "Complete game system finished!"
+        
+        module_test:
+          title: "Final Checkpoint (Optional)"
+          questions:
+            - type: mc
+              prompt: "Best way to prevent double-trigger?"
+              choices: ["wait(1)", "debounce flag", "repeat loop", "delay()"]
+              answerIndex: 1
+              explanation: "Debounce flags prevent rapid-fire events."
+            - type: mc
+              prompt: "What combines multiple game systems?"
+              choices: ["modules", "capstones", "templates", "scripts"]
+              answerIndex: 1
+              explanation: "Capstones combine multiple systems into complete projects."

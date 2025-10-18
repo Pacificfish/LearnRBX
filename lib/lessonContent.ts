@@ -1,12 +1,5 @@
-// Lesson Content Map
-// This file contains all lesson content for the LearnRBX platform
-
-export interface LessonSection {
-  title: string;
-  content: string;
-  codeExample: string;
-  color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
-}
+// Lesson Content Loading
+// This file loads lesson content from generated MDX and JSON files
 
 export interface LessonTest {
   description: string;
@@ -21,36 +14,81 @@ export interface LessonChallenge {
   successMessage: string;
 }
 
-export interface LessonLearningTask {
-  title: string;
-  description: string;
-  instructions: string[];
-  starterCode: string;
-  tests: LessonTest[];
-  hints: string[];
-  successMessage: string;
-}
-
 export interface LessonContent {
   title: string;
   description: string;
-  sections: LessonSection[];
-  learningTask?: LessonLearningTask;
+  sections: Array<{
+    title: string;
+    content: string;
+    codeExample: string;
+    color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+  }>;
+  learningTask?: {
+    title: string;
+    description: string;
+    instructions: string[];
+    starterCode: string;
+    tests: LessonTest[];
+    hints: string[];
+    successMessage: string;
+  };
   challenge?: LessonChallenge;
   defaultCode?: string;
 }
 
-// Empty lesson content map - all lessons have been removed
-const lessonContentMap: Record<string, LessonContent> = {};
-
 /**
- * Get lesson content by slug
+ * Get lesson content by slug from generated files
  * Returns a default lesson structure if the lesson doesn't exist
  */
-export function getLessonContent(lessonSlug: string): LessonContent {
-  const content = lessonContentMap[lessonSlug];
-  
-  if (!content) {
+export async function getLessonContent(lessonSlug: string): Promise<LessonContent> {
+  try {
+    // Fetch lesson content from generated files
+    const [mdxResponse, challengeResponse] = await Promise.all([
+      fetch(`/content/lessons/${lessonSlug}.mdx`),
+      fetch(`/content/challenges/${lessonSlug}.json`)
+    ]);
+
+    if (!mdxResponse.ok || !challengeResponse.ok) {
+      throw new Error('Lesson files not found');
+    }
+
+    const mdxContent = await mdxResponse.text();
+    const challengeData = await challengeResponse.json();
+
+    // Parse MDX frontmatter (simple parsing for now)
+    const frontmatterMatch = mdxContent.match(/^---\n([\s\S]*?)\n---/);
+    const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
+    
+    const titleMatch = frontmatter.match(/title:\s*"([^"]*)"/);
+    const summaryMatch = frontmatter.match(/summary:\s*"([^"]*)"/);
+    
+    const title = titleMatch ? titleMatch[1] : 'Untitled Lesson';
+    const summary = summaryMatch ? summaryMatch[1] : 'No description available';
+
+    // Convert challenge data to our format
+    const challenge: LessonChallenge = {
+      tests: challengeData.tests || [],
+      hints: challengeData.hints || [],
+      successMessage: challengeData.successMessage || 'Well done!'
+    };
+
+    return {
+      title,
+      description: summary,
+      sections: [
+        {
+          title: 'Lesson Content',
+          content: mdxContent.replace(/^---\n[\s\S]*?\n---\n/, ''), // Remove frontmatter
+          codeExample: challengeData.starterCode || '-- No starter code provided',
+          color: 'blue'
+        }
+      ],
+      challenge,
+      defaultCode: challengeData.starterCode || ''
+    };
+  } catch (error) {
+    console.error('Error loading lesson content:', error);
+    
     // Return a default lesson structure for non-existent lessons
     return {
       title: 'Lesson Not Found',
@@ -70,6 +108,4 @@ export function getLessonContent(lessonSlug: string): LessonContent {
       }
     };
   }
-  
-  return content;
 }

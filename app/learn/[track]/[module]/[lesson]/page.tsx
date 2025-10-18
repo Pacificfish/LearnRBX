@@ -102,7 +102,7 @@ export default function LessonPage() {
     async function loadLesson() {
       try {
         const lessonSlug = params.lesson as string;
-        const content = getLessonContent(lessonSlug);
+        const content = await getLessonContent(lessonSlug);
         
         setLessonContent(content);
         

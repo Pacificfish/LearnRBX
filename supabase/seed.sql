@@ -1,18 +1,11 @@
--- Seed data for LearnRBX
--- Run this after running schema.sql
+-- Clear all lessons, modules, and tracks from the database
+DELETE FROM public.lessons;
+DELETE FROM public.modules;
+DELETE FROM public.tracks;
 
-DO $$ 
-BEGIN
-    -- Clear all existing data
-    DELETE FROM public.lessons;
-    DELETE FROM public.modules;
-    DELETE FROM public.tracks;
-    
-    -- No new data to insert - all lessons and modules have been removed
-    
-    -- Verify deletion (using PERFORM to discard results)
-    PERFORM COUNT(*) FROM public.tracks;
-    PERFORM COUNT(*) FROM public.modules;
-    PERFORM COUNT(*) FROM public.lessons;
-    
-END $$;
+-- Verify deletion
+SELECT 'Tracks' as table_name, COUNT(*) as count FROM public.tracks
+UNION ALL
+SELECT 'Modules' as table_name, COUNT(*) as count FROM public.modules
+UNION ALL
+SELECT 'Lessons' as table_name, COUNT(*) as count FROM public.lessons;
