@@ -228,7 +228,6 @@ export function InteractiveLesson({ steps, onStepComplete, onLessonComplete }: I
                 <CodeEditor
                   value={code}
                   onChange={setCode}
-                  language="lua"
                   height="200px"
                 />
               </div>
