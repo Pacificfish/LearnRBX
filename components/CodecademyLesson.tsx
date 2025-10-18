@@ -27,6 +27,8 @@ interface CodecademyLessonProps {
 }
 
 export function CodecademyLesson({ steps, onStepComplete, onLessonComplete }: CodecademyLessonProps) {
+  console.log('CodecademyLesson rendering with steps:', steps);
+  
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [code, setCode] = useState('');
   const [output, setOutput] = useState<string[]>([]);
@@ -78,7 +80,7 @@ export function CodecademyLesson({ steps, onStepComplete, onLessonComplete }: Co
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [code, currentStep, output, completedSteps, isLastStep, onStepComplete]);
+  }, [code, currentStep, output, completedSteps, isLastStep, onStepComplete, nextStep]);
 
   const runCode = async () => {
     if (!code.trim()) return;
@@ -187,6 +189,15 @@ export function CodecademyLesson({ steps, onStepComplete, onLessonComplete }: Co
   };
 
   const isStepComplete = completedSteps.has(currentStep.id);
+
+  // Fallback if no steps
+  if (!steps || steps.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500">No lesson steps available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex">
