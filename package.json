@@ -28,15 +28,17 @@
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
     "@types/mdx": "^2.0.10",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "fengari-web": "^0.1.4",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.344.0",
     "luaparse": "^0.3.1",
+    "lucide-react": "^0.344.0",
     "next": "14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-syntax-highlighter": "^15.6.6",
     "stripe": "^14.14.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
@@ -60,4 +62,3 @@
     "vitest": "^1.2.0"
   }
 }
-

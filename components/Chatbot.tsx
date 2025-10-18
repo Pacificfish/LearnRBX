@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { renderMarkdownContent } from '@/lib/markdownRenderer';
 
 interface Message {
   id: string;
@@ -24,7 +25,19 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hello! I\'m your Roblox scripting assistant. I can help you with Luau programming, Roblox Studio, game development, and more. What would you like to know?',
+      content: `Hello! I'm your Roblox scripting assistant. I can help you with Luau programming, Roblox Studio, game development, and more. 
+
+Here's a quick example of what I can help with:
+
+\`\`\`lua
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+    print("Welcome, " .. player.Name .. "!")
+end)
+\`\`\`
+
+What would you like to know?`,
       timestamp: new Date()
     }
   ]);
@@ -157,7 +170,19 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
       {
         id: '1',
         role: 'assistant',
-        content: 'Hello! I\'m your Roblox scripting assistant. I can help you with Luau programming, Roblox Studio, game development, and more. What would you like to know?',
+        content: `Hello! I'm your Roblox scripting assistant. I can help you with Luau programming, Roblox Studio, game development, and more. 
+
+Here's a quick example of what I can help with:
+
+\`\`\`lua
+local Players = game:GetService("Players")
+
+Players.PlayerAdded:Connect(function(player)
+    print("Welcome, " .. player.Name .. "!")
+end)
+\`\`\`
+
+What would you like to know?`,
         timestamp: new Date()
       }
     ]);
@@ -236,8 +261,16 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
                         : 'bg-gray-100 text-gray-900'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap text-sm">
-                      {message.content}
+                    <div className="text-sm">
+                      {message.role === 'assistant' ? (
+                        <div className="space-y-2">
+                          {renderMarkdownContent(message.content)}
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                      )}
                     </div>
                     <div className={`text-xs mt-1 ${
                       message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
