@@ -505,6 +505,7 @@ What would you like to know?`,
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
