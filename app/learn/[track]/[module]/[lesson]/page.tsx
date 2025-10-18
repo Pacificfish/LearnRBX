@@ -8,6 +8,7 @@ import { TestRunnerPanel } from '@/components/TestRunnerPanel';
 import { LessonNav } from '@/components/LessonNav';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { InteractiveLesson } from '@/components/InteractiveLesson';
+import { CodecademyLesson } from '@/components/CodecademyLesson';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
@@ -284,9 +285,9 @@ export default function LessonPage() {
                 </div>
 
                 <div className="space-y-8">
-                  {/* Interactive Lesson */}
+                  {/* Codecademy-style Interactive Lesson */}
                   {lessonContent.interactiveChallenge && (
-                    <InteractiveLesson
+                    <CodecademyLesson
                       steps={lessonContent.interactiveChallenge.steps}
                       onStepComplete={(stepId) => {
                         console.log('Step completed:', stepId);
