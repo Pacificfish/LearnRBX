@@ -35,6 +35,7 @@ export default function LessonPage() {
     nextLesson?: { url: string; title: string };
   }>({});
   const [taskCompleted, setTaskCompleted] = useState(false);
+  const [shouldHideEditor, setShouldHideEditor] = useState(false);
 
   // Function to fetch navigation data
   const fetchNavigation = useCallback(async () => {
@@ -142,7 +143,7 @@ export default function LessonPage() {
     }
 
     loadLesson();
-  }, [params, fetchNavigation]);
+  }, [params, fetchNavigation, shouldHideEditor]);
 
   // Auto-save code
   useEffect(() => {
@@ -249,8 +250,6 @@ export default function LessonPage() {
     return <SubscriptionGate />;
   }
 
-  // Check if we should hide the code editor and console for Roblox Studio Fundamentals module
-  const [shouldHideEditor, setShouldHideEditor] = useState(false);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
