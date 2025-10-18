@@ -75,9 +75,9 @@ export default async function DashboardPage() {
 
   // Get track progress
   const trackProgress = tracks?.map(track => {
-    const trackLessons = track.modules?.flatMap(module => module.lessons || []) || [];
+    const trackLessons = track.modules?.flatMap((module: any) => module.lessons || []) || [];
     const completedTrackLessons = progress?.filter(p => 
-      p.completed && trackLessons.some(lesson => lesson.id === p.lesson_id)
+      p.completed && trackLessons.some((lesson: any) => lesson.id === p.lesson_id)
     ).length || 0;
     
     return {
