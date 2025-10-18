@@ -243,11 +243,15 @@ export default function LessonPage() {
     return <SubscriptionGate />;
   }
 
+  // Check if we should hide the code editor and console for core-luau track
+  const trackSlug = params.track as string;
+  const shouldHideEditor = trackSlug === 'core-luau';
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Lesson Content */}
-        <div className="w-[40%] border-r border-slate-200 overflow-auto bg-white/80 backdrop-blur-sm">
+        <div className={`${shouldHideEditor ? 'w-full' : 'w-[40%]'} ${shouldHideEditor ? '' : 'border-r border-slate-200'} overflow-auto bg-white/80 backdrop-blur-sm`}>
           <div className="p-8 space-y-8">
             {lessonContent && (
               <>
@@ -420,7 +424,8 @@ export default function LessonPage() {
           </div>
         </div>
 
-        {/* Right Panel: Editor + Console + Tests */}
+        {/* Right Panel: Editor + Console + Tests - Only show for non-core-luau tracks */}
+        {!shouldHideEditor && (
         <div className="w-[60%] flex flex-col bg-gradient-to-br from-slate-50 to-gray-100">
           <div className="flex-1 overflow-auto p-8 space-y-8">
             {/* Code Editor Section */}
@@ -498,17 +503,19 @@ export default function LessonPage() {
             </div>
 
           </div>
-
-          <div className="border-t border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur-sm p-8">
+        </div>
+        )}
+        
+        {/* Navigation - Always visible at bottom */}
+        <div className="border-t border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur-sm p-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-2xl blur-xl"></div>
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-2xl blur-xl"></div>
-              <div className="relative">
-                <LessonNav
-                  prevLesson={navigation.prevLesson}
-                  nextLesson={navigation.nextLesson}
-                  taskCompleted={taskCompleted}
-                />
-              </div>
+              <LessonNav
+                prevLesson={navigation.prevLesson}
+                nextLesson={navigation.nextLesson}
+                taskCompleted={taskCompleted}
+              />
             </div>
           </div>
         </div>
