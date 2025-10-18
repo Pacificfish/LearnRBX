@@ -285,6 +285,16 @@ export default function LessonPage() {
                 </div>
 
                 <div className="space-y-8">
+                  {/* Debug Info */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <p className="text-sm text-yellow-800">
+                      Debug: lessonContent.interactiveChallenge = {lessonContent.interactiveChallenge ? 'EXISTS' : 'NULL'}
+                    </p>
+                    <p className="text-sm text-yellow-800">
+                      lessonType = {lessonContent.lessonType}
+                    </p>
+                  </div>
+
                   {/* Codecademy-style Interactive Lesson */}
                   {lessonContent.interactiveChallenge && (
                     <CodecademyLesson
