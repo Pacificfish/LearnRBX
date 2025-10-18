@@ -268,7 +268,7 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
             )}
             
             <div className="mt-2 text-xs text-gray-500">
-              💡 Try asking: "How do I create a teleport script?" or "What's the difference between LocalScript and Script?"
+              💡 Try asking: &quot;How do I create a teleport script?&quot; or &quot;What&apos;s the difference between LocalScript and Script?&quot;
             </div>
           </div>
         </CardContent>

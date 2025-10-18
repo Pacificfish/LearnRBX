@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import Chatbot from '@/components/Chatbot';
 
 export default async function ChatbotPage() {
-  const supabase = createClient();
+  const supabase = await createServerSupabaseClient();
   
   // Get the current user
   const { data: { user } } = await supabase.auth.getUser();
@@ -80,17 +80,17 @@ export default async function ChatbotPage() {
               <div className="space-y-2">
                 <h4 className="font-medium text-gray-800">Basic Scripting</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• "How do I create a teleport script?"</li>
-                  <li>• "What's the difference between LocalScript and Script?"</li>
-                  <li>• "How do I make a part change color when clicked?"</li>
+                  <li>• &quot;How do I create a teleport script?&quot;</li>
+                  <li>• &quot;What&apos;s the difference between LocalScript and Script?&quot;</li>
+                  <li>• &quot;How do I make a part change color when clicked?&quot;</li>
                 </ul>
               </div>
               <div className="space-y-2">
                 <h4 className="font-medium text-gray-800">Advanced Topics</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• "How do I implement a data store system?"</li>
-                  <li>• "What's the best way to handle player data?"</li>
-                  <li>• "How do I create a custom GUI with animations?"</li>
+                  <li>• &quot;How do I implement a data store system?&quot;</li>
+                  <li>• &quot;What&apos;s the best way to handle player data?&quot;</li>
+                  <li>• &quot;How do I create a custom GUI with animations?&quot;</li>
                 </ul>
               </div>
             </div>
@@ -100,10 +100,10 @@ export default async function ChatbotPage() {
           <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 Tips for Better Results</h3>
             <ul className="text-sm text-gray-700 space-y-2">
-              <li>• Be specific about what you're trying to achieve</li>
+              <li>• Be specific about what you&apos;re trying to achieve</li>
               <li>• Include relevant context about your game or script</li>
               <li>• Ask follow-up questions if you need clarification</li>
-              <li>• Try different phrasings if you don't get the answer you need</li>
+              <li>• Try different phrasings if you don&apos;t get the answer you need</li>
             </ul>
           </div>
         </div>
