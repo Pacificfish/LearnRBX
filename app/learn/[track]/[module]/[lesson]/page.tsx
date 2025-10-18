@@ -114,6 +114,13 @@ export default function LessonPage() {
 
         setChallenge(sampleChallenge);
         
+        // For Roblox Studio Fundamentals, always allow progression
+        const trackSlug = params.track as string;
+        const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+        if (shouldBypassTasks) {
+          setTaskCompleted(true);
+        }
+        
         // Fetch navigation data
         await fetchNavigation();
         
@@ -157,7 +164,10 @@ export default function LessonPage() {
       setTests(results.results);
 
       // Update task completion status based on test results
-      setTaskCompleted(results.allPassed);
+      // For Roblox Studio Fundamentals, always allow progression
+      const trackSlug = params.track as string;
+      const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+      setTaskCompleted(shouldBypassTasks || results.allPassed);
 
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -180,7 +190,10 @@ export default function LessonPage() {
       }
     } catch (error: any) {
       setErrors([error.message]);
-      setTaskCompleted(false);
+      // For Roblox Studio Fundamentals, always allow progression even with errors
+      const trackSlug = params.track as string;
+      const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+      setTaskCompleted(shouldBypassTasks);
     } finally {
       setIsRunning(false);
     }
