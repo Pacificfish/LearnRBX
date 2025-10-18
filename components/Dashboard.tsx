@@ -178,7 +178,7 @@ export default function Dashboard({ initialStats }: DashboardProps) {
                 <Flame className="w-5 h-5 text-orange-500" />
                 <div className="text-3xl font-bold text-orange-800">{stats.streak}</div>
               </div>
-              <p className="text-xs text-orange-600 mt-1">Don't break the chain!</p>
+              <p className="text-xs text-orange-600 mt-1">Don&apos;t break the chain!</p>
             </CardContent>
           </Card>
 
