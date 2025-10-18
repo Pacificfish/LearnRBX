@@ -34,6 +34,7 @@ export default function LessonPage() {
     prevLesson?: { url: string; title: string };
     nextLesson?: { url: string; title: string };
   }>({});
+  const [taskCompleted, setTaskCompleted] = useState(false);
 
   // Function to fetch navigation data
   const fetchNavigation = useCallback(async () => {
@@ -91,20 +92,24 @@ export default function LessonPage() {
         const content = getLessonContent(lessonSlug);
         
         setLessonContent(content);
-        setCode(content.defaultCode);
         
-        // Create challenge from lesson content
+        // Use learning task if available, otherwise use default code
+        const starterCode = content.learningTask?.starterCode || content.defaultCode || '';
+        setCode(starterCode);
+        
+        // Create challenge from learning task or fallback to challenge
+        const challengeSource = content.learningTask || content.challenge;
         const sampleChallenge: Challenge = {
-          starterCode: content.defaultCode,
-          tests: content.challenge.tests.map((test: any, index: number) => ({
+          starterCode: starterCode,
+          tests: challengeSource.tests.map((test: any, index: number) => ({
             id: index.toString(),
             type: 'static',
             assert: test.type,
             value: test.value,
             description: test.description,
           })),
-          hints: content.challenge.hints,
-          successMessage: content.challenge.successMessage,
+          hints: challengeSource.hints,
+          successMessage: challengeSource.successMessage,
         };
 
         setChallenge(sampleChallenge);
@@ -150,6 +155,9 @@ export default function LessonPage() {
       // Then run tests for validation
       const results = await runAllTests(code, challenge);
       setTests(results.results);
+
+      // Update task completion status
+      setTaskCompleted(results.allPassed);
 
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -324,6 +332,68 @@ export default function LessonPage() {
                     );
                   })}
                 </div>
+
+                {/* Learning Task Section */}
+                {lessonContent.learningTask && (
+                  <div className="mt-12 relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                    <Card className="relative bg-gradient-to-br from-emerald-50 to-teal-50 backdrop-blur-sm border-2 border-emerald-200/50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                      <CardContent className="p-8">
+                        <div className="flex items-start gap-4 mb-6">
+                          <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-white font-bold text-2xl">🎯</span>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-3xl font-bold text-slate-800 mb-2 group-hover:text-slate-900 transition-colors">
+                              {lessonContent.learningTask.title}
+                            </h3>
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="text-2xl">🚀</span>
+                              <span className="text-sm font-medium text-emerald-700 bg-emerald-100/80 px-4 py-2 rounded-full">
+                                Your Turn to Code!
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="prose prose-slate max-w-none mb-6">
+                          <div className="text-slate-700 leading-relaxed text-lg mb-6">
+                            {lessonContent.learningTask.description}
+                          </div>
+                          
+                          <div className="bg-white/80 rounded-xl p-6 border border-emerald-200/50">
+                            <h4 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                              <span className="text-2xl">📋</span>
+                              Instructions
+                            </h4>
+                            <ol className="space-y-3">
+                              {lessonContent.learningTask.instructions.map((instruction: string, index: number) => (
+                                <li key={index} className="flex items-start gap-3 text-slate-700">
+                                  <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                    {index + 1}
+                                  </span>
+                                  <span className="leading-relaxed">{instruction}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        </div>
+
+                        {taskCompleted && (
+                          <div className="bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-300 rounded-xl p-6 mb-6">
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="text-3xl">🎉</span>
+                              <h4 className="text-xl font-bold text-emerald-800">Task Completed!</h4>
+                            </div>
+                            <p className="text-emerald-700 leading-relaxed">
+                              {lessonContent.learningTask.successMessage}
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </>
             )}
 
@@ -417,6 +487,7 @@ export default function LessonPage() {
                 <LessonNav
                   prevLesson={navigation.prevLesson}
                   nextLesson={navigation.nextLesson}
+                  taskCompleted={taskCompleted}
                 />
               </div>
             </div>

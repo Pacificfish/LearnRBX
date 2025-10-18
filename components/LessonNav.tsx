@@ -13,9 +13,10 @@ interface LessonNavProps {
     url: string;
     title: string;
   };
+  taskCompleted?: boolean;
 }
 
-export function LessonNav({ prevLesson, nextLesson }: LessonNavProps) {
+export function LessonNav({ prevLesson, nextLesson, taskCompleted = false }: LessonNavProps) {
   return (
     <div className="flex justify-between items-center py-6 border-t">
       <div>
@@ -35,15 +36,25 @@ export function LessonNav({ prevLesson, nextLesson }: LessonNavProps) {
       </div>
       <div>
         {nextLesson ? (
-          <Link href={nextLesson.url}>
-            <Button className="gap-2">
+          taskCompleted ? (
+            <Link href={nextLesson.url}>
+              <Button className="gap-2">
+                <div className="text-right">
+                  <div className="text-xs">Next</div>
+                  <div className="text-sm font-medium">{nextLesson.title}</div>
+                </div>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Button disabled className="gap-2 opacity-50 cursor-not-allowed">
               <div className="text-right">
-                <div className="text-xs">Next</div>
+                <div className="text-xs">Complete Task First</div>
                 <div className="text-sm font-medium">{nextLesson.title}</div>
               </div>
               <ChevronRight className="w-4 h-4" />
             </Button>
-          </Link>
+          )
         ) : (
           <div />
         )}

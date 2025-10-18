@@ -8,7 +8,20 @@ export interface LessonContent {
     codeExample: string;
     color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
   }[];
-  defaultCode: string;
+  learningTask?: {
+    title: string;
+    description: string;
+    instructions: string[];
+    starterCode: string;
+    tests: Array<{
+      description: string;
+      type: string;
+      value?: any;
+    }>;
+    hints: string[];
+    successMessage: string;
+  };
+  defaultCode?: string;
   challenge: {
     tests: Array<{
       description: string;
@@ -44,24 +57,35 @@ export const lessonContentMap: Record<string, LessonContent> = {
         color: 'purple'
       }
     ],
-    defaultCode: `-- Roblox Scripting: Variables and Output
--- Always use 'local' for variable declarations in Luau
+    learningTask: {
+      title: 'Create Your First Roblox Script',
+      description: 'Now it\'s your turn! Create a script that manages a player\'s game data using variables and output.',
+      instructions: [
+        'Create a local variable called `playerName` and set it to your name',
+        'Create a local variable called `playerLevel` and set it to a number between 1-10',
+        'Create a local variable called `playerCoins` and set it to any number',
+        'Print a welcome message using string concatenation (use `..`)',
+        'Print the player\'s level and coins in one statement using commas'
+      ],
+      starterCode: `-- Your turn! Create a player data script
+-- Follow the instructions above to complete this task
 
-local playerName = "Alex"
-local playerLevel = 5
-local playerHealth = 100
-local playerCoins = 250
-
--- Print individual values
-print("Player Name:", playerName)
-print("Player Level:", playerLevel)
-
--- String concatenation
-print("Welcome, " .. playerName .. "!")
-print("Level " .. playerLevel .. " player with " .. playerHealth .. " health")
-
--- Multiple values in one print
-print("Status:", playerName, "Level:", playerLevel, "Health:", playerHealth)`,
+`,
+      tests: [
+        { description: 'Create a local variable called playerName', type: 'variable_exists', value: 'playerName' },
+        { description: 'Create a local variable called playerLevel', type: 'variable_exists', value: 'playerLevel' },
+        { description: 'Create a local variable called playerCoins', type: 'variable_exists', value: 'playerCoins' },
+        { description: 'Print a welcome message using string concatenation', type: 'output_contains', value: 'Welcome' },
+        { description: 'Print player level and coins in one statement', type: 'output_contains', value: 'Level' }
+      ],
+      hints: [
+        'Always use `local` to declare variables in Luau',
+        'Use `..` to concatenate strings together',
+        'You can print multiple values with commas: print("Name:", name, "Level:", level)',
+        'Make sure your variable names match exactly: playerName, playerLevel, playerCoins'
+      ],
+      successMessage: 'Excellent! You\'ve created your first Roblox script with variables and output. You\'re ready to move on to the next lesson!'
+    },
     challenge: {
       tests: [
         { description: 'Create a local variable called playerName', type: 'variable_exists', value: 'playerName' },
@@ -103,33 +127,36 @@ end`,
         color: 'purple'
       }
     ],
-    defaultCode: `-- Luau Tables and Loops
--- Create an inventory array
-local inventory = {"Sword", "Shield", "Potion"}
+    learningTask: {
+      title: 'Build a Game Inventory System',
+      description: 'Create a script that manages a player\'s inventory and displays it using loops.',
+      instructions: [
+        'Create a local table called `inventory` with at least 3 different items',
+        'Create a local table called `playerStats` with keys: name, level, and coins',
+        'Use a numeric for loop to print each inventory item with its position',
+        'Use a generic for loop to print all player stats',
+        'Add one new item to the inventory using `table.insert()`'
+      ],
+      starterCode: `-- Build your game inventory system
+-- Follow the instructions above to complete this task
 
--- Create player data dictionary
-local playerData = {
-    name = "Alex",
-    level = 5,
-    coins = 100,
-    isAlive = true
-}
-
--- Print inventory using numeric for loop
-print("=== INVENTORY ===")
-for i = 1, #inventory do
-    print("Item " .. i .. ": " .. inventory[i])
-end
-
--- Print player data using generic for loop
-print("\\n=== PLAYER DATA ===")
-for key, value in pairs(playerData) do
-    print(key .. ": " .. tostring(value))
-end
-
--- Add new item to inventory
-table.insert(inventory, "Bow")
-print("\\nAdded Bow! New inventory size:", #inventory)`,
+`,
+      tests: [
+        { description: 'Create an inventory table with at least 3 items', type: 'table_length', value: 3 },
+        { description: 'Create a playerStats table with name, level, and coins', type: 'table_has_keys', value: ['name', 'level', 'coins'] },
+        { description: 'Use a numeric for loop to iterate through inventory', type: 'code_contains', value: 'for i = 1, #inventory' },
+        { description: 'Use a generic for loop to iterate through playerStats', type: 'code_contains', value: 'for key, value in pairs' },
+        { description: 'Add an item to inventory using table.insert', type: 'code_contains', value: 'table.insert' }
+      ],
+      hints: [
+        'Use {} to create tables: local inventory = {"Item1", "Item2", "Item3"}',
+        'Use for i = 1, #inventory do for numeric loops',
+        'Use for key, value in pairs(playerStats) do for generic loops',
+        'Use table.insert(inventory, "NewItem") to add items',
+        'Use tostring() to convert values to strings for printing'
+      ],
+      successMessage: 'Fantastic! You\'ve built a complete inventory system using Luau tables and loops. You\'re mastering Roblox scripting!'
+    },
     challenge: {
       tests: [
         { description: 'Create a table with at least 3 items', type: 'table_length', value: 3 },
@@ -174,38 +201,36 @@ end`,
         color: 'purple'
       }
     ],
-    defaultCode: `-- Luau Functions and Scope
--- Local function declaration (recommended)
-local function spawnPlayer(playerName)
-    print("Spawning player: " .. playerName)
-    return "Player spawned successfully!"
-end
+    learningTask: {
+      title: 'Build a Game Function Library',
+      description: 'Create a set of functions that handle common game mechanics like player spawning, damage calculation, and stat management.',
+      instructions: [
+        'Create a local function called `spawnPlayer` that takes a playerName parameter and returns a welcome message',
+        'Create a local function called `calculateDamage` that takes weaponPower, playerLevel, and optional multiplier parameters',
+        'Create a local function called `getPlayerStats` that returns multiple values: health, level, and coins',
+        'Call all three functions and print their results',
+        'Use the damage function with a multiplier of 1.5'
+      ],
+      starterCode: `-- Build your game function library
+-- Follow the instructions above to complete this task
 
--- Function with multiple parameters and default values
-local function calculateDamage(weaponPower, playerLevel, multiplier)
-    multiplier = multiplier or 1  -- Default multiplier is 1
-    local damage = weaponPower * playerLevel * multiplier
-    return damage
-end
-
--- Function with multiple return values
-local function getPlayerStats(playerName)
-    local health = 100
-    local level = 5
-    local coins = 250
-    return health, level, coins
-end
-
--- Use the functions
-local result = spawnPlayer("Alex")
-print(result)
-
-local damage = calculateDamage(10, 5, 1.5)  -- 10 * 5 * 1.5 = 75
-print("Damage dealt: " .. damage)
-
--- Handle multiple return values
-local health, level, coins = getPlayerStats("Alex")
-print("Health:", health, "Level:", level, "Coins:", coins)`,
+`,
+      tests: [
+        { description: 'Create a local function called spawnPlayer with parameter', type: 'code_contains', value: 'local function spawnPlayer' },
+        { description: 'Create a local function called calculateDamage with parameters', type: 'code_contains', value: 'local function calculateDamage' },
+        { description: 'Create a local function called getPlayerStats', type: 'code_contains', value: 'local function getPlayerStats' },
+        { description: 'Use return statement in at least one function', type: 'code_contains', value: 'return' },
+        { description: 'Call calculateDamage with multiplier 1.5', type: 'code_contains', value: '1.5' }
+      ],
+      hints: [
+        'Use `local function functionName(parameter)` to create functions',
+        'Use `return "message"` to return values from functions',
+        'Functions can accept multiple parameters: `functionName(param1, param2, param3)`',
+        'Use `local result = functionName()` to call functions and store results',
+        'Handle multiple return values: `local val1, val2, val3 = functionName()`'
+      ],
+      successMessage: 'Outstanding! You\'ve built a complete function library for game mechanics. You\'re becoming a Roblox scripting expert!'
+    },
     challenge: {
       tests: [
         { description: 'Create a local function with parameters', type: 'code_contains', value: 'local function' },
