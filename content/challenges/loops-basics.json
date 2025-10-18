@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Loops allow you to repeat code multiple times. For loops are great when you know how many times to repeat."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a for loop that counts from 1 to 5:",
+      "starterCode": "-- Create a for loop that counts from 1 to 5\n-- Print each number",
+      "solution": "for i = 1, 5 do\n  print(i)\nend",
+      "testType": "output_contains",
+      "expectedOutput": "1\n2\n3\n4\n5",
+      "hint": "Use 'for i = 1, 5 do' to create a for loop"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a while loop that counts down from 5 to 1:",
+      "starterCode": "-- Create a while loop\n-- Count down from 5 to 1\n-- Print each number",
+      "solution": "local count = 5\nwhile count >= 1 do\n  print(count)\n  count = count - 1\nend",
+      "testType": "has_while_loop",
+      "expectedCondition": "count >= 1",
+      "hint": "Use 'while condition do' and don't forget to change the variable inside the loop"
+    }
+  ],
+  "successMessage": "🔄 Amazing! You've mastered loops!"
+}

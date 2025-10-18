@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Parts are the basic building blocks in Roblox. You can create them, move them, and change their properties."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a part and set its size and position:",
+      "starterCode": "-- Create a new part\n-- Set its size to (4, 1, 2)\n-- Set its position to (0, 10, 0)\n-- Print confirmation",
+      "solution": "local part = Instance.new(\"Part\")\npart.Size = Vector3.new(4, 1, 2)\npart.Position = Vector3.new(0, 10, 0)\npart.Parent = workspace\nprint(\"Part created successfully!\")",
+      "testType": "has_instance_creation",
+      "expectedInstance": "Part",
+      "hint": "Use Instance.new(\"Part\") to create a new part"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Change the part's color to red:",
+      "starterCode": "-- Change the part's color to red\n-- Print confirmation",
+      "solution": "part.Color = Color3.fromRGB(255, 0, 0)\nprint(\"Part color changed to red!\")",
+      "testType": "has_color_change",
+      "expectedColor": "Color3.fromRGB(255, 0, 0)",
+      "hint": "Use Color3.fromRGB(red, green, blue) to set colors"
+    }
+  ],
+  "successMessage": "🏗️ You're now a part master!"
+}

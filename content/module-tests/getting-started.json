@@ -1,0 +1,45 @@
+{
+  "title": "Lua Fundamentals Checkpoint",
+  "questions": [
+    {
+      "id": "q-1",
+      "type": "mc",
+      "prompt": "What keyword is used to create variables in Lua?",
+      "choices": [
+        "var",
+        "local",
+        "let",
+        "const"
+      ],
+      "answerIndex": 1,
+      "explanation": "The 'local' keyword is used to create variables in Lua."
+    },
+    {
+      "id": "q-2",
+      "type": "mc",
+      "prompt": "What operator is used to combine strings?",
+      "choices": [
+        "+",
+        "..",
+        "&",
+        "concat()"
+      ],
+      "answerIndex": 1,
+      "explanation": "The '..' operator is used for string concatenation in Lua."
+    }
+  ],
+  "codeTasks": [
+    {
+      "id": "ct-1",
+      "instruction": "Create a program that calculates and prints the perimeter of a square with side length 5",
+      "starterCode": "-- Calculate perimeter of a square\n-- Side length is 5\n-- Print the result",
+      "solution": "local sideLength = 5\nlocal perimeter = sideLength * 4\nprint(\"Perimeter: \" .. perimeter)",
+      "testType": "output_contains",
+      "expectedOutput": "Perimeter: 20",
+      "hints": [
+        "Perimeter = side length × 4",
+        "Use the * operator for multiplication"
+      ]
+    }
+  ]
+}

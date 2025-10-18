@@ -7,6 +7,7 @@ import { ConsolePanel } from '@/components/ConsolePanel';
 import { TestRunnerPanel } from '@/components/TestRunnerPanel';
 import { LessonNav } from '@/components/LessonNav';
 import { SubscriptionGate } from '@/components/SubscriptionGate';
+import { InteractiveLesson } from '@/components/InteractiveLesson';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
@@ -283,7 +284,22 @@ export default function LessonPage() {
                 </div>
 
                 <div className="space-y-8">
-                  {lessonContent.sections.map((section: any, index: number) => {
+                  {/* Interactive Lesson */}
+                  {lessonContent.interactiveChallenge && (
+                    <InteractiveLesson
+                      steps={lessonContent.interactiveChallenge.steps}
+                      onStepComplete={(stepId) => {
+                        console.log('Step completed:', stepId);
+                      }}
+                      onLessonComplete={() => {
+                        setTaskCompleted(true);
+                        console.log('Lesson completed!');
+                      }}
+                    />
+                  )}
+
+                  {/* Standard Lesson Sections */}
+                  {!lessonContent.interactiveChallenge && lessonContent.sections.map((section: any, index: number) => {
                     const colorClasses: Record<string, string> = {
                       blue: 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white',
                       green: 'border-l-green-500 bg-gradient-to-r from-green-50 to-white',

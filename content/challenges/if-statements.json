@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "If statements allow your program to make decisions. They check if a condition is true and execute code accordingly."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create an if statement that checks if a number is greater than 10:",
+      "starterCode": "-- Create a number variable\n-- Use if statement to check if it's greater than 10\n-- Print a message",
+      "solution": "local number = 15\nif number > 10 then\n  print(\"The number is greater than 10!\")\nend",
+      "testType": "has_if_statement",
+      "expectedCondition": "number > 10",
+      "hint": "Use 'if condition then' to start an if statement"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Add an else clause to handle when the condition is false:",
+      "starterCode": "-- Modify your if statement\n-- Add an else clause\n-- Print different messages",
+      "solution": "local number = 5\nif number > 10 then\n  print(\"The number is greater than 10!\")\nelse\n  print(\"The number is 10 or less!\")\nend",
+      "testType": "has_else_clause",
+      "expectedOutput": "The number is 10 or less!",
+      "hint": "Add 'else' after the if block to handle the false case"
+    }
+  ],
+  "successMessage": "🎯 Excellent! You can now make your programs think!"
+}

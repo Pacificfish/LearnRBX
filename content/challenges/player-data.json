@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Player data helps you track things like coins, levels, and progress. We'll use DataStore to save this information."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a simple player data system:",
+      "starterCode": "-- Create a player data table\n-- Add some basic stats\n-- Print the data",
+      "solution": "local playerData = {\n  coins = 100,\n  level = 1,\n  experience = 0\n}\n\nprint(\"Player coins: \" .. playerData.coins)\nprint(\"Player level: \" .. playerData.level)",
+      "testType": "has_table",
+      "expectedTable": "playerData",
+      "hint": "Use curly braces {} to create tables in Lua"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a function to add coins to the player:",
+      "starterCode": "-- Create a function to add coins\n-- It should take an amount parameter\n-- Update the player data\n-- Print the new total",
+      "solution": "local function addCoins(amount)\n  playerData.coins = playerData.coins + amount\n  print(\"Added \" .. amount .. \" coins! Total: \" .. playerData.coins)\nend\n\naddCoins(50)",
+      "testType": "has_function",
+      "expectedFunction": "addCoins",
+      "hint": "Use playerData.coins = playerData.coins + amount to add coins"
+    }
+  ],
+  "successMessage": "💰 You're now a data management expert!"
+}

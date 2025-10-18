@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "RemoteEvents allow the client (player's device) to communicate with the server. This is essential for multiplayer games."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a RemoteEvent and fire it from the client:",
+      "starterCode": "-- Create a RemoteEvent\n-- Fire it with some data\n-- Print confirmation",
+      "solution": "local remoteEvent = Instance.new(\"RemoteEvent\")\nremoteEvent.Name = \"PlayerAction\"\nremoteEvent.Parent = game.ReplicatedStorage\n\nremoteEvent:FireServer(\"Hello from client!\")\nprint(\"RemoteEvent fired!\")",
+      "testType": "has_remote_event",
+      "expectedEvent": "PlayerAction",
+      "hint": "Use Instance.new(\"RemoteEvent\") to create remote events"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a server script to handle the RemoteEvent:",
+      "starterCode": "-- Connect to the RemoteEvent\n-- Print the received data\n-- Send a response back",
+      "solution": "remoteEvent.OnServerEvent:Connect(function(player, data)\n  print(\"Received from \" .. player.Name .. \": \" .. data)\n  remoteEvent:FireClient(player, \"Message received!\")\nend)\n\nprint(\"Server script ready!\")",
+      "testType": "has_server_handler",
+      "expectedHandler": "OnServerEvent",
+      "hint": "Use OnServerEvent:Connect to handle server-side events"
+    }
+  ],
+  "successMessage": "🌐 You've mastered client-server communication!"
+}

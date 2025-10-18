@@ -1,0 +1,26 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Welcome to Lua! Lua is a powerful, lightweight programming language that's perfect for game development. In Roblox, Lua is used to create interactive experiences."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Let's start with the most basic program. Type the following code to print 'Hello, World!' to the console:",
+      "starterCode": "",
+      "solution": "print(\"Hello, World!\")",
+      "testType": "output_contains",
+      "expectedOutput": "Hello, World!",
+      "hint": "Use the print() function with quotes around your text"
+    },
+    {
+      "id": "step-3",
+      "type": "explanation",
+      "content": "Great! The print() function displays text in the console. Notice how we use double quotes around the text we want to print."
+    }
+  ],
+  "successMessage": "🎉 Congratulations! You've written your first Lua program!"
+}

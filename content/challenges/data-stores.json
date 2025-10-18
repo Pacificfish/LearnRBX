@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "DataStore allows you to save player data permanently. This means progress won't be lost when players leave and rejoin."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a simple data saving system:",
+      "starterCode": "-- Create a DataStore\n-- Save some player data\n-- Print confirmation",
+      "solution": "local DataStoreService = game:GetService(\"DataStoreService\")\nlocal playerDataStore = DataStoreService:GetDataStore(\"PlayerData\")\n\nlocal playerData = {\n  coins = 150,\n  level = 3,\n  lastPlayed = os.time()\n}\n\nlocal success, result = pcall(function()\n  playerDataStore:SetAsync(\"Player123\", playerData)\nend)\n\nif success then\n  print(\"Data saved successfully!\")\nelse\n  print(\"Error saving data: \" .. result)\nend",
+      "testType": "has_data_store",
+      "expectedService": "DataStoreService",
+      "hint": "Use pcall() to safely handle DataStore operations"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a function to load player data:",
+      "starterCode": "-- Create a function to load player data\n-- Handle errors gracefully\n-- Print the loaded data",
+      "solution": "local function loadPlayerData(playerId)\n  local success, data = pcall(function()\n    return playerDataStore:GetAsync(playerId)\n  end)\n  \n  if success and data then\n    print(\"Loaded data for player \" .. playerId)\n    print(\"Coins: \" .. data.coins)\n    print(\"Level: \" .. data.level)\n    return data\n  else\n    print(\"No data found for player \" .. playerId)\n    return nil\n  end\nend\n\nloadPlayerData(\"Player123\")",
+      "testType": "has_load_function",
+      "expectedFunction": "loadPlayerData",
+      "hint": "Use GetAsync() to retrieve data from DataStore"
+    }
+  ],
+  "successMessage": "💾 Your data persistence skills are top-notch!"
+}

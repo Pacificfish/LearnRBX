@@ -1,0 +1,36 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Variables are containers that store data. In Lua, we use the 'local' keyword to create variables."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a variable called 'name' and store your name in it, then print it:",
+      "starterCode": "-- Create a variable called name\n-- Store your name in it\n-- Print the variable",
+      "solution": "local name = \"Your Name\"\nprint(name)",
+      "testType": "has_variable",
+      "expectedVariable": "name",
+      "hint": "Use 'local name = \"Your Name\"' to create the variable"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Now create a variable called 'age' and store a number in it:",
+      "starterCode": "-- Create a variable called age\n-- Store a number in it\n-- Print the variable",
+      "solution": "local age = 25\nprint(age)",
+      "testType": "has_variable",
+      "expectedVariable": "age",
+      "hint": "Numbers don't need quotes: local age = 25"
+    },
+    {
+      "id": "step-4",
+      "type": "explanation",
+      "content": "Perfect! You've learned about variables. In Lua, we have different data types: strings (text), numbers, booleans (true/false), and more."
+    }
+  ],
+  "successMessage": "🌟 Excellent! You now understand variables and data types!"
+}

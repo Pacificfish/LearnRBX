@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Strings are sequences of characters. In Lua, we can combine strings using the concatenation operator '..'"
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create two string variables and combine them using the '..' operator:",
+      "starterCode": "-- Create two string variables\n-- Combine them with ..\n-- Print the result",
+      "solution": "local firstName = \"John\"\nlocal lastName = \"Doe\"\nlocal fullName = firstName .. \" \" .. lastName\nprint(fullName)",
+      "testType": "output_contains",
+      "expectedOutput": "John Doe",
+      "hint": "Use firstName .. \" \" .. lastName to combine the strings"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Use string.upper() to convert a string to uppercase:",
+      "starterCode": "-- Create a string variable\n-- Convert it to uppercase\n-- Print the result",
+      "solution": "local text = \"hello world\"\nlocal upperText = string.upper(text)\nprint(upperText)",
+      "testType": "output_contains",
+      "expectedOutput": "HELLO WORLD",
+      "hint": "Use string.upper(yourVariable) to convert to uppercase"
+    }
+  ],
+  "successMessage": "🎯 Fantastic! You've mastered string manipulation!"
+}

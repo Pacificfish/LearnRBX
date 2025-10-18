@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Lua supports all basic math operations: addition (+), subtraction (-), multiplication (*), division (/), and more."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create two number variables and add them together:",
+      "starterCode": "-- Create two number variables\n-- Add them together\n-- Print the result",
+      "solution": "local num1 = 10\nlocal num2 = 5\nlocal sum = num1 + num2\nprint(sum)",
+      "testType": "output_contains",
+      "expectedOutput": "15",
+      "hint": "Use the + operator to add numbers"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Calculate the area of a rectangle (length × width):",
+      "starterCode": "-- Create length and width variables\n-- Calculate area\n-- Print the result",
+      "solution": "local length = 8\nlocal width = 6\nlocal area = length * width\nprint(\"Area: \" .. area)",
+      "testType": "output_contains",
+      "expectedOutput": "Area: 48",
+      "hint": "Use the * operator for multiplication"
+    }
+  ],
+  "successMessage": "🧮 Great job! You're now comfortable with math operations!"
+}

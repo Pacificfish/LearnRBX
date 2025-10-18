@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Functions are blocks of code that can be called multiple times. They help organize your code and make it reusable."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a function called 'greet' that takes a name and prints a greeting:",
+      "starterCode": "-- Create a function called greet\n-- It should take a name parameter\n-- Print a greeting message\n-- Call the function",
+      "solution": "local function greet(name)\n  print(\"Hello, \" .. name .. \"!\")\nend\n\ngreet(\"Alice\")",
+      "testType": "has_function",
+      "expectedFunction": "greet",
+      "hint": "Use 'local function functionName(parameters)' to define a function"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a function that returns the sum of two numbers:",
+      "starterCode": "-- Create a function called add\n-- It should take two number parameters\n-- Return the sum\n-- Call the function and print the result",
+      "solution": "local function add(a, b)\n  return a + b\nend\n\nlocal result = add(5, 3)\nprint(\"Sum: \" .. result)",
+      "testType": "has_return_statement",
+      "expectedOutput": "Sum: 8",
+      "hint": "Use 'return' to send a value back from a function"
+    }
+  ],
+  "successMessage": "⚡ Fantastic! Functions are now your friends!"
+}

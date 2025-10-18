@@ -1,0 +1,31 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Events make your game interactive. They respond to things like players touching objects or clicking buttons."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a part that prints a message when touched:",
+      "starterCode": "-- Create a part\n-- Connect to its Touched event\n-- Print a message when touched",
+      "solution": "local part = Instance.new(\"Part\")\npart.Size = Vector3.new(4, 1, 4)\npart.Position = Vector3.new(0, 5, 0)\npart.Parent = workspace\n\npart.Touched:Connect(function(hit)\n  print(\"The part was touched by: \" .. hit.Name)\nend)",
+      "testType": "has_event_connection",
+      "expectedEvent": "Touched",
+      "hint": "Use part.Touched:Connect(function) to connect to the Touched event"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Add a ClickDetector to make the part clickable:",
+      "starterCode": "-- Add a ClickDetector to the part\n-- Connect to its MouseClick event\n-- Print a message when clicked",
+      "solution": "local clickDetector = Instance.new(\"ClickDetector\")\nclickDetector.Parent = part\n\nclickDetector.MouseClick:Connect(function(player)\n  print(\"The part was clicked by: \" .. player.Name)\nend)",
+      "testType": "has_click_detector",
+      "expectedOutput": "The part was clicked by:",
+      "hint": "Use Instance.new(\"ClickDetector\") to make parts clickable"
+    }
+  ],
+  "successMessage": "🎯 Your game is now interactive!"
+}

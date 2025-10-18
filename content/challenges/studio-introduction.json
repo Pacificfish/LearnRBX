@@ -1,0 +1,26 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Roblox Studio is where you create games. It has many panels and tools to help you build amazing experiences."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a simple script that prints a welcome message:",
+      "starterCode": "-- Create a welcome message for your game\n-- Print it to the output",
+      "solution": "print(\"Welcome to my Roblox game!\")",
+      "testType": "output_contains",
+      "expectedOutput": "Welcome to my Roblox game!",
+      "hint": "Use print() to display messages in the output"
+    },
+    {
+      "id": "step-3",
+      "type": "explanation",
+      "content": "Great! In Roblox Studio, scripts run in the game and can interact with the game world."
+    }
+  ],
+  "successMessage": "🎮 Welcome to Roblox development!"
+}

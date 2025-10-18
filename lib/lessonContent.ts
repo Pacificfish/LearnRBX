@@ -8,6 +8,34 @@ export interface LessonTest {
   value: string;
 }
 
+export interface LessonStep {
+  id: string;
+  type: 'explanation' | 'code_exercise' | 'quiz' | 'hint';
+  content?: string;
+  instruction?: string;
+  starterCode?: string;
+  solution?: string;
+  testType?: string;
+  expectedOutput?: string;
+  expectedVariable?: string;
+  expectedCondition?: string;
+  expectedFunction?: string;
+  expectedEvent?: string;
+  expectedInstance?: string;
+  expectedTable?: string;
+  expectedService?: string;
+  expectedStats?: string[];
+  expectedHandler?: string;
+  expectedColor?: string;
+  hint?: string;
+}
+
+export interface InteractiveChallenge {
+  lessonType: string;
+  steps: LessonStep[];
+  successMessage: string;
+}
+
 export interface LessonChallenge {
   tests: LessonTest[];
   hints: string[];
@@ -33,7 +61,9 @@ export interface LessonContent {
     successMessage: string;
   };
   challenge?: LessonChallenge;
+  interactiveChallenge?: InteractiveChallenge;
   defaultCode?: string;
+  lessonType?: string;
 }
 
 /**
@@ -61,31 +91,59 @@ export async function getLessonContent(lessonSlug: string): Promise<LessonConten
     
     const titleMatch = frontmatter.match(/title:\s*"([^"]*)"/);
     const summaryMatch = frontmatter.match(/summary:\s*"([^"]*)"/);
+    const lessonTypeMatch = frontmatter.match(/lesson_type:\s*"([^"]*)"/);
     
     const title = titleMatch ? titleMatch[1] : 'Untitled Lesson';
     const summary = summaryMatch ? summaryMatch[1] : 'No description available';
+    const lessonType = lessonTypeMatch ? lessonTypeMatch[1] : 'standard';
 
-    // Convert challenge data to our format
-    const challenge: LessonChallenge = {
-      tests: challengeData.tests || [],
-      hints: challengeData.hints || [],
-      successMessage: challengeData.successMessage || 'Well done!'
-    };
+    // Check if this is an interactive lesson
+    if (challengeData.lessonType === 'interactive' && challengeData.steps) {
+      const interactiveChallenge: InteractiveChallenge = {
+        lessonType: challengeData.lessonType,
+        steps: challengeData.steps,
+        successMessage: challengeData.successMessage || 'Great job! You\'ve completed this lesson!'
+      };
 
-    return {
-      title,
-      description: summary,
-      sections: [
-        {
-          title: 'Lesson Content',
-          content: mdxContent.replace(/^---\n[\s\S]*?\n---\n/, ''), // Remove frontmatter
-          codeExample: challengeData.starterCode || '-- No starter code provided',
-          color: 'blue'
-        }
-      ],
-      challenge,
-      defaultCode: challengeData.starterCode || ''
-    };
+      return {
+        title,
+        description: summary,
+        lessonType,
+        sections: [
+          {
+            title: 'Interactive Lesson',
+            content: mdxContent.replace(/^---\n[\s\S]*?\n---\n/, ''), // Remove frontmatter
+            codeExample: challengeData.steps?.[0]?.starterCode || '-- No starter code provided',
+            color: 'blue'
+          }
+        ],
+        interactiveChallenge,
+        defaultCode: challengeData.steps?.[0]?.starterCode || ''
+      };
+    } else {
+      // Convert challenge data to our format for standard lessons
+      const challenge: LessonChallenge = {
+        tests: challengeData.tests || [],
+        hints: challengeData.hints || [],
+        successMessage: challengeData.successMessage || 'Well done!'
+      };
+
+      return {
+        title,
+        description: summary,
+        lessonType,
+        sections: [
+          {
+            title: 'Lesson Content',
+            content: mdxContent.replace(/^---\n[\s\S]*?\n---\n/, ''), // Remove frontmatter
+            codeExample: challengeData.starterCode || '-- No starter code provided',
+            color: 'blue'
+          }
+        ],
+        challenge,
+        defaultCode: challengeData.starterCode || ''
+      };
+    }
   } catch (error) {
     console.error('Error loading lesson content:', error);
     

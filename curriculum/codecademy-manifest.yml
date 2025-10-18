@@ -1,0 +1,396 @@
+brand: LearnRBX
+version: 2
+style: codecademy
+tracks:
+  - slug: lua-fundamentals
+    title: Lua Fundamentals
+    description: Master the basics of Lua programming used in Roblox
+    is_premium: false
+    modules:
+      - title: Getting Started
+        lessons:
+          - slug: welcome-to-lua
+            title: "Welcome to Lua!"
+            duration_min: 5
+            summary: "Your first steps into Lua programming"
+            objectives: ["Understand what Lua is", "Write your first program", "Use the print function"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Welcome to Lua! Lua is a powerful, lightweight programming language that's perfect for game development. In Roblox, Lua is used to create interactive experiences."
+              - type: "code_exercise"
+                instruction: "Let's start with the most basic program. Type the following code to print 'Hello, World!' to the console:"
+                starter_code: ""
+                solution: "print(\"Hello, World!\")"
+                test_type: "output_contains"
+                expected_output: "Hello, World!"
+                hint: "Use the print() function with quotes around your text"
+              - type: "explanation"
+                content: "Great! The print() function displays text in the console. Notice how we use double quotes around the text we want to print."
+            success_message: "🎉 Congratulations! You've written your first Lua program!"
+          
+          - slug: variables-and-data
+            title: "Variables and Data Types"
+            duration_min: 15
+            summary: "Learn to store and work with different types of data"
+            objectives: ["Create variables", "Understand data types", "Use local variables"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Variables are containers that store data. In Lua, we use the 'local' keyword to create variables."
+              - type: "code_exercise"
+                instruction: "Create a variable called 'name' and store your name in it, then print it:"
+                starter_code: "-- Create a variable called name\n-- Store your name in it\n-- Print the variable"
+                solution: "local name = \"Your Name\"\nprint(name)"
+                test_type: "has_variable"
+                expected_variable: "name"
+                hint: "Use 'local name = \"Your Name\"' to create the variable"
+              - type: "code_exercise"
+                instruction: "Now create a variable called 'age' and store a number in it:"
+                starter_code: "-- Create a variable called age\n-- Store a number in it\n-- Print the variable"
+                solution: "local age = 25\nprint(age)"
+                test_type: "has_variable"
+                expected_variable: "age"
+                hint: "Numbers don't need quotes: local age = 25"
+              - type: "explanation"
+                content: "Perfect! You've learned about variables. In Lua, we have different data types: strings (text), numbers, booleans (true/false), and more."
+            success_message: "🌟 Excellent! You now understand variables and data types!"
+          
+          - slug: strings-and-concatenation
+            title: "Strings and Concatenation"
+            duration_min: 12
+            summary: "Combine and manipulate text in Lua"
+            objectives: ["Concatenate strings", "Use string functions", "Format text output"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Strings are sequences of characters. In Lua, we can combine strings using the concatenation operator '..'"
+              - type: "code_exercise"
+                instruction: "Create two string variables and combine them using the '..' operator:"
+                starter_code: "-- Create two string variables\n-- Combine them with ..\n-- Print the result"
+                solution: "local firstName = \"John\"\nlocal lastName = \"Doe\"\nlocal fullName = firstName .. \" \" .. lastName\nprint(fullName)"
+                test_type: "output_contains"
+                expected_output: "John Doe"
+                hint: "Use firstName .. \" \" .. lastName to combine the strings"
+              - type: "code_exercise"
+                instruction: "Use string.upper() to convert a string to uppercase:"
+                starter_code: "-- Create a string variable\n-- Convert it to uppercase\n-- Print the result"
+                solution: "local text = \"hello world\"\nlocal upperText = string.upper(text)\nprint(upperText)"
+                test_type: "output_contains"
+                expected_output: "HELLO WORLD"
+                hint: "Use string.upper(yourVariable) to convert to uppercase"
+            success_message: "🎯 Fantastic! You've mastered string manipulation!"
+          
+          - slug: numbers-and-math
+            title: "Numbers and Math Operations"
+            duration_min: 10
+            summary: "Perform calculations and work with numbers"
+            objectives: ["Use math operators", "Perform calculations", "Understand order of operations"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Lua supports all basic math operations: addition (+), subtraction (-), multiplication (*), division (/), and more."
+              - type: "code_exercise"
+                instruction: "Create two number variables and add them together:"
+                starter_code: "-- Create two number variables\n-- Add them together\n-- Print the result"
+                solution: "local num1 = 10\nlocal num2 = 5\nlocal sum = num1 + num2\nprint(sum)"
+                test_type: "output_contains"
+                expected_output: "15"
+                hint: "Use the + operator to add numbers"
+              - type: "code_exercise"
+                instruction: "Calculate the area of a rectangle (length × width):"
+                starter_code: "-- Create length and width variables\n-- Calculate area\n-- Print the result"
+                solution: "local length = 8\nlocal width = 6\nlocal area = length * width\nprint(\"Area: \" .. area)"
+                test_type: "output_contains"
+                expected_output: "Area: 48"
+                hint: "Use the * operator for multiplication"
+            success_message: "🧮 Great job! You're now comfortable with math operations!"
+        
+        module_test:
+          title: "Lua Fundamentals Checkpoint"
+          questions:
+            - type: mc
+              prompt: "What keyword is used to create variables in Lua?"
+              choices: ["var", "local", "let", "const"]
+              answerIndex: 1
+              explanation: "The 'local' keyword is used to create variables in Lua."
+            - type: mc
+              prompt: "What operator is used to combine strings?"
+              choices: ["+", "..", "&", "concat()"]
+              answerIndex: 1
+              explanation: "The '..' operator is used for string concatenation in Lua."
+          codeTasks:
+            - instruction: "Create a program that calculates and prints the perimeter of a square with side length 5"
+              starterCode: "-- Calculate perimeter of a square\n-- Side length is 5\n-- Print the result"
+              solution: "local sideLength = 5\nlocal perimeter = sideLength * 4\nprint(\"Perimeter: \" .. perimeter)"
+              testType: "output_contains"
+              expectedOutput: "Perimeter: 20"
+              hints: ["Perimeter = side length × 4", "Use the * operator for multiplication"]
+
+      - title: Control Flow
+        lessons:
+          - slug: if-statements
+            title: "Making Decisions with If Statements"
+            duration_min: 15
+            summary: "Control your program's flow with conditional logic"
+            objectives: ["Use if statements", "Compare values", "Handle different conditions"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "If statements allow your program to make decisions. They check if a condition is true and execute code accordingly."
+              - type: "code_exercise"
+                instruction: "Create an if statement that checks if a number is greater than 10:"
+                starter_code: "-- Create a number variable\n-- Use if statement to check if it's greater than 10\n-- Print a message"
+                solution: "local number = 15\nif number > 10 then\n  print(\"The number is greater than 10!\")\nend"
+                test_type: "has_if_statement"
+                expected_condition: "number > 10"
+                hint: "Use 'if condition then' to start an if statement"
+              - type: "code_exercise"
+                instruction: "Add an else clause to handle when the condition is false:"
+                starter_code: "-- Modify your if statement\n-- Add an else clause\n-- Print different messages"
+                solution: "local number = 5\nif number > 10 then\n  print(\"The number is greater than 10!\")\nelse\n  print(\"The number is 10 or less!\")\nend"
+                test_type: "has_else_clause"
+                expected_output: "The number is 10 or less!"
+                hint: "Add 'else' after the if block to handle the false case"
+            success_message: "🎯 Excellent! You can now make your programs think!"
+          
+          - slug: loops-basics
+            title: "Repeating Code with Loops"
+            duration_min: 18
+            summary: "Learn to repeat code efficiently with for and while loops"
+            objectives: ["Use for loops", "Use while loops", "Control loop execution"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Loops allow you to repeat code multiple times. For loops are great when you know how many times to repeat."
+              - type: "code_exercise"
+                instruction: "Create a for loop that counts from 1 to 5:"
+                starter_code: "-- Create a for loop that counts from 1 to 5\n-- Print each number"
+                solution: "for i = 1, 5 do\n  print(i)\nend"
+                test_type: "output_contains"
+                expected_output: "1\n2\n3\n4\n5"
+                hint: "Use 'for i = 1, 5 do' to create a for loop"
+              - type: "code_exercise"
+                instruction: "Create a while loop that counts down from 5 to 1:"
+                starter_code: "-- Create a while loop\n-- Count down from 5 to 1\n-- Print each number"
+                solution: "local count = 5\nwhile count >= 1 do\n  print(count)\n  count = count - 1\nend"
+                test_type: "has_while_loop"
+                expected_condition: "count >= 1"
+                hint: "Use 'while condition do' and don't forget to change the variable inside the loop"
+            success_message: "🔄 Amazing! You've mastered loops!"
+          
+          - slug: functions-basics
+            title: "Creating Reusable Code with Functions"
+            duration_min: 20
+            summary: "Organize your code with functions for reusability"
+            objectives: ["Define functions", "Call functions", "Return values"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Functions are blocks of code that can be called multiple times. They help organize your code and make it reusable."
+              - type: "code_exercise"
+                instruction: "Create a function called 'greet' that takes a name and prints a greeting:"
+                starter_code: "-- Create a function called greet\n-- It should take a name parameter\n-- Print a greeting message\n-- Call the function"
+                solution: "local function greet(name)\n  print(\"Hello, \" .. name .. \"!\")\nend\n\ngreet(\"Alice\")"
+                test_type: "has_function"
+                expected_function: "greet"
+                hint: "Use 'local function functionName(parameters)' to define a function"
+              - type: "code_exercise"
+                instruction: "Create a function that returns the sum of two numbers:"
+                starter_code: "-- Create a function called add\n-- It should take two number parameters\n-- Return the sum\n-- Call the function and print the result"
+                solution: "local function add(a, b)\n  return a + b\nend\n\nlocal result = add(5, 3)\nprint(\"Sum: \" .. result)"
+                test_type: "has_return_statement"
+                expected_output: "Sum: 8"
+                hint: "Use 'return' to send a value back from a function"
+            success_message: "⚡ Fantastic! Functions are now your friends!"
+
+  - slug: roblox-basics
+    title: Roblox Basics
+    description: Learn the fundamentals of Roblox development
+    is_premium: true
+    modules:
+      - title: Roblox Studio
+        lessons:
+          - slug: studio-introduction
+            title: "Welcome to Roblox Studio"
+            duration_min: 8
+            summary: "Get familiar with the Roblox Studio interface"
+            objectives: ["Navigate Studio", "Understand the interface", "Use basic tools"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Roblox Studio is where you create games. It has many panels and tools to help you build amazing experiences."
+              - type: "code_exercise"
+                instruction: "Create a simple script that prints a welcome message:"
+                starter_code: "-- Create a welcome message for your game\n-- Print it to the output"
+                solution: "print(\"Welcome to my Roblox game!\")"
+                test_type: "output_contains"
+                expected_output: "Welcome to my Roblox game!"
+                hint: "Use print() to display messages in the output"
+              - type: "explanation"
+                content: "Great! In Roblox Studio, scripts run in the game and can interact with the game world."
+            success_message: "🎮 Welcome to Roblox development!"
+          
+          - slug: parts-and-properties
+            title: "Working with Parts"
+            duration_min: 15
+            summary: "Create and modify parts in your game"
+            objectives: ["Create parts", "Modify properties", "Position objects"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Parts are the basic building blocks in Roblox. You can create them, move them, and change their properties."
+              - type: "code_exercise"
+                instruction: "Create a part and set its size and position:"
+                starter_code: "-- Create a new part\n-- Set its size to (4, 1, 2)\n-- Set its position to (0, 10, 0)\n-- Print confirmation"
+                solution: "local part = Instance.new(\"Part\")\npart.Size = Vector3.new(4, 1, 2)\npart.Position = Vector3.new(0, 10, 0)\npart.Parent = workspace\nprint(\"Part created successfully!\")"
+                test_type: "has_instance_creation"
+                expected_instance: "Part"
+                hint: "Use Instance.new(\"Part\") to create a new part"
+              - type: "code_exercise"
+                instruction: "Change the part's color to red:"
+                starter_code: "-- Change the part's color to red\n-- Print confirmation"
+                solution: "part.Color = Color3.fromRGB(255, 0, 0)\nprint(\"Part color changed to red!\")"
+                test_type: "has_color_change"
+                expected_color: "Color3.fromRGB(255, 0, 0)"
+                hint: "Use Color3.fromRGB(red, green, blue) to set colors"
+            success_message: "🏗️ You're now a part master!"
+          
+          - slug: events-introduction
+            title: "Making Things Interactive"
+            duration_min: 18
+            summary: "Add interactivity with events"
+            objectives: ["Connect to events", "Handle user input", "Create interactive experiences"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Events make your game interactive. They respond to things like players touching objects or clicking buttons."
+              - type: "code_exercise"
+                instruction: "Create a part that prints a message when touched:"
+                starter_code: "-- Create a part\n-- Connect to its Touched event\n-- Print a message when touched"
+                solution: "local part = Instance.new(\"Part\")\npart.Size = Vector3.new(4, 1, 4)\npart.Position = Vector3.new(0, 5, 0)\npart.Parent = workspace\n\npart.Touched:Connect(function(hit)\n  print(\"The part was touched by: \" .. hit.Name)\nend)"
+                test_type: "has_event_connection"
+                expected_event: "Touched"
+                hint: "Use part.Touched:Connect(function) to connect to the Touched event"
+              - type: "code_exercise"
+                instruction: "Add a ClickDetector to make the part clickable:"
+                starter_code: "-- Add a ClickDetector to the part\n-- Connect to its MouseClick event\n-- Print a message when clicked"
+                solution: "local clickDetector = Instance.new(\"ClickDetector\")\nclickDetector.Parent = part\n\nclickDetector.MouseClick:Connect(function(player)\n  print(\"The part was clicked by: \" .. player.Name)\nend)"
+                test_type: "has_click_detector"
+                expected_output: "The part was clicked by:"
+                hint: "Use Instance.new(\"ClickDetector\") to make parts clickable"
+            success_message: "🎯 Your game is now interactive!"
+
+  - slug: game-mechanics
+    title: Game Mechanics
+    description: Build core game systems and mechanics
+    is_premium: true
+    modules:
+      - title: Player Systems
+        lessons:
+          - slug: player-data
+            title: "Managing Player Data"
+            duration_min: 20
+            summary: "Store and manage player information"
+            objectives: ["Create player data", "Save and load data", "Handle data persistence"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Player data helps you track things like coins, levels, and progress. We'll use DataStore to save this information."
+              - type: "code_exercise"
+                instruction: "Create a simple player data system:"
+                starter_code: "-- Create a player data table\n-- Add some basic stats\n-- Print the data"
+                solution: "local playerData = {\n  coins = 100,\n  level = 1,\n  experience = 0\n}\n\nprint(\"Player coins: \" .. playerData.coins)\nprint(\"Player level: \" .. playerData.level)"
+                test_type: "has_table"
+                expected_table: "playerData"
+                hint: "Use curly braces {} to create tables in Lua"
+              - type: "code_exercise"
+                instruction: "Create a function to add coins to the player:"
+                starter_code: "-- Create a function to add coins\n-- It should take an amount parameter\n-- Update the player data\n-- Print the new total"
+                solution: "local function addCoins(amount)\n  playerData.coins = playerData.coins + amount\n  print(\"Added \" .. amount .. \" coins! Total: \" .. playerData.coins)\nend\n\naddCoins(50)"
+                test_type: "has_function"
+                expected_function: "addCoins"
+                hint: "Use playerData.coins = playerData.coins + amount to add coins"
+            success_message: "💰 You're now a data management expert!"
+          
+          - slug: leaderboards
+            title: "Creating Leaderboards"
+            duration_min: 15
+            summary: "Display player statistics with leaderboards"
+            objectives: ["Create leaderstats", "Update player stats", "Display rankings"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "Leaderboards show player statistics and rankings. They're great for competitive games and tracking progress."
+              - type: "code_exercise"
+                instruction: "Create a leaderboard with coins and level stats:"
+                starter_code: "-- Create a leaderstats folder\n-- Add coins and level stats\n-- Set initial values"
+                solution: "local leaderstats = Instance.new(\"Folder\")\nleaderstats.Name = \"leaderstats\"\nleaderstats.Parent = game.Players.LocalPlayer\n\nlocal coins = Instance.new(\"IntValue\")\ncoins.Name = \"Coins\"\ncoins.Value = 0\ncoins.Parent = leaderstats\n\nlocal level = Instance.new(\"IntValue\")\nlevel.Name = \"Level\"\nlevel.Value = 1\nlevel.Parent = leaderstats\n\nprint(\"Leaderboard created!\")"
+                test_type: "has_leaderstats"
+                expected_stats: ["Coins", "Level"]
+                hint: "Use Instance.new(\"IntValue\") to create stat values"
+              - type: "code_exercise"
+                instruction: "Create a function to update the leaderboard:"
+                starter_code: "-- Create a function to update leaderboard\n-- It should add coins and level up the player\n-- Print confirmation"
+                solution: "local function updateLeaderboard()\n  coins.Value = coins.Value + 10\n  if coins.Value >= 100 then\n    level.Value = level.Value + 1\n    coins.Value = 0\n    print(\"Level up! New level: \" .. level.Value)\n  else\n    print(\"Coins: \" .. coins.Value)\n  end\nend\n\nupdateLeaderboard()"
+                test_type: "has_level_up_logic"
+                expected_condition: "coins.Value >= 100"
+                hint: "Check if coins >= 100 to trigger a level up"
+            success_message: "🏆 Leaderboards are now your specialty!"
+
+  - slug: advanced-topics
+    title: Advanced Topics
+    description: Master advanced Roblox development techniques
+    is_premium: true
+    modules:
+      - title: Networking
+        lessons:
+          - slug: remote-events
+            title: "Client-Server Communication"
+            duration_min: 25
+            summary: "Connect client and server with RemoteEvents"
+            objectives: ["Create RemoteEvents", "Send data between client and server", "Handle security"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "RemoteEvents allow the client (player's device) to communicate with the server. This is essential for multiplayer games."
+              - type: "code_exercise"
+                instruction: "Create a RemoteEvent and fire it from the client:"
+                starter_code: "-- Create a RemoteEvent\n-- Fire it with some data\n-- Print confirmation"
+                solution: "local remoteEvent = Instance.new(\"RemoteEvent\")\nremoteEvent.Name = \"PlayerAction\"\nremoteEvent.Parent = game.ReplicatedStorage\n\nremoteEvent:FireServer(\"Hello from client!\")\nprint(\"RemoteEvent fired!\")"
+                test_type: "has_remote_event"
+                expected_event: "PlayerAction"
+                hint: "Use Instance.new(\"RemoteEvent\") to create remote events"
+              - type: "code_exercise"
+                instruction: "Create a server script to handle the RemoteEvent:"
+                starter_code: "-- Connect to the RemoteEvent\n-- Print the received data\n-- Send a response back"
+                solution: "remoteEvent.OnServerEvent:Connect(function(player, data)\n  print(\"Received from \" .. player.Name .. \": \" .. data)\n  remoteEvent:FireClient(player, \"Message received!\")\nend)\n\nprint(\"Server script ready!\")"
+                test_type: "has_server_handler"
+                expected_handler: "OnServerEvent"
+                hint: "Use OnServerEvent:Connect to handle server-side events"
+            success_message: "🌐 You've mastered client-server communication!"
+          
+          - slug: data-stores
+            title: "Saving Player Data"
+            duration_min: 20
+            summary: "Persist player data between game sessions"
+            objectives: ["Use DataStore", "Save player data", "Handle data loading"]
+            lesson_type: "interactive"
+            steps:
+              - type: "explanation"
+                content: "DataStore allows you to save player data permanently. This means progress won't be lost when players leave and rejoin."
+              - type: "code_exercise"
+                instruction: "Create a simple data saving system:"
+                starter_code: "-- Create a DataStore\n-- Save some player data\n-- Print confirmation"
+                solution: "local DataStoreService = game:GetService(\"DataStoreService\")\nlocal playerDataStore = DataStoreService:GetDataStore(\"PlayerData\")\n\nlocal playerData = {\n  coins = 150,\n  level = 3,\n  lastPlayed = os.time()\n}\n\nlocal success, result = pcall(function()\n  playerDataStore:SetAsync(\"Player123\", playerData)\nend)\n\nif success then\n  print(\"Data saved successfully!\")\nelse\n  print(\"Error saving data: \" .. result)\nend"
+                test_type: "has_data_store"
+                expected_service: "DataStoreService"
+                hint: "Use pcall() to safely handle DataStore operations"
+              - type: "code_exercise"
+                instruction: "Create a function to load player data:"
+                starter_code: "-- Create a function to load player data\n-- Handle errors gracefully\n-- Print the loaded data"
+                solution: "local function loadPlayerData(playerId)\n  local success, data = pcall(function()\n    return playerDataStore:GetAsync(playerId)\n  end)\n  \n  if success and data then\n    print(\"Loaded data for player \" .. playerId)\n    print(\"Coins: \" .. data.coins)\n    print(\"Level: \" .. data.level)\n    return data\n  else\n    print(\"No data found for player \" .. playerId)\n    return nil\n  end\nend\n\nloadPlayerData(\"Player123\")"
+                test_type: "has_load_function"
+                expected_function: "loadPlayerData"
+                hint: "Use GetAsync() to retrieve data from DataStore"
+            success_message: "💾 Your data persistence skills are top-notch!"

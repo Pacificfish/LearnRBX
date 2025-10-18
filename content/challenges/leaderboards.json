@@ -1,0 +1,34 @@
+{
+  "lessonType": "interactive",
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explanation",
+      "content": "Leaderboards show player statistics and rankings. They're great for competitive games and tracking progress."
+    },
+    {
+      "id": "step-2",
+      "type": "code_exercise",
+      "instruction": "Create a leaderboard with coins and level stats:",
+      "starterCode": "-- Create a leaderstats folder\n-- Add coins and level stats\n-- Set initial values",
+      "solution": "local leaderstats = Instance.new(\"Folder\")\nleaderstats.Name = \"leaderstats\"\nleaderstats.Parent = game.Players.LocalPlayer\n\nlocal coins = Instance.new(\"IntValue\")\ncoins.Name = \"Coins\"\ncoins.Value = 0\ncoins.Parent = leaderstats\n\nlocal level = Instance.new(\"IntValue\")\nlevel.Name = \"Level\"\nlevel.Value = 1\nlevel.Parent = leaderstats\n\nprint(\"Leaderboard created!\")",
+      "testType": "has_leaderstats",
+      "expectedStats": [
+        "Coins",
+        "Level"
+      ],
+      "hint": "Use Instance.new(\"IntValue\") to create stat values"
+    },
+    {
+      "id": "step-3",
+      "type": "code_exercise",
+      "instruction": "Create a function to update the leaderboard:",
+      "starterCode": "-- Create a function to update leaderboard\n-- It should add coins and level up the player\n-- Print confirmation",
+      "solution": "local function updateLeaderboard()\n  coins.Value = coins.Value + 10\n  if coins.Value >= 100 then\n    level.Value = level.Value + 1\n    coins.Value = 0\n    print(\"Level up! New level: \" .. level.Value)\n  else\n    print(\"Coins: \" .. coins.Value)\n  end\nend\n\nupdateLeaderboard()",
+      "testType": "has_level_up_logic",
+      "expectedCondition": "coins.Value >= 100",
+      "hint": "Check if coins >= 100 to trigger a level up"
+    }
+  ],
+  "successMessage": "🏆 Leaderboards are now your specialty!"
+}
