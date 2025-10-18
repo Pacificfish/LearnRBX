@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the message from the request body
-    const { message, conversationHistory = [] } = await request.json();
+    const { message, sessionId, conversationHistory = [] } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -111,7 +111,49 @@ Always be encouraging and supportive of the user's learning journey.`;
       }, { status: 500 });
     }
 
-    // Log the conversation for analytics (optional)
+    // Save messages to the session if sessionId is provided
+    if (sessionId) {
+      try {
+        // Verify the session belongs to the user
+        const { data: session, error: sessionError } = await supabase
+          .from('chat_sessions')
+          .select('id')
+          .eq('id', sessionId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (!sessionError && session) {
+          // Save user message
+          await supabase
+            .from('chat_messages')
+            .insert({
+              session_id: sessionId,
+              role: 'user',
+              content: message
+            });
+
+          // Save AI response
+          await supabase
+            .from('chat_messages')
+            .insert({
+              session_id: sessionId,
+              role: 'assistant',
+              content: aiResponse
+            });
+
+          // Update session timestamp
+          await supabase
+            .from('chat_sessions')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', sessionId);
+        }
+      } catch (logError) {
+        // Don't fail the request if logging fails
+        console.error('Failed to save messages to session:', logError);
+      }
+    }
+
+    // Also log to legacy table for analytics (optional)
     try {
       await supabase
         .from('chatbot_conversations')

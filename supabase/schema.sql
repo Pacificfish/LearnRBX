@@ -152,7 +152,25 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- Chatbot conversations table
+-- Chat sessions table
+create table public.chat_sessions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  title text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Chat messages table
+create table public.chat_messages (
+  id uuid default gen_random_uuid() primary key,
+  session_id uuid references public.chat_sessions(id) on delete cascade not null,
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Legacy chatbot conversations table (keeping for backward compatibility)
 create table public.chatbot_conversations (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -161,13 +179,71 @@ create table public.chatbot_conversations (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable RLS for chatbot conversations
+-- Enable RLS for all tables
+alter table public.chat_sessions enable row level security;
+alter table public.chat_messages enable row level security;
 alter table public.chatbot_conversations enable row level security;
 
--- RLS policies for chatbot conversations
+-- RLS policies for chat sessions
+create policy "Users can view their own chat sessions" on public.chat_sessions
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own chat sessions" on public.chat_sessions
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update their own chat sessions" on public.chat_sessions
+  for update using (auth.uid() = user_id);
+
+create policy "Users can delete their own chat sessions" on public.chat_sessions
+  for delete using (auth.uid() = user_id);
+
+-- RLS policies for chat messages
+create policy "Users can view messages from their sessions" on public.chat_messages
+  for select using (
+    session_id in (
+      select id from public.chat_sessions where user_id = auth.uid()
+    )
+  );
+
+create policy "Users can insert messages to their sessions" on public.chat_messages
+  for insert with check (
+    session_id in (
+      select id from public.chat_sessions where user_id = auth.uid()
+    )
+  );
+
+create policy "Users can update messages in their sessions" on public.chat_messages
+  for update using (
+    session_id in (
+      select id from public.chat_sessions where user_id = auth.uid()
+    )
+  );
+
+create policy "Users can delete messages from their sessions" on public.chat_messages
+  for delete using (
+    session_id in (
+      select id from public.chat_sessions where user_id = auth.uid()
+    )
+  );
+
+-- RLS policies for legacy chatbot conversations
 create policy "Users can view their own chatbot conversations" on public.chatbot_conversations
   for select using (auth.uid() = user_id);
 
 create policy "Users can insert their own chatbot conversations" on public.chatbot_conversations
   for insert with check (auth.uid() = user_id);
+
+-- Function to update updated_at timestamp
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = timezone('utc'::text, now());
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger to automatically update updated_at
+create trigger update_chat_sessions_updated_at
+  before update on public.chat_sessions
+  for each row execute function update_updated_at_column();
 

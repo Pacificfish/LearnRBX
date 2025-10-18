@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, Sparkles, ChevronDown } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, ChevronDown, Plus, MessageSquare, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { renderMarkdownContent } from '@/lib/markdownRenderer';
 
@@ -16,11 +16,19 @@ interface Message {
   timestamp: Date;
 }
 
-interface ChatbotProps {
-  isProUser: boolean;
+interface ChatSession {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export default function Chatbot({ isProUser }: ChatbotProps) {
+interface ChatbotProps {
+  isProUser: boolean;
+  initialSessionId?: string;
+}
+
+export default function Chatbot({ isProUser, initialSessionId }: ChatbotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -45,6 +53,9 @@ What would you like to know?`,
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(initialSessionId || null);
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [isLoadingSession, setIsLoadingSession] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -87,6 +98,77 @@ What would you like to know?`,
     }
   }, [messages.length]);
 
+  // Load chat sessions
+  const loadSessions = async () => {
+    try {
+      const response = await fetch('/api/chat/sessions');
+      if (response.ok) {
+        const data = await response.json();
+        setSessions(data.sessions || []);
+      }
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    }
+  };
+
+  // Load messages for a session
+  const loadSessionMessages = async (sessionId: string) => {
+    setIsLoadingSession(true);
+    try {
+      const response = await fetch(`/api/chat/sessions/${sessionId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const loadedMessages: Message[] = data.messages.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.created_at)
+        }));
+        setMessages(loadedMessages);
+        setCurrentSessionId(sessionId);
+      }
+    } catch (error) {
+      console.error('Failed to load session messages:', error);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
+  // Create a new session
+  const createNewSession = async (title: string) => {
+    try {
+      const response = await fetch('/api/chat/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentSessionId(data.session.id);
+        await loadSessions();
+        return data.session.id;
+      }
+    } catch (error) {
+      console.error('Failed to create session:', error);
+    }
+    return null;
+  };
+
+  // Load sessions on component mount
+  useEffect(() => {
+    if (isProUser) {
+      loadSessions();
+    }
+  }, [isProUser]);
+
+  // Load initial session if provided
+  useEffect(() => {
+    if (initialSessionId && isProUser) {
+      loadSessionMessages(initialSessionId);
+    }
+  }, [initialSessionId, isProUser]);
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
@@ -110,8 +192,15 @@ What would you like to know?`,
         throw new Error('You must be logged in to use the chatbot');
       }
 
-      // Prepare conversation history for the API
-      const conversationHistory = messages.map(msg => ({
+      // Create a new session if none exists
+      let sessionId = currentSessionId;
+      if (!sessionId) {
+        const firstMessage = userMessage.content.slice(0, 50) + (userMessage.content.length > 50 ? '...' : '');
+        sessionId = await createNewSession(firstMessage);
+      }
+
+      // Prepare conversation history for the API (last 10 messages for context)
+      const conversationHistory = messages.slice(-10).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
@@ -123,6 +212,7 @@ What would you like to know?`,
         },
         body: JSON.stringify({
           message: userMessage.content,
+          sessionId: sessionId,
           conversationHistory: conversationHistory
         }),
       });
@@ -186,7 +276,12 @@ What would you like to know?`,
         timestamp: new Date()
       }
     ]);
+    setCurrentSessionId(null);
     setError(null);
+  };
+
+  const startNewChat = () => {
+    clearChat();
   };
 
   if (!isProUser) {
@@ -219,24 +314,84 @@ What would you like to know?`,
   }
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] max-h-[80vh]">
-      <Card className="flex-1 flex flex-col overflow-hidden">
-        <CardHeader className="pb-3 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-purple-600" />
-              AI Scripting Assistant
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearChat}
-              className="text-xs"
-            >
-              Clear Chat
-            </Button>
-          </div>
-        </CardHeader>
+    <div className="flex h-full min-h-[500px] max-h-[80vh] gap-4">
+      {/* Sessions Sidebar */}
+      <div className="w-64 flex-shrink-0">
+        <Card className="h-full flex flex-col">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Chat History</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startNewChat}
+                className="text-xs h-7 w-7 p-0"
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 p-0">
+            <ScrollArea className="h-full px-3">
+              <div className="space-y-1 pb-4">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`p-2 rounded-lg cursor-pointer transition-colors ${
+                      currentSessionId === session.id
+                        ? 'bg-purple-100 border border-purple-200'
+                        : 'hover:bg-gray-100'
+                    }`}
+                    onClick={() => loadSessionMessages(session.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-gray-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {session.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(session.updated_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {sessions.length === 0 && (
+                  <div className="text-center text-gray-500 text-sm py-4">
+                    No chat history yet
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardHeader className="pb-3 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="w-5 h-5 text-purple-600" />
+                AI Scripting Assistant
+                {currentSessionId && (
+                  <span className="text-xs text-gray-500 font-normal">
+                    (Session active)
+                  </span>
+                )}
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startNewChat}
+                className="text-xs"
+              >
+                New Chat
+              </Button>
+            </div>
+          </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden relative">
           <ScrollArea className="flex-1 px-6" ref={scrollAreaRef}>
