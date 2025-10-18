@@ -114,9 +114,9 @@ export default function LessonPage() {
 
         setChallenge(sampleChallenge);
         
-        // For Roblox Studio Fundamentals, always allow progression
+        // For Roblox Studio Fundamentals (core-luau track), always allow progression
         const trackSlug = params.track as string;
-        const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+        const shouldBypassTasks = trackSlug === 'core-luau';
         if (shouldBypassTasks) {
           setTaskCompleted(true);
         }
@@ -164,9 +164,9 @@ export default function LessonPage() {
       setTests(results.results);
 
       // Update task completion status based on test results
-      // For Roblox Studio Fundamentals, always allow progression
+      // For Roblox Studio Fundamentals (core-luau track), always allow progression
       const trackSlug = params.track as string;
-      const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+      const shouldBypassTasks = trackSlug === 'core-luau';
       setTaskCompleted(shouldBypassTasks || results.allPassed);
 
       const newAttempts = attempts + 1;
@@ -190,9 +190,9 @@ export default function LessonPage() {
       }
     } catch (error: any) {
       setErrors([error.message]);
-      // For Roblox Studio Fundamentals, always allow progression even with errors
+      // For Roblox Studio Fundamentals (core-luau track), always allow progression even with errors
       const trackSlug = params.track as string;
-      const shouldBypassTasks = trackSlug === 'roblox-studio-fundamentals';
+      const shouldBypassTasks = trackSlug === 'core-luau';
       setTaskCompleted(shouldBypassTasks);
     } finally {
       setIsRunning(false);
