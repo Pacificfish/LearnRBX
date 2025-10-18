@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeEditor } from '@/components/CodeEditor';
 import { ConsolePanel } from '@/components/ConsolePanel';
-import { CheckCircle, Play, Lightbulb, BookOpen, Code } from 'lucide-react';
+import { CheckCircle, Play, Lightbulb, BookOpen, Code, Circle } from 'lucide-react';
 import { LessonStep } from '@/lib/lessonContent';
 
 interface InteractiveLessonProps {
