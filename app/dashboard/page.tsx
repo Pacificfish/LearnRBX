@@ -1,12 +1,6 @@
 import { redirect } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProgressBar } from '@/components/ProgressBar';
-import { Badge } from '@/components/ui/badge';
 import { createServerSupabaseClient, getUser } from '@/lib/supabase/server';
-import { calculateXP, calculateStreak, getBadges } from '@/lib/utils';
-import { Flame, Zap, Trophy, BookOpen } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import Dashboard from '@/components/Dashboard';
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -17,137 +11,124 @@ export default async function DashboardPage() {
 
   const supabase = await createServerSupabaseClient();
 
-  // Fetch user progress
+  // Fetch initial dashboard data
   const { data: progress } = await supabase
     .from('progress')
     .select('*, lessons:lesson_id(*)')
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false });
 
+  const { data: chatSessions } = await supabase
+    .from('chat_sessions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false })
+    .limit(5);
+
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('status, created_at')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .single();
+
+  const { data: tracks } = await supabase
+    .from('tracks')
+    .select(`
+      *,
+      modules:tracks_modules(
+        *,
+        lessons:modules_lessons(*)
+      )
+    `)
+    .order('index_in_curriculum');
+
+  // Calculate initial stats
   const completedLessons = progress?.filter((p) => p.completed).length || 0;
   const totalAttempts = progress?.reduce((sum, p) => sum + p.attempts, 0) || 0;
-  const xp = calculateXP(completedLessons);
+  const totalChatSessions = chatSessions?.length || 0;
 
   // Calculate streak
   const progressDates = progress?.map((p) => new Date(p.updated_at)) || [];
   const streak = calculateStreak(progressDates);
 
-  // Get badges
-  const badges = getBadges({ completedLessons, streak, xp });
-  const earnedBadges = badges.filter((b) => b.earned);
+  // Get recent activity
+  const recentActivity = [];
+  
+  const recentLessons = progress?.slice(0, 3).map(p => ({
+    type: 'lesson' as const,
+    title: p.lessons?.title || 'Unknown Lesson',
+    completed: p.completed,
+    timestamp: p.updated_at,
+    xp: p.completed ? 10 : 0
+  })) || [];
 
-  // Get last active lesson
-  const lastProgress = progress?.[0];
+  const recentChats = chatSessions?.slice(0, 2).map(session => ({
+    type: 'chat' as const,
+    title: session.title,
+    timestamp: session.updated_at,
+    xp: 0
+  })) || [];
 
-  return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground text-lg">Track your learning progress</p>
-        </div>
+  recentActivity.push(...recentLessons, ...recentChats);
+  recentActivity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>XP Earned</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-500" />
-                <div className="text-3xl font-bold">{xp}</div>
-              </div>
-            </CardContent>
-          </Card>
+  // Get track progress
+  const trackProgress = tracks?.map(track => {
+    const trackLessons = track.modules?.flatMap(module => module.lessons || []) || [];
+    const completedTrackLessons = progress?.filter(p => 
+      p.completed && trackLessons.some(lesson => lesson.id === p.lesson_id)
+    ).length || 0;
+    
+    return {
+      id: track.id,
+      title: track.title,
+      description: track.description,
+      totalLessons: trackLessons.length,
+      completedLessons: completedTrackLessons,
+      progress: trackLessons.length > 0 ? (completedTrackLessons / trackLessons.length) * 100 : 0
+    };
+  }) || [];
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Day Streak</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-orange-500" />
-                <div className="text-3xl font-bold">{streak}</div>
-              </div>
-            </CardContent>
-          </Card>
+  const initialStats = {
+    completedLessons,
+    totalAttempts,
+    totalChatSessions,
+    totalMessages: totalAttempts,
+    streak,
+    xp: completedLessons * 10,
+    isPro: !!subscription,
+    recentActivity: recentActivity.slice(0, 5),
+    trackProgress
+  };
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Completed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-green-500" />
-                <div className="text-3xl font-bold">{completedLessons}</div>
-              </div>
-            </CardContent>
-          </Card>
+  return <Dashboard initialStats={initialStats} />;
+}
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Attempts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-blue-500" />
-                <div className="text-3xl font-bold">{totalAttempts}</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+function calculateStreak(progressDates: Date[]): number {
+  if (progressDates.length === 0) return 0;
 
-        {/* Progress Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Learning Progress</CardTitle>
-            <CardDescription>Your completion status across all tracks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ProgressBar current={completedLessons} total={50} label="Overall Progress" />
-            {lastProgress && (
-              <div className="pt-4 border-t">
-                <div className="text-sm text-muted-foreground mb-3">Continue where you left off:</div>
-                <Link href="/learn">
-                  <Button>Resume Learning</Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+  const sortedDates = progressDates
+    .map((d) => new Date(d).setHours(0, 0, 0, 0))
+    .sort((a, b) => b - a);
 
-        {/* Badges Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Badges</CardTitle>
-            <CardDescription>
-              Earned {earnedBadges.length} of {badges.length} badges
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {badges.map((badge) => (
-                <div
-                  key={badge.id}
-                  className={`p-4 rounded-lg border text-center ${
-                    badge.earned ? 'bg-yellow-50 border-yellow-200' : 'bg-slate-50 opacity-50'
-                  }`}
-                >
-                  <div className="text-4xl mb-2">{badge.icon}</div>
-                  <div className="font-semibold text-sm mb-1">{badge.name}</div>
-                  <div className="text-xs text-muted-foreground">{badge.description}</div>
-                  {badge.earned && (
-                    <Badge variant="secondary" className="mt-2">
-                      Earned
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  let streak = 1;
+  const today = new Date().setHours(0, 0, 0, 0);
+  
+  const mostRecent = sortedDates[0];
+  const dayDiff = Math.floor((today - mostRecent) / (1000 * 60 * 60 * 24));
+  
+  if (dayDiff > 1) return 0;
+  
+  for (let i = 1; i < sortedDates.length; i++) {
+    const diff = (sortedDates[i - 1] - sortedDates[i]) / (1000 * 60 * 60 * 24);
+    if (diff <= 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
 }
 

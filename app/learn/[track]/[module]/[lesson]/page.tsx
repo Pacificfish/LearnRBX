@@ -151,15 +151,31 @@ export default function LessonPage() {
       const results = await runAllTests(code, challenge);
       setTests(results.results);
 
-      if (!results.allPassed) {
-        setAttempts((prev) => prev + 1);
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      // Track progress
+      if (lessonContent?.lessonId) {
+        try {
+          await fetch('/api/progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lessonId: lessonContent.lessonId,
+              completed: results.allPassed,
+              attempts: newAttempts
+            })
+          });
+        } catch (error) {
+          console.error('Failed to track progress:', error);
+        }
       }
     } catch (error: any) {
       setErrors([error.message]);
     } finally {
       setIsRunning(false);
     }
-  }, [code, challenge]);
+  }, [code, challenge, attempts, lessonContent?.lessonId]);
 
   // Listen for keyboard shortcut
   useEffect(() => {
