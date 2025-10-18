@@ -44,6 +44,18 @@ export default function LessonPage() {
       const moduleId = params.module as string;
       const lessonSlug = params.lesson as string;
 
+      // Get module information to check if we should hide the editor
+      const { data: moduleInfo } = await supabase
+        .from('modules')
+        .select('title')
+        .eq('id', moduleId)
+        .single();
+
+      // Hide editor for Roblox Studio Fundamentals module
+      if (moduleInfo?.title === 'Roblox Studio Fundamentals') {
+        setShouldHideEditor(true);
+      }
+
       // Get all lessons in the same module, sorted by index
       const { data: moduleLessons } = await supabase
         .from('lessons')
@@ -114,10 +126,8 @@ export default function LessonPage() {
 
         setChallenge(sampleChallenge);
         
-        // For Roblox Studio Fundamentals (core-luau track), always allow progression
-        const trackSlug = params.track as string;
-        const shouldBypassTasks = trackSlug === 'core-luau';
-        if (shouldBypassTasks) {
+        // For Roblox Studio Fundamentals module, always allow progression
+        if (shouldHideEditor) {
           setTaskCompleted(true);
         }
         
@@ -164,10 +174,8 @@ export default function LessonPage() {
       setTests(results.results);
 
       // Update task completion status based on test results
-      // For Roblox Studio Fundamentals (core-luau track), always allow progression
-      const trackSlug = params.track as string;
-      const shouldBypassTasks = trackSlug === 'core-luau';
-      setTaskCompleted(shouldBypassTasks || results.allPassed);
+      // For Roblox Studio Fundamentals module, always allow progression
+      setTaskCompleted(shouldHideEditor || results.allPassed);
 
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -190,14 +198,12 @@ export default function LessonPage() {
       }
     } catch (error: any) {
       setErrors([error.message]);
-      // For Roblox Studio Fundamentals (core-luau track), always allow progression even with errors
-      const trackSlug = params.track as string;
-      const shouldBypassTasks = trackSlug === 'core-luau';
-      setTaskCompleted(shouldBypassTasks);
+      // For Roblox Studio Fundamentals module, always allow progression even with errors
+      setTaskCompleted(shouldHideEditor);
     } finally {
       setIsRunning(false);
     }
-  }, [code, challenge, attempts, lessonContent?.lessonId]);
+  }, [code, challenge, attempts, lessonContent?.lessonId, shouldHideEditor]);
 
   // Listen for keyboard shortcut
   useEffect(() => {
@@ -243,9 +249,8 @@ export default function LessonPage() {
     return <SubscriptionGate />;
   }
 
-  // Check if we should hide the code editor and console for core-luau track
-  const trackSlug = params.track as string;
-  const shouldHideEditor = trackSlug === 'core-luau';
+  // Check if we should hide the code editor and console for Roblox Studio Fundamentals module
+  const [shouldHideEditor, setShouldHideEditor] = useState(false);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-slate-50 to-blue-50">
