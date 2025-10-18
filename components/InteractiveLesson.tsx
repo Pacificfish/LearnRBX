@@ -233,25 +233,45 @@ export function InteractiveLesson({ steps, onStepComplete, onLessonComplete }: I
               </div>
 
               {/* Run Button */}
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={runCode}
-                  disabled={isRunning || !code.trim()}
-                  className="flex items-center space-x-2"
-                >
-                  <Play className="w-4 h-4" />
-                  <span>{isRunning ? 'Running...' : 'Run Code'}</span>
-                </Button>
-
-                {currentStep.hint && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
                   <Button
-                    variant="outline"
-                    onClick={() => setShowHint(!showHint)}
-                    className="flex items-center space-x-2"
+                    onClick={runCode}
+                    disabled={isRunning || !code.trim()}
+                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+                    size="lg"
                   >
-                    <Lightbulb className="w-4 h-4" />
-                    <span>Hint</span>
+                    <Play className="w-4 h-4" />
+                    <span>{isRunning ? 'Running...' : 'Run Code'}</span>
                   </Button>
+
+                  {currentStep.hint && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowHint(!showHint)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      <span>Hint</span>
+                    </Button>
+                  )}
+                </div>
+
+                {/* Step Completion Status */}
+                {currentStep.testType && (
+                  <div className="flex items-center space-x-2">
+                    {completedSteps.has(currentStep.id) ? (
+                      <div className="flex items-center space-x-1 text-green-600">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="text-sm font-medium">Step Complete!</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-1 text-gray-500">
+                        <Circle className="w-5 h-5" />
+                        <span className="text-sm">Complete this step to continue</span>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -283,30 +303,51 @@ export function InteractiveLesson({ steps, onStepComplete, onLessonComplete }: I
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex justify-between pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStepIndex === 0}
-            >
-              Previous
-            </Button>
+          {/* Step Progress Indicator */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${completedSteps.has(currentStep.id) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <span className="text-sm font-medium text-gray-700">
+                  Step {currentStepIndex + 1} of {steps.length}
+                </span>
+                {completedSteps.has(currentStep.id) && (
+                  <span className="text-xs text-green-600 font-medium">✓ Completed</span>
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={prevStep}
+                  disabled={currentStepIndex === 0}
+                >
+                  Previous
+                </Button>
 
-            {!isLastStep && (
-              <Button
-                onClick={nextStep}
-                disabled={!completedSteps.has(currentStep.id)}
-              >
-                Next Step
-              </Button>
-            )}
+                {!isLastStep && (
+                  <Button
+                    size="sm"
+                    onClick={nextStep}
+                    disabled={!completedSteps.has(currentStep.id)}
+                    className={completedSteps.has(currentStep.id) ? 'bg-green-600 hover:bg-green-700' : ''}
+                  >
+                    {completedSteps.has(currentStep.id) ? 'Next Step ✓' : 'Complete Step First'}
+                  </Button>
+                )}
 
-            {isLastStep && allStepsCompleted && (
-              <Button onClick={onLessonComplete} className="bg-green-600 hover:bg-green-700">
-                Complete Lesson
-              </Button>
-            )}
+                {isLastStep && allStepsCompleted && (
+                  <Button 
+                    onClick={onLessonComplete} 
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Complete Lesson ✓
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
