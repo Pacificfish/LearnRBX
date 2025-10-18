@@ -48,12 +48,15 @@ BEGIN
 
   -- Insert lessons for Luau Scripting Basics module
   INSERT INTO public.lessons (module_id, slug, title, mdx_path, challenge_json_path, index_in_module) VALUES
-    (module_basics_id, 'variables-and-printing', 'Variables & Roblox Output', '/content/lessons/variables-and-printing.mdx', '/content/challenges/variables-and-printing.json', 1),
-    (module_basics_id, 'tables-and-loops', 'Tables & Loops for Game Data', '/content/lessons/tables-and-loops.mdx', '/content/challenges/tables-and-loops.json', 2),
-    (module_basics_id, 'functions-and-scope', 'Functions for Game Logic', '/content/lessons/functions-and-scope.mdx', '/content/challenges/functions-and-scope.json', 3),
-    (module_basics_id, 'conditionals-and-logic', 'Conditionals & Game Logic', '/content/lessons/conditionals-and-logic.mdx', '/content/challenges/conditionals-and-logic.json', 4),
-    (module_basics_id, 'math-and-operators', 'Math & Operators in Roblox', '/content/lessons/math-and-operators.mdx', '/content/challenges/math-and-operators.json', 5),
-    (module_basics_id, 'string-manipulation', 'String Manipulation & Text', '/content/lessons/string-manipulation.mdx', '/content/challenges/string-manipulation.json', 6)
+    (module_basics_id, 'hello-world', 'Hello World - Your First Script', '/content/lessons/hello-world.mdx', '/content/challenges/hello-world.json', 1),
+    (module_basics_id, 'data-types', 'Data Types in Luau', '/content/lessons/data-types.mdx', '/content/challenges/data-types.json', 2),
+    (module_basics_id, 'basic-operators', 'Basic Operators & Math', '/content/lessons/basic-operators.mdx', '/content/challenges/basic-operators.json', 3),
+    (module_basics_id, 'variables-and-printing', 'Variables & Roblox Output', '/content/lessons/variables-and-printing.mdx', '/content/challenges/variables-and-printing.json', 4),
+    (module_basics_id, 'tables-and-loops', 'Tables & Loops for Game Data', '/content/lessons/tables-and-loops.mdx', '/content/challenges/tables-and-loops.json', 5),
+    (module_basics_id, 'functions-and-scope', 'Functions for Game Logic', '/content/lessons/functions-and-scope.mdx', '/content/challenges/functions-and-scope.json', 6),
+    (module_basics_id, 'conditionals-and-logic', 'Conditionals & Game Logic', '/content/lessons/conditionals-and-logic.mdx', '/content/challenges/conditionals-and-logic.json', 7),
+    (module_basics_id, 'math-and-operators', 'Math & Operators in Roblox', '/content/lessons/math-and-operators.mdx', '/content/challenges/math-and-operators.json', 8),
+    (module_basics_id, 'string-manipulation', 'String Manipulation & Text', '/content/lessons/string-manipulation.mdx', '/content/challenges/string-manipulation.json', 9)
   ON CONFLICT (module_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     mdx_path = EXCLUDED.mdx_path,

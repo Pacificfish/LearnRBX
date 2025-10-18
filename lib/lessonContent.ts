@@ -34,6 +34,207 @@ export interface LessonContent {
 }
 
 export const lessonContentMap: Record<string, LessonContent> = {
+  'hello-world': {
+    title: 'Hello World - Your First Script',
+    description: 'Learn how to write your very first Roblox script and see it work in the Output window',
+    sections: [
+      {
+        title: 'What is a Script?',
+        content: 'A script is a set of instructions that tells Roblox what to do. In Roblox Studio, scripts are written in Luau (a version of Lua) and can control game behavior, create objects, and respond to player actions.',
+        codeExample: '-- This is a comment in Luau\n-- Comments help explain what your code does',
+        color: 'blue'
+      },
+      {
+        title: 'The print() Function',
+        content: 'The `print()` function displays text in Roblox Studio\'s Output window. This is how you can see what your script is doing and debug problems. Every script you write will likely use print() to show information.',
+        codeExample: 'print("Hello, Roblox!")\nprint("This is my first script!")',
+        color: 'green'
+      },
+      {
+        title: 'Running Your Script',
+        content: 'To run a script in Roblox Studio, place it in the ServerScriptService (for server scripts) or StarterPlayerScripts (for client scripts), then press the Play button. Check the Output window to see your print statements!',
+        codeExample: 'print("Script is running!")\nprint("Welcome to Roblox scripting!")',
+        color: 'purple'
+      }
+    ],
+    learningTask: {
+      title: 'Write Your First Script',
+      description: 'Create a simple script that prints messages to introduce yourself to Roblox scripting.',
+      instructions: [
+        'Print a message saying "Hello, Roblox!"',
+        'Print a message with your name (replace "YourName" with your actual name)',
+        'Print a message saying "I am learning to script!"',
+        'Print one more message of your choice'
+      ],
+      starterCode: `-- Your first Roblox script!
+-- Follow the instructions above to complete this task
+
+`,
+      tests: [
+        { description: 'Print "Hello, Roblox!" message', type: 'output_contains', value: 'Hello, Roblox!' },
+        { description: 'Print a message with your name', type: 'output_contains', value: 'YourName' },
+        { description: 'Print "I am learning to script!" message', type: 'output_contains', value: 'I am learning to script!' },
+        { description: 'Have at least 4 print statements', type: 'code_contains', value: 'print(' }
+      ],
+      hints: [
+        'Use print("your message here") to display text',
+        'Replace "YourName" with your actual name in quotes',
+        'Each print statement should be on its own line',
+        'Don\'t forget the quotes around your text messages'
+      ],
+      successMessage: 'Congratulations! You\'ve written your first Roblox script! You\'re now officially a Roblox scripter! 🎉'
+    },
+    challenge: {
+      tests: [
+        { description: 'Print "Hello, Roblox!" message', type: 'output_contains', value: 'Hello, Roblox!' },
+        { description: 'Have at least 2 print statements', type: 'code_contains', value: 'print(' }
+      ],
+      hints: ['Use print("your message here") to display text', 'Don\'t forget the quotes around your text messages'],
+      successMessage: 'Great job! You understand how to use the print function.'
+    }
+  },
+
+  'data-types': {
+    title: 'Data Types in Luau',
+    description: 'Learn about the different types of data you can work with in Luau: numbers, strings, booleans, and more',
+    sections: [
+      {
+        title: 'Numbers',
+        content: 'Numbers in Luau can be whole numbers (integers) or decimal numbers (floats). You can use numbers for math, counting, and storing values like player health or score.',
+        codeExample: 'local age = 15\nlocal height = 5.8\nlocal score = 1000',
+        color: 'blue'
+      },
+      {
+        title: 'Strings',
+        content: 'Strings are text data enclosed in quotes. You can use single quotes (\') or double quotes ("). Strings are used for names, messages, and any text in your game.',
+        codeExample: 'local playerName = "Alex"\nlocal message = \'Welcome to the game!\'\nlocal item = "Sword"',
+        color: 'green'
+      },
+      {
+        title: 'Booleans',
+        content: 'Booleans are true or false values. They\'re perfect for tracking game states like whether a player is alive, if a door is open, or if a power-up is active.',
+        codeExample: 'local isAlive = true\nlocal doorOpen = false\nlocal hasWeapon = true',
+        color: 'purple'
+      },
+      {
+        title: 'nil',
+        content: 'nil represents "nothing" or "no value". It\'s what variables have before you assign them a value, and it\'s useful for clearing data.',
+        codeExample: 'local emptyVariable = nil\nlocal clearedData = nil',
+        color: 'orange'
+      }
+    ],
+    learningTask: {
+      title: 'Create Different Data Types',
+      description: 'Practice creating variables with different data types to understand how Luau handles various kinds of information.',
+      instructions: [
+        'Create a number variable called `playerLevel` and set it to 5',
+        'Create a string variable called `playerName` and set it to your name',
+        'Create a boolean variable called `isOnline` and set it to true',
+        'Create a number variable called `playerScore` and set it to 1250.5',
+        'Print all four variables to see their values'
+      ],
+      starterCode: `-- Practice with different data types
+-- Follow the instructions above to complete this task
+
+`,
+      tests: [
+        { description: 'Create a number variable called playerLevel', type: 'variable_exists', value: 'playerLevel' },
+        { description: 'Create a string variable called playerName', type: 'variable_exists', value: 'playerName' },
+        { description: 'Create a boolean variable called isOnline', type: 'variable_exists', value: 'isOnline' },
+        { description: 'Create a number variable called playerScore', type: 'variable_exists', value: 'playerScore' },
+        { description: 'Print all variables', type: 'code_contains', value: 'print(' }
+      ],
+      hints: [
+        'Use local variableName = value to create variables',
+        'Numbers don\'t need quotes: local level = 5',
+        'Strings need quotes: local name = "Alex"',
+        'Booleans are just true or false: local online = true',
+        'Use print(variableName) to display variable values'
+      ],
+      successMessage: 'Excellent! You now understand the basic data types in Luau. This foundation will help you build amazing Roblox games!'
+    },
+    challenge: {
+      tests: [
+        { description: 'Create a number variable', type: 'code_contains', value: 'local' },
+        { description: 'Create a string variable', type: 'code_contains', value: '"' },
+        { description: 'Create a boolean variable', type: 'code_contains', value: 'true' }
+      ],
+      hints: ['Numbers: local age = 15', 'Strings: local name = "Alex"', 'Booleans: local active = true'],
+      successMessage: 'Great! You understand the basic data types in Luau.'
+    }
+  },
+
+  'basic-operators': {
+    title: 'Basic Operators & Math',
+    description: 'Learn how to perform calculations and comparisons in Luau using arithmetic, comparison, and logical operators',
+    sections: [
+      {
+        title: 'Arithmetic Operators',
+        content: 'Use arithmetic operators to perform math calculations. Luau supports addition (+), subtraction (-), multiplication (*), division (/), and more. These are essential for game mechanics like scoring, health, and movement.',
+        codeExample: 'local sum = 5 + 3        -- 8\nlocal difference = 10 - 4   -- 6\nlocal product = 6 * 7       -- 42\nlocal quotient = 15 / 3     -- 5',
+        color: 'blue'
+      },
+      {
+        title: 'Comparison Operators',
+        content: 'Comparison operators let you compare values and get true or false results. Use these to check if players have enough coins, if health is above zero, or if scores are equal.',
+        codeExample: 'local isGreater = 10 > 5     -- true\nlocal isEqual = 7 == 7      -- true\nlocal isNotEqual = 3 ~= 5   -- true\nlocal isLess = 2 < 8        -- true',
+        color: 'green'
+      },
+      {
+        title: 'Logical Operators',
+        content: 'Logical operators combine boolean values. Use `and` when both conditions must be true, `or` when either condition can be true, and `not` to reverse a boolean value.',
+        codeExample: 'local bothTrue = true and true    -- true\nlocal eitherTrue = true or false  -- true\nlocal reversed = not true         -- false',
+        color: 'purple'
+      },
+      {
+        title: 'String Concatenation',
+        content: 'Use the `..` operator to join strings together. This is called concatenation and is useful for creating messages, displaying player names with scores, and building dynamic text.',
+        codeExample: 'local greeting = "Hello" .. " " .. "World"  -- "Hello World"\nlocal message = "Player: " .. playerName',
+        color: 'orange'
+      }
+    ],
+    learningTask: {
+      title: 'Practice with Operators',
+      description: 'Create a script that demonstrates different types of operators and calculations for game mechanics.',
+      instructions: [
+        'Create variables for player health (100) and damage taken (25)',
+        'Calculate remaining health using subtraction',
+        'Create variables for player coins (50) and item cost (15)',
+        'Check if player has enough coins using comparison (>=)',
+        'Create a boolean variable for whether player can afford the item',
+        'Print the results of your calculations'
+      ],
+      starterCode: `-- Practice with operators
+-- Follow the instructions above to complete this task
+
+`,
+      tests: [
+        { description: 'Create health and damage variables', type: 'variable_exists', value: 'health' },
+        { description: 'Calculate remaining health', type: 'code_contains', value: '-' },
+        { description: 'Create coins and cost variables', type: 'variable_exists', value: 'coins' },
+        { description: 'Use comparison operator (>=)', type: 'code_contains', value: '>=' },
+        { description: 'Print calculation results', type: 'code_contains', value: 'print(' }
+      ],
+      hints: [
+        'Use local health = 100 and local damage = 25',
+        'Calculate: local remainingHealth = health - damage',
+        'Use local coins = 50 and local cost = 15',
+        'Check: local canAfford = coins >= cost',
+        'Print your results: print("Remaining health:", remainingHealth)'
+      ],
+      successMessage: 'Fantastic! You\'ve mastered the basic operators in Luau. These skills are essential for creating game logic and calculations!'
+    },
+    challenge: {
+      tests: [
+        { description: 'Use arithmetic operators', type: 'code_contains', value: '+' },
+        { description: 'Use comparison operators', type: 'code_contains', value: '==' },
+        { description: 'Use string concatenation', type: 'code_contains', value: '..' }
+      ],
+      hints: ['Arithmetic: +, -, *, /', 'Comparison: ==, ~=, >, <, >=, <=', 'Concatenation: "Hello" .. "World"'],
+      successMessage: 'Excellent! You understand how to use operators in Luau.'
+    }
+  },
+
   'variables-and-printing': {
     title: 'Variables & Roblox Output',
     description: 'Learn how to create variables and use Roblox Studio\'s Output window for debugging',
