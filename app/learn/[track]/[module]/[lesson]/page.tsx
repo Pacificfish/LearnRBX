@@ -152,11 +152,11 @@ export default function LessonPage() {
       setOutput(codeExecution.output);
       setErrors(codeExecution.errors);
 
-      // Then run tests for validation
+      // Run tests for validation (but don't display them)
       const results = await runAllTests(code, challenge);
       setTests(results.results);
 
-      // Update task completion status
+      // Update task completion status based on test results
       setTaskCompleted(results.allPassed);
 
       const newAttempts = attempts + 1;
@@ -180,6 +180,7 @@ export default function LessonPage() {
       }
     } catch (error: any) {
       setErrors([error.message]);
+      setTaskCompleted(false);
     } finally {
       setIsRunning(false);
     }
@@ -450,6 +451,27 @@ export default function LessonPage() {
                       <span className="font-medium">Auto-save enabled</span>
                     </div>
                   </div>
+                  
+                  {/* Run Code Button */}
+                  <div className="mt-6 flex justify-center">
+                    <Button 
+                      onClick={handleRun} 
+                      disabled={isRunning}
+                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    >
+                      {isRunning ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Running...
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-lg mr-2">▶️</span>
+                          Run Code
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -462,22 +484,6 @@ export default function LessonPage() {
               </div>
             </div>
 
-            {/* Tests Section */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                {challenge && (
-                  <TestRunnerPanel
-                    tests={tests}
-                    hints={challenge.hints}
-                    failedAttempts={attempts}
-                    onRun={handleRun}
-                    isRunning={isRunning}
-                    successMessage={tests.every((t) => t.passed) ? challenge.successMessage : undefined}
-                  />
-                )}
-              </div>
-            </div>
           </div>
 
           <div className="border-t border-slate-200/50 bg-gradient-to-r from-slate-50/80 to-white/80 backdrop-blur-sm p-8">
