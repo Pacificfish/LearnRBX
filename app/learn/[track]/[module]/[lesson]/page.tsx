@@ -114,15 +114,15 @@ export default function LessonPage() {
         const challengeSource = content.learningTask || content.challenge;
         const sampleChallenge: Challenge = {
           starterCode: starterCode,
-          tests: challengeSource.tests.map((test: any, index: number) => ({
+          tests: challengeSource?.tests?.map((test: any, index: number) => ({
             id: index.toString(),
             type: 'static',
             assert: test.type,
             value: test.value,
             description: test.description,
-          })),
-          hints: challengeSource.hints,
-          successMessage: challengeSource.successMessage,
+          })) || [],
+          hints: challengeSource?.hints || [],
+          successMessage: challengeSource?.successMessage || 'No challenge available',
         };
 
         setChallenge(sampleChallenge);
