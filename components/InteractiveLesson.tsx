@@ -58,7 +58,11 @@ export function InteractiveLesson({ steps, onStepComplete, onLessonComplete }: I
       
       // Check if step is completed
       if (currentStep && isStepCompleted(currentStep, code, output)) {
-        setCompletedSteps(prev => new Set([...prev, currentStep.id]));
+        setCompletedSteps(prev => {
+          const newSet = new Set(prev);
+          newSet.add(currentStep.id);
+          return newSet;
+        });
         onStepComplete(currentStep.id);
         
         // Auto-advance to next step after a short delay
