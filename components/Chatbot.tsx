@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 interface Message {
@@ -31,16 +31,48 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showScrollHint, setShowScrollHint] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Also scroll to bottom when loading state changes
+  useEffect(() => {
+    if (!isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
+
+  // Handle scroll detection
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+
+    const handleScroll = () => {
+      const scrollContainer = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+        setShowScrollHint(!isNearBottom && messages.length > 3);
+      }
+    };
+
+    const scrollContainer = scrollArea.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [messages.length]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -162,9 +194,9 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
   }
 
   return (
-    <div className="flex flex-col h-full max-h-[600px]">
-      <Card className="flex-1 flex flex-col">
-        <CardHeader className="pb-3">
+    <div className="flex flex-col h-full min-h-[500px] max-h-[80vh]">
+      <Card className="flex-1 flex flex-col overflow-hidden">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-purple-600" />
@@ -181,9 +213,9 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 px-6">
-            <div className="space-y-4 pb-4">
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden relative">
+          <ScrollArea className="flex-1 px-6" ref={scrollAreaRef}>
+            <div className="space-y-4 pb-4 min-h-full">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -240,7 +272,19 @@ export default function Chatbot({ isProUser }: ChatbotProps) {
             </div>
           </ScrollArea>
           
-          <div className="border-t p-4">
+          {/* Scroll to bottom button */}
+          {showScrollHint && (
+            <Button
+              onClick={scrollToBottom}
+              size="sm"
+              className="absolute bottom-20 right-6 bg-purple-600 hover:bg-purple-700 text-white shadow-lg z-10"
+            >
+              <ChevronDown className="w-4 h-4 mr-1" />
+              Scroll to bottom
+            </Button>
+          )}
+          
+          <div className="border-t p-4 flex-shrink-0 bg-white">
             <div className="flex gap-2">
               <Input
                 ref={inputRef}
