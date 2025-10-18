@@ -278,7 +278,6 @@ export function InteractiveLesson({ steps, onStepComplete, onLessonComplete }: I
                 <ConsolePanel
                   output={output}
                   errors={errors}
-                  isRunning={isRunning}
                 />
               )}
             </div>
