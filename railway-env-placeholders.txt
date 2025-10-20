@@ -1,0 +1,16 @@
+# Railway Environment Variables - Placeholder Version
+# Copy these to your Railway project's Variables section
+# Replace the placeholder values with real ones when ready
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://your-app-name.railway.app
+NODE_ENV=production
+
+# Stripe Configuration (Placeholders - Set up later)
+STRIPE_SECRET_KEY=sk_live_placeholder_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_placeholder_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_placeholder_webhook_secret
+STRIPE_PRICE_ID_MONTHLY=price_placeholder_monthly_price_id
+
+# Database Configuration (Railway will provide this automatically)
+# DATABASE_URL=postgresql://username:password@host:port/database

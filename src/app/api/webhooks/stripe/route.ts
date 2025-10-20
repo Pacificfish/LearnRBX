@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { stripe, isStripeEnabled } from '@/lib/stripe';
 import { supabase } from '@/lib/supabase';
 import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
+  // Check if Stripe is configured
+  if (!isStripeEnabled || !stripe) {
+    return NextResponse.json({ 
+      error: 'Stripe not configured' 
+    }, { status: 503 });
+  }
+
   const body = await request.text();
   const signature = request.headers.get('stripe-signature')!;
 
