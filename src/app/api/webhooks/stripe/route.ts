@@ -102,14 +102,14 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  if (invoice.subscription && stripe) {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
     await handleSubscriptionChange(subscription);
   }
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  if (invoice.subscription && stripe) {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
     await handleSubscriptionChange(subscription);
   }

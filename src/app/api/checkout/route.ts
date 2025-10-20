@@ -29,6 +29,10 @@ export async function POST(request: NextRequest) {
     if (subscription?.stripe_customer_id) {
       customerId = subscription.stripe_customer_id;
     } else {
+      if (!stripe) {
+        throw new Error('Stripe not configured');
+      }
+      
       const customer = await stripe.customers.create({
         email,
         metadata: {
@@ -47,6 +51,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create checkout session
+    if (!stripe) {
+      throw new Error('Stripe not configured');
+    }
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
