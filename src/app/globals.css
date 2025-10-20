@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom styles for the lesson interface */
+.lesson-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.lesson-sidebar {
+  width: 33.333333%;
+  border-right: 1px solid hsl(var(--border));
+}
+
+.lesson-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-console {
+  width: 33.333333%;
+  border-left: 1px solid hsl(var(--border));
+}
+
+/* Monaco Editor customizations */
+.monaco-editor {
+  border-radius: 0.5rem;
+}
+
+.monaco-editor .margin {
+  background-color: hsl(var(--muted));
+}
+
+/* Code syntax highlighting */
+.code-block {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto;
+}
+
+.code-block .keyword {
+  @apply text-blue-400;
+}
+
+.code-block .string {
+  @apply text-green-400;
+}
+
+.code-block .number {
+  @apply text-yellow-400;
+}
+
+.code-block .comment {
+  @apply text-gray-500;
+}
+
+/* Progress indicators */
+.progress-step {
+  @apply flex items-center gap-3 p-3 rounded-lg transition-colors;
+}
+
+.progress-step.active {
+  @apply bg-blue-50 border border-blue-200;
+}
+
+.progress-step.completed {
+  @apply bg-green-50;
+}
+
+.progress-step.locked {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Test results */
+.test-result {
+  @apply flex items-center gap-2 p-2 rounded;
+}
+
+.test-result.passed {
+  @apply bg-green-50 text-green-800;
+}
+
+.test-result.failed {
+  @apply bg-red-50 text-red-800;
+}
+
+/* Console output */
+.console-output {
+  @apply bg-black text-green-400 font-mono text-sm p-4 rounded;
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .lesson-container {
+    flex-direction: column;
+  }
+  
+  .lesson-sidebar,
+  .lesson-main,
+  .lesson-console {
+    width: 100%;
+    height: auto;
+  }
+  
+  .lesson-sidebar {
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .lesson-console {
+    border-left: none;
+    border-top: 1px solid hsl(var(--border));
+    max-height: 200px;
+  }
+}

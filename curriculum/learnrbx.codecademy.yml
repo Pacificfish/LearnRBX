@@ -1,0 +1,675 @@
+brand: LearnRBX
+version: 1
+tracks:
+  - slug: core-lua
+    title: Core Lua (Free)
+    description: Master the fundamentals of Lua programming language
+    is_premium: false
+    modules:
+      - slug: lua-basics
+        title: Lua Basics
+        index_in_track: 1
+        lessons:
+          - slug: variables-and-print
+            title: Variables & print()
+            duration_min: 10
+            summary: Declare variables and print output in Lua
+            objectives:
+              - Understand variable declaration with local
+              - Learn to use print() function
+              - Practice string concatenation
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Welcome to Lua"
+                mdx: |
+                  ## Variables & print()
+                  
+                  In Lua, use `local` to declare variables and `print()` to show output.
+                  
+                  ```lua
+                  local name = "LearnRBX"
+                  print("Hello from " .. name)
+                  ```
+                  
+                  The `..` operator concatenates strings together.
+              
+              - type: "codeTask"
+                title: "Declare and print"
+                starterCode: |
+                  -- Declare a variable named msg and print it
+                  -- your code here
+                tests:
+                  - { type: static, assert: identifier_exists, value: msg, description: "Defines local variable `msg`" }
+                  - { type: runtime, assert: output_contains, value: "Hello", description: "Output includes 'Hello'" }
+                hints:
+                  - "Use `local msg = \"Hello\"`"
+                  - "Call `print(msg)`"
+                checkpoint: true
+              
+              - type: "quiz"
+                title: "Quick Check"
+                questions:
+                  - { type: mc, prompt: "How do you concatenate strings in Lua?", choices: ["+", "..", "&"], answerIndex: 1, explanation: "`..` concatenates strings in Lua." }
+              
+              - type: "read"
+                title: "Recap"
+                mdx: |
+                  ## Great work! 
+                  
+                  You've learned how to:
+                  - Declare variables with `local`
+                  - Use `print()` to display output
+                  - Concatenate strings with `..`
+
+          - slug: data-types
+            title: Data Types
+            duration_min: 15
+            summary: Learn about numbers, strings, booleans, and nil
+            objectives:
+              - Understand Lua's basic data types
+              - Work with numbers and strings
+              - Use booleans and nil
+            index_in_module: 2
+            steps:
+              - type: "read"
+                title: "Lua Data Types"
+                mdx: |
+                  ## Data Types in Lua
+                  
+                  Lua has 8 basic types:
+                  - **nil** - represents nothing
+                  - **boolean** - true or false
+                  - **number** - integers and floats
+                  - **string** - text
+                  - **function** - executable code
+                  - **userdata** - C data
+                  - **thread** - coroutines
+                  - **table** - arrays and objects
+              
+              - type: "codeTask"
+                title: "Practice with types"
+                starterCode: |
+                  -- Create variables of different types
+                  local myNumber = -- your code here
+                  local myString = -- your code here
+                  local myBoolean = -- your code here
+                  
+                  -- Print them all
+                  print(myNumber)
+                  print(myString)
+                  print(myBoolean)
+                tests:
+                  - { type: runtime, assert: output_contains, value: "42", description: "Number is printed" }
+                  - { type: runtime, assert: output_contains, value: "Hello", description: "String is printed" }
+                  - { type: runtime, assert: output_contains, value: "true", description: "Boolean is printed" }
+                hints:
+                  - "Set myNumber to 42"
+                  - "Set myString to \"Hello\""
+                  - "Set myBoolean to true"
+                checkpoint: true
+              
+              - type: "quiz"
+                title: "Type Knowledge"
+                questions:
+                  - { type: mc, prompt: "What is the default value of an undeclared variable?", choices: ["0", "nil", "false"], answerIndex: 1, explanation: "Undeclared variables have the value nil." }
+
+          - slug: strings-and-numbers
+            title: Strings & Numbers
+            duration_min: 20
+            summary: Manipulate strings and perform mathematical operations
+            objectives:
+              - String manipulation techniques
+              - Basic arithmetic operations
+              - Type conversion
+            index_in_module: 3
+            steps:
+              - type: "read"
+                title: "Working with Strings & Numbers"
+                mdx: |
+                  ## String Operations
+                  
+                  ```lua
+                  local name = "Lua"
+                  local length = #name  -- string length
+                  local upper = string.upper(name)
+                  local lower = string.lower(name)
+                  ```
+                  
+                  ## Math Operations
+                  
+                  ```lua
+                  local a = 10
+                  local b = 3
+                  local sum = a + b
+                  local product = a * b
+                  local division = a / b
+                  ```
+              
+              - type: "codeTask"
+                title: "String and number practice"
+                starterCode: |
+                  local text = "Hello World"
+                  local num1 = 15
+                  local num2 = 5
+                  
+                  -- Calculate the length of text
+                  local length = -- your code here
+                  
+                  -- Calculate sum and product
+                  local sum = -- your code here
+                  local product = -- your code here
+                  
+                  -- Print results
+                  print("Length: " .. length)
+                  print("Sum: " .. sum)
+                  print("Product: " .. product)
+                tests:
+                  - { type: runtime, assert: output_contains, value: "Length: 11", description: "Correct string length" }
+                  - { type: runtime, assert: output_contains, value: "Sum: 20", description: "Correct sum" }
+                  - { type: runtime, assert: output_contains, value: "Product: 75", description: "Correct product" }
+                hints:
+                  - "Use #text for string length"
+                  - "Use + for addition and * for multiplication"
+                checkpoint: true
+
+        module_test:
+          title: "Lua Basics Module Test"
+          questions:
+            - { type: mc, prompt: "What does `local` control in Lua?", choices: ["scope", "type", "immutability"], answerIndex: 0, explanation: "local controls variable scope." }
+            - { type: mc, prompt: "What operator concatenates strings?", choices: ["+", "..", "&"], answerIndex: 1, explanation: ".. concatenates strings in Lua." }
+          codeTasks:
+            - starterCode: "local t = {1,2,3}\n-- print table length"
+              tests:
+                - { type: runtime, assert: output_contains, value: "3" }
+
+      - slug: control-structures
+        title: Control Structures
+        index_in_track: 2
+        lessons:
+          - slug: conditionals
+            title: If Statements
+            duration_min: 15
+            summary: Make decisions with if, elseif, and else
+            objectives:
+              - Use if statements for decision making
+              - Handle multiple conditions with elseif
+              - Understand boolean logic
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Making Decisions"
+                mdx: |
+                  ## If Statements
+                  
+                  ```lua
+                  local age = 18
+                  
+                  if age >= 18 then
+                      print("You are an adult")
+                  elseif age >= 13 then
+                      print("You are a teenager")
+                  else
+                      print("You are a child")
+                  end
+                  ```
+              
+              - type: "codeTask"
+                title: "Age checker"
+                starterCode: |
+                  local age = 25
+                  
+                  -- Write an if statement to check age ranges
+                  -- 0-12: child, 13-17: teenager, 18+: adult
+                  -- your code here
+                tests:
+                  - { type: runtime, assert: output_contains, value: "adult", description: "Correctly identifies adult" }
+                hints:
+                  - "Use if age >= 18 then print('adult')"
+                  - "Add elseif for teenager range"
+                checkpoint: true
+
+          - slug: loops
+            title: Loops
+            duration_min: 20
+            summary: Repeat code with while, for, and repeat loops
+            objectives:
+              - Use while loops for conditional repetition
+              - Use for loops for counting
+              - Understand loop control
+            index_in_module: 2
+            steps:
+              - type: "read"
+                title: "Looping in Lua"
+                mdx: |
+                  ## While Loops
+                  
+                  ```lua
+                  local i = 1
+                  while i <= 5 do
+                      print("Count: " .. i)
+                      i = i + 1
+                  end
+                  ```
+                  
+                  ## For Loops
+                  
+                  ```lua
+                  for i = 1, 5 do
+                      print("Count: " .. i)
+                  end
+                  ```
+              
+              - type: "codeTask"
+                title: "Count to ten"
+                starterCode: |
+                  -- Use a for loop to count from 1 to 10
+                  -- Print each number
+                  -- your code here
+                tests:
+                  - { type: runtime, assert: output_contains, value: "1", description: "Prints 1" }
+                  - { type: runtime, assert: output_contains, value: "10", description: "Prints 10" }
+                hints:
+                  - "Use for i = 1, 10 do"
+                  - "Print i inside the loop"
+                checkpoint: true
+
+      - slug: functions
+        title: Functions
+        index_in_track: 3
+        lessons:
+          - slug: defining-functions
+            title: Defining Functions
+            duration_min: 20
+            summary: Create reusable code blocks with functions
+            objectives:
+              - Define functions with parameters
+              - Return values from functions
+              - Call functions with arguments
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Creating Functions"
+                mdx: |
+                  ## Function Definition
+                  
+                  ```lua
+                  function greet(name)
+                      return "Hello, " .. name .. "!"
+                  end
+                  
+                  local message = greet("Lua")
+                  print(message)  -- Hello, Lua!
+                  ```
+              
+              - type: "codeTask"
+                title: "Create a calculator"
+                starterCode: |
+                  -- Create a function that adds two numbers
+                  function add(a, b)
+                      -- your code here
+                  end
+                  
+                  -- Test the function
+                  local result = add(5, 3)
+                  print("5 + 3 = " .. result)
+                tests:
+                  - { type: runtime, assert: output_contains, value: "8", description: "Correct addition result" }
+                hints:
+                  - "Return a + b"
+                checkpoint: true
+
+  - slug: roblox-fundamentals
+    title: Roblox Studio Fundamentals (Premium)
+    description: Learn the basics of Roblox Studio and scripting
+    is_premium: true
+    modules:
+      - slug: studio-basics
+        title: Studio Basics
+        index_in_track: 1
+        lessons:
+          - slug: instances-and-explorer
+            title: Instances & Explorer
+            duration_min: 25
+            summary: Understand the Instance hierarchy and Explorer
+            objectives:
+              - Navigate the Explorer window
+              - Understand Instance properties
+              - Create and modify Instances
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Instances in Roblox"
+                mdx: |
+                  ## What are Instances?
+                  
+                  Everything in Roblox is an Instance - Parts, Models, Scripts, etc.
+                  
+                  ```lua
+                  -- Create a new Part
+                  local part = Instance.new("Part")
+                  part.Name = "MyPart"
+                  part.Size = Vector3.new(4, 1, 2)
+                  part.Parent = workspace
+                  ```
+              
+              - type: "codeTask"
+                title: "Create your first part"
+                starterCode: |
+                  -- Create a new Part instance
+                  local part = Instance.new("Part")
+                  
+                  -- Set properties
+                  part.Name = "MyFirstPart"
+                  part.Size = Vector3.new(4, 1, 2)
+                  part.Position = Vector3.new(0, 10, 0)
+                  
+                  -- Parent it to workspace
+                  -- your code here
+                tests:
+                  - { type: static, assert: function_exists, value: Instance.new, description: "Uses Instance.new" }
+                  - { type: static, assert: identifier_exists, value: part, description: "Creates part variable" }
+                hints:
+                  - "Use part.Parent = workspace"
+                checkpoint: true
+
+          - slug: services
+            title: Roblox Services
+            duration_min: 20
+            summary: Learn about Roblox's built-in services
+            objectives:
+              - Understand what services are
+              - Access common services
+              - Use service methods
+            index_in_module: 2
+            steps:
+              - type: "read"
+                title: "Roblox Services"
+                mdx: |
+                  ## Services
+                  
+                  Services are built-in modules that provide functionality:
+                  
+                  ```lua
+                  local Players = game:GetService("Players")
+                  local Workspace = game:GetService("Workspace")
+                  local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                  ```
+              
+              - type: "codeTask"
+                title: "Access services"
+                starterCode: |
+                  -- Get the Players service
+                  local Players = -- your code here
+                  
+                  -- Get the Workspace service
+                  local Workspace = -- your code here
+                  
+                  -- Print the current player count
+                  print("Player count: " .. #Players:GetPlayers())
+                tests:
+                  - { type: runtime, assert: output_contains, value: "Player count:", description: "Prints player count" }
+                hints:
+                  - "Use game:GetService('Players')"
+                  - "Use game:GetService('Workspace')"
+                checkpoint: true
+
+        module_test:
+          title: "Studio Basics Module Test"
+          questions:
+            - { type: mc, prompt: "What method creates new Instances?", choices: ["Instance.new", "Instance.create", "Instance.make"], answerIndex: 0, explanation: "Instance.new creates new Instances." }
+          codeTasks:
+            - starterCode: "local part = Instance.new('Part')\npart.Name = 'Test'\n-- parent to workspace"
+              tests:
+                - { type: static, assert: identifier_exists, value: part, description: "Creates part" }
+
+  - slug: advanced-roblox
+    title: Advanced Roblox Scripting (Premium)
+    description: Master advanced Roblox scripting concepts
+    is_premium: true
+    modules:
+      - slug: remote-events
+        title: Remote Events & Functions
+        index_in_track: 1
+        lessons:
+          - slug: remote-events-basics
+            title: Remote Events
+            duration_min: 30
+            summary: Communicate between client and server
+            objectives:
+              - Understand client-server communication
+              - Create RemoteEvents
+              - Fire and connect to events
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Client-Server Communication"
+                mdx: |
+                  ## Remote Events
+                  
+                  RemoteEvents allow client and server scripts to communicate:
+                  
+                  ```lua
+                  -- Server Script
+                  local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                  local remoteEvent = ReplicatedStorage:WaitForChild("MyRemoteEvent")
+                  
+                  remoteEvent.OnServerEvent:Connect(function(player, data)
+                      print(player.Name .. " sent: " .. data)
+                  end)
+                  ```
+              
+              - type: "codeTask"
+                title: "Create a RemoteEvent"
+                starterCode: |
+                  -- Create a RemoteEvent in ReplicatedStorage
+                  local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                  
+                  local remoteEvent = Instance.new("RemoteEvent")
+                  remoteEvent.Name = "MyRemoteEvent"
+                  -- parent it to ReplicatedStorage
+                  -- your code here
+                tests:
+                  - { type: static, assert: identifier_exists, value: remoteEvent, description: "Creates RemoteEvent" }
+                hints:
+                  - "Use remoteEvent.Parent = ReplicatedStorage"
+                checkpoint: true
+
+        module_test:
+          title: "Remote Events Module Test"
+          questions:
+            - { type: mc, prompt: "Where should RemoteEvents be placed?", choices: ["ServerStorage", "ReplicatedStorage", "StarterGui"], answerIndex: 1, explanation: "RemoteEvents should be in ReplicatedStorage." }
+
+  - slug: gameplay-systems
+    title: Gameplay Systems (Premium)
+    description: Build complex gameplay mechanics
+    is_premium: true
+    modules:
+      - slug: player-management
+        title: Player Management
+        index_in_track: 1
+        lessons:
+          - slug: player-events
+            title: Player Events
+            duration_min: 25
+            summary: Handle player joining and leaving
+            objectives:
+              - Use PlayerAdded event
+              - Use PlayerRemoving event
+              - Create player data systems
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Managing Players"
+                mdx: |
+                  ## Player Events
+                  
+                  ```lua
+                  local Players = game:GetService("Players")
+                  
+                  Players.PlayerAdded:Connect(function(player)
+                      print(player.Name .. " joined the game!")
+                  end)
+                  
+                  Players.PlayerRemoving:Connect(function(player)
+                      print(player.Name .. " left the game!")
+                  end)
+                  ```
+              
+              - type: "codeTask"
+                title: "Welcome new players"
+                starterCode: |
+                  local Players = game:GetService("Players")
+                  
+                  -- Connect to PlayerAdded event
+                  Players.PlayerAdded:Connect(function(player)
+                      -- Print a welcome message
+                      -- your code here
+                  end)
+                tests:
+                  - { type: static, assert: function_exists, value: Players.PlayerAdded.Connect, description: "Connects to PlayerAdded" }
+                hints:
+                  - "Use print() with player.Name"
+                checkpoint: true
+
+        module_test:
+          title: "Player Management Module Test"
+          questions:
+            - { type: mc, prompt: "What service manages players?", choices: ["Players", "PlayerService", "UserService"], answerIndex: 0, explanation: "The Players service manages players." }
+
+  - slug: ui-effects
+    title: UI & Effects (Premium)
+    description: Create user interfaces and visual effects
+    is_premium: true
+    modules:
+      - slug: gui-basics
+        title: GUI Basics
+        index_in_track: 1
+        lessons:
+          - slug: screen-guis
+            title: ScreenGuis
+            duration_min: 20
+            summary: Create user interfaces with ScreenGuis
+            objectives:
+              - Create ScreenGuis
+              - Add UI elements
+              - Position and style elements
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Creating GUIs"
+                mdx: |
+                  ## ScreenGuis
+                  
+                  ```lua
+                  local Players = game:GetService("Players")
+                  local player = Players.LocalPlayer
+                  local gui = player:WaitForChild("PlayerGui")
+                  
+                  local screenGui = Instance.new("ScreenGui")
+                  screenGui.Name = "MyGui"
+                  screenGui.Parent = gui
+                  
+                  local frame = Instance.new("Frame")
+                  frame.Size = UDim2.new(0, 200, 0, 100)
+                  frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+                  frame.Parent = screenGui
+                  ```
+              
+              - type: "codeTask"
+                title: "Create a simple GUI"
+                starterCode: |
+                  local Players = game:GetService("Players")
+                  local player = Players.LocalPlayer
+                  local gui = player:WaitForChild("PlayerGui")
+                  
+                  -- Create ScreenGui
+                  local screenGui = Instance.new("ScreenGui")
+                  screenGui.Name = "MyGui"
+                  screenGui.Parent = gui
+                  
+                  -- Create a Frame
+                  local frame = Instance.new("Frame")
+                  frame.Size = UDim2.new(0, 200, 0, 100)
+                  frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+                  frame.Parent = screenGui
+                  
+                  -- Add a TextLabel
+                  local textLabel = Instance.new("TextLabel")
+                  textLabel.Size = UDim2.new(1, 0, 1, 0)
+                  textLabel.Text = "Hello World!"
+                  textLabel.TextColor3 = Color3.new(1, 1, 1)
+                  textLabel.BackgroundTransparency = 1
+                  -- parent to frame
+                  -- your code here
+                tests:
+                  - { type: static, assert: identifier_exists, value: textLabel, description: "Creates TextLabel" }
+                hints:
+                  - "Use textLabel.Parent = frame"
+                checkpoint: true
+
+        module_test:
+          title: "GUI Basics Module Test"
+          questions:
+            - { type: mc, prompt: "Where should ScreenGuis be parented?", choices: ["workspace", "PlayerGui", "StarterGui"], answerIndex: 1, explanation: "ScreenGuis should be parented to PlayerGui." }
+
+  - slug: capstone-projects
+    title: Capstone Projects (Premium)
+    description: Build complete games and systems
+    is_premium: true
+    modules:
+      - slug: coin-collector
+        title: Coin Collector Game
+        index_in_track: 1
+        lessons:
+          - slug: coin-collector-setup
+            title: Game Setup
+            duration_min: 30
+            summary: Set up the basic structure for a coin collector game
+            objectives:
+              - Create game environment
+              - Set up player spawn
+              - Create coin spawning system
+            index_in_module: 1
+            steps:
+              - type: "read"
+                title: "Coin Collector Game"
+                mdx: |
+                  ## Game Overview
+                  
+                  We'll build a coin collector game where players:
+                  - Move around a platform
+                  - Collect coins that spawn randomly
+                  - Track score and high scores
+                  - Compete for the highest score
+              
+              - type: "codeTask"
+                title: "Create the platform"
+                starterCode: |
+                  -- Create a large platform for players to walk on
+                  local platform = Instance.new("Part")
+                  platform.Name = "Platform"
+                  platform.Size = Vector3.new(50, 1, 50)
+                  platform.Position = Vector3.new(0, 0, 0)
+                  platform.Anchored = true
+                  platform.BrickColor = BrickColor.new("Bright blue")
+                  platform.Parent = workspace
+                  
+                  -- Create a spawn point for players
+                  local spawn = Instance.new("SpawnLocation")
+                  spawn.Size = Vector3.new(4, 1, 4)
+                  spawn.Position = Vector3.new(0, 2, 0)
+                  spawn.Anchored = true
+                  spawn.BrickColor = BrickColor.new("Bright green")
+                  spawn.Parent = workspace
+                tests:
+                  - { type: static, assert: identifier_exists, value: platform, description: "Creates platform" }
+                  - { type: static, assert: identifier_exists, value: spawn, description: "Creates spawn point" }
+                hints:
+                  - "Make sure both parts are parented to workspace"
+                checkpoint: true
+
+        module_test:
+          title: "Coin Collector Module Test"
+          questions:
+            - { type: mc, prompt: "What property makes a part stay in place?", choices: ["Anchored", "Fixed", "Static"], answerIndex: 0, explanation: "Anchored keeps a part in place." }
