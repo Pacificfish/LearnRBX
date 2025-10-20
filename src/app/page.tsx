@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CheckCircle, Star, Users, Zap, Code, Gamepad2, Trophy, ArrowRight, Play } from 'lucide-react';
 
 export default function LandingPage() {
+  // Modern professional design with dark theme
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
