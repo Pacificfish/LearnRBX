@@ -44,12 +44,12 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-8">
             <Star className="h-4 w-4 mr-2 text-yellow-400" />
-            Trusted by 10,000+ Roblox developers
+            Trusted by 10,000+ Roblox developers worldwide
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">
             Master Roblox Scripting with{' '}
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Codecademy-Style
+              Interactive
             </span>{' '}
             Lessons
           </h1>
