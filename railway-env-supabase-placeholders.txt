@@ -1,0 +1,20 @@
+# Railway Environment Variables - Supabase + Placeholders
+# Copy these to your Railway project's Variables section
+
+# ✅ Supabase Configuration (You've already added these)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# 🔧 Site Configuration
+NEXT_PUBLIC_SITE_URL=https://your-app-name.railway.app
+NODE_ENV=production
+
+# 💳 Stripe Configuration (Placeholders - Set up later)
+STRIPE_SECRET_KEY=sk_live_placeholder_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_placeholder_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_placeholder_webhook_secret
+STRIPE_PRICE_ID_MONTHLY=price_placeholder_monthly_price_id
+
+# 📊 Optional: Analytics (Placeholders)
+# POSTHOG_KEY=your_posthog_key_placeholder

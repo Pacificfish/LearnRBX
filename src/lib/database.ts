@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Pool } from 'pg';
 
-// Railway PostgreSQL connection
+// Railway PostgreSQL connection (fallback)
 const getDatabaseUrl = () => {
   return process.env.DATABASE_URL || process.env.POSTGRES_URL;
 };
 
-// Supabase configuration (if using Supabase)
+// Supabase configuration (primary)
 const getSupabaseConfig = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
