@@ -47,11 +47,11 @@ export default function LandingPage() {
             Trusted by 10,000+ Roblox developers worldwide
           </div>
           <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Master Roblox Scripting with{' '}
+            🚀 Master Roblox Scripting with{' '}
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Interactive
             </span>{' '}
-            Lessons
+            Lessons 🎮
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Learn Lua and Roblox scripting through interactive, step-by-step lessons. 

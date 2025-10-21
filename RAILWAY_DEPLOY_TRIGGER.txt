@@ -1,0 +1,11 @@
+RAILWAY DEPLOYMENT TRIGGER
+==========================
+
+This file forces Railway to detect changes and redeploy.
+
+Timestamp: $(date)
+Commit: Adding emojis to force Railway deployment
+Purpose: Force Railway to pick up the modern dark theme design
+
+If you see this file, Railway deployment is working.
+If you see the emojis (🚀🎮) in the title, the new design is live.
