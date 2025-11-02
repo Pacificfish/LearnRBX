@@ -209,41 +209,72 @@ export default function Lesson() {
       }
 
       const normalizedSolution = normalizeCode(lesson.solution)
+      const normalizedUserCode = normalizeCode(trimmedCode)
 
-      // Check each line for incomplete assignments
-      const lines = trimmedCode.split('\n')
-      for (const line of lines) {
-        const trimmedLine = line.trim()
-        // Check if line has assignment but no value (ends with = or = followed by only whitespace)
-        if (trimmedLine.match(/local\s+\w+\s*=\s*$/) || trimmedLine.match(/^\s*\w+\s*=\s*$/)) {
+      // For simple print statements, do a direct comparison
+      let isSimpleLesson = normalizedSolution.includes('print(') && !normalizedSolution.includes('=') && !normalizedSolution.includes('local')
+      
+      if (isSimpleLesson) {
+        // Simple print statement lesson - just check if print exists with correct content
+        if (normalizedUserCode.includes('print(') && normalizedUserCode.includes('hello, world')) {
+          // User has print statement - this is correct for basic lessons
+          passed = true
+          // Skip the complex validation below by using an empty else block
+        } else {
           passed = false
-          issues.push('❌ Found incomplete assignments. Make sure to assign values to variables.')
-          break
+          issues.push('❌ Make sure to use print() to display "Hello, World!"')
         }
       }
-
-      // Check for obviously wrong or invalid assignments (like "sdf", random text, undefined)
-      const invalidAssignments = trimmedCode.match(/local\s+\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i) ||
-                                trimmedCode.match(/^\s*\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i)
-      if (invalidAssignments) {
-        passed = false
-        issues.push('❌ Invalid assignment detected. Make sure to use correct values, not placeholders or test values.')
-      }
-
-      // Check each line more carefully for incomplete statements
-      for (const line of lines) {
-        const trimmedLine = line.trim()
-        // Check if assignment operator exists but no valid value follows
-        // Valid values: game, Instance, Vector3, BrickColor, print, function, numbers, strings
-        if (trimmedLine.includes('=') && trimmedLine.match(/=\s*$/) && !trimmedLine.match(/=\s*(game|Instance|Vector3|BrickColor|print|function|\w+\(|\d+|["'])/)) {
-          passed = false
-          if (!issues.some(i => i.includes('incomplete'))) {
-            issues.push('❌ Incomplete statement detected. Check for missing values after assignment operator (=).')
+      
+      // Only run complex validation for non-simple lessons
+      if (!isSimpleLesson) {
+        // Complex lesson - run full validation
+        // Check each line for incomplete assignments
+        const lines = trimmedCode.split('\n')
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          // Skip comments and empty lines
+          if (trimmedLine.startsWith('--') || trimmedLine.length === 0) continue
+          
+          // Check if line has assignment but no value (ends with = or = followed by only whitespace)
+          if (trimmedLine.match(/local\s+\w+\s*=\s*$/) || trimmedLine.match(/^\s*\w+\s*=\s*$/)) {
+            passed = false
+            issues.push('❌ Found incomplete assignments. Make sure to assign values to variables.')
+            break
           }
-          break
+        }
+
+        // Check for obviously wrong or invalid assignments (like "sdf", random text, undefined)
+        const invalidAssignments = trimmedCode.match(/local\s+\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i) ||
+                                  trimmedCode.match(/^\s*\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i)
+        if (invalidAssignments) {
+          passed = false
+          issues.push('❌ Invalid assignment detected. Make sure to use correct values, not placeholders or test values.')
+        }
+
+        // Check each line more carefully for incomplete statements (only for code lines with =)
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          // Skip comments
+          if (trimmedLine.startsWith('--') || trimmedLine.length === 0) continue
+          
+          // Only check lines that actually have = (not print statements)
+          if (trimmedLine.includes('=') && !trimmedLine.includes('print')) {
+            // Check if assignment operator exists but no valid value follows
+            // Valid values: game, Instance, Vector3, BrickColor, print, function, numbers, strings
+            if (trimmedLine.match(/=\s*$/) && !trimmedLine.match(/=\s*(game|Instance|Vector3|BrickColor|print|function|\w+\(|\d+|["'])/)) {
+              passed = false
+              if (!issues.some(i => i.includes('incomplete'))) {
+                issues.push('❌ Incomplete statement detected. Check for missing values after assignment operator (=).')
+              }
+              break
+            }
+          }
         }
       }
 
+      // Skip pattern matching for simple lessons (they're already validated above)
+      if (!isSimpleLesson) {
       // Extract required patterns from solution dynamically
       const requiredPatterns: { pattern: RegExp; name: string; required: boolean }[] = []
       
@@ -362,6 +393,7 @@ export default function Lesson() {
         if (foundCount < requiredCount) {
           passed = false
         }
+      }
       }
     } else {
       // No solution provided - just check if code is meaningful
