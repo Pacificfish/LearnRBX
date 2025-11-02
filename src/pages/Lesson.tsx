@@ -87,6 +87,12 @@ export default function Lesson() {
   const [hintIndex, setHintIndex] = useState(0)
   const [showSolution, setShowSolution] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  // Load saved panel width or default to 50%
+  const [leftPanelWidth, setLeftPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('lessonPanelWidth')
+    return saved ? parseFloat(saved) : 50
+  })
+  const [isResizing, setIsResizing] = useState(false)
 
   const progress = courseId && lessonId ? getLessonProgress(courseId, lessonId) : undefined
 
@@ -99,6 +105,11 @@ export default function Lesson() {
       }
     }
   }, [lesson, progress])
+
+  // Save panel width to localStorage
+  useEffect(() => {
+    localStorage.setItem('lessonPanelWidth', leftPanelWidth.toString())
+  }, [leftPanelWidth])
 
   if (!course || !lesson) {
     return (
@@ -140,6 +151,45 @@ export default function Lesson() {
       setHintIndex(hintIndex - 1)
     }
   }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return
+
+      const container = document.querySelector('.lesson-container')
+      if (!container) return
+
+      const containerRect = container.getBoundingClientRect()
+      const newLeftWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100
+
+      // Limit between 20% and 80%
+      const clampedWidth = Math.max(20, Math.min(80, newLeftWidth))
+      setLeftPanelWidth(clampedWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -189,9 +239,12 @@ export default function Lesson() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr,1fr] gap-8">
+        <div className="lesson-container flex gap-0" style={{ minHeight: 'calc(100vh - 200px)' }}>
           {/* Left Column - Lesson Content */}
-          <div className="space-y-6">
+          <div 
+            className="space-y-6 overflow-y-auto pr-4" 
+            style={{ width: `${leftPanelWidth}%`, minWidth: '300px' }}
+          >
             {/* Header */}
             <div className="card border-2 border-gray-100">
               <div className="flex items-start justify-between mb-4">
@@ -321,8 +374,29 @@ export default function Lesson() {
             )}
           </div>
 
+          {/* Resize Handle */}
+          <div
+            onMouseDown={handleMouseDown}
+            className={`flex-shrink-0 w-2 bg-gray-200 hover:bg-roblox/50 cursor-col-resize transition-colors group ${
+              isResizing ? 'bg-roblox' : ''
+            }`}
+            style={{ minWidth: '8px', position: 'relative' }}
+            title="Drag to resize panels"
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              <div className={`w-0.5 h-16 bg-gray-400 rounded transition-colors ${
+                isResizing ? 'bg-roblox' : 'group-hover:bg-roblox'
+              }`}></div>
+            </div>
+            {/* Invisible wider hit area for easier grabbing */}
+            <div className="absolute inset-y-0 left-0 right-0 -ml-2 -mr-2"></div>
+          </div>
+
           {/* Right Column - Code Editor */}
-          <div className="lg:sticky lg:top-8 h-fit">
+          <div 
+            className="lg:sticky lg:top-8 h-fit overflow-y-auto overflow-x-hidden pl-4 pb-8" 
+            style={{ width: `${100 - leftPanelWidth}%`, minWidth: '300px', maxWidth: '80%' }}
+          >
             <div className="card border-2 border-roblox/20 shadow-xl bg-white">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
                 <div className="flex items-center space-x-2">
