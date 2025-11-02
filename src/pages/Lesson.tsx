@@ -130,8 +130,44 @@ export default function Lesson() {
 
   const currentLessonIndex = course.lessons.findIndex((l) => l.id === lessonId)
   const nextLesson = course.lessons[currentLessonIndex + 1]
-  const prevLesson = course.lessons[currentLessonIndex - 1]
+  const prevLessonNav = course.lessons[currentLessonIndex - 1]
+  
+  // Check if lesson is locked (previous lesson not completed)
+  const prevLessonProgress = prevLessonNav && courseId ? getLessonProgress(courseId, prevLessonNav.id) : null
+  const isLocked = currentLessonIndex > 0 && !prevLessonProgress?.completed
+  
   const progressPercentage = ((currentLessonIndex + 1) / course.lessons.length) * 100
+
+  // If lesson is locked, show locked message
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="card text-center max-w-2xl mx-auto">
+            <div className="text-6xl mb-4">🔒</div>
+            <h1 className="text-3xl font-bold mb-4 text-gray-900">Lesson Locked</h1>
+            <p className="text-xl text-gray-600 mb-6">
+              You need to complete the previous lesson before accessing this one.
+            </p>
+            {prevLessonNav && (
+              <div className="mb-6">
+                <p className="text-gray-700 mb-2">Complete this lesson first:</p>
+                <Link
+                  to={`/course/${courseId}/lesson/${prevLessonNav.id}`}
+                  className="btn-primary inline-block"
+                >
+                  Go to Lesson {currentLessonIndex}: {prevLessonNav.title}
+                </Link>
+              </div>
+            )}
+            <Link to={`/course/${courseId}`} className="btn-secondary inline-block">
+              ← Back to Course
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const handleCheck = () => {
     if (!courseId || !lessonId || !lesson) {
@@ -447,9 +483,9 @@ export default function Lesson() {
             <span>Back to Course</span>
           </Link>
           <div className="flex items-center space-x-3">
-            {prevLesson && (
+            {prevLessonNav && (
               <Link
-                to={`/course/${courseId}/lesson/${prevLesson.id}`}
+                to={`/course/${courseId}/lesson/${prevLessonNav.id}`}
                 className="flex items-center space-x-2 btn-secondary text-sm px-4 py-2"
               >
                 <ArrowLeft size={16} />
@@ -457,13 +493,31 @@ export default function Lesson() {
               </Link>
             )}
             {nextLesson && (
-              <Link
-                to={`/course/${courseId}/lesson/${nextLesson.id}`}
-                className="flex items-center space-x-2 btn-primary text-sm px-4 py-2 shadow-lg hover:shadow-xl"
-              >
-                <span>Next</span>
-                <ArrowRight size={16} />
-              </Link>
+              progress?.completed ? (
+                <Link
+                  to={`/course/${courseId}/lesson/${nextLesson.id}`}
+                  className="flex items-center space-x-2 btn-primary text-sm px-4 py-2 shadow-lg hover:shadow-xl"
+                >
+                  <span>Next</span>
+                  <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <div className="relative group">
+                  <button
+                    disabled
+                    className="flex items-center space-x-2 bg-gray-300 text-gray-500 cursor-not-allowed text-sm px-4 py-2 rounded-lg shadow-sm"
+                  >
+                    <span>Next</span>
+                    <ArrowRight size={16} />
+                  </button>
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg whitespace-nowrap">
+                      Complete this lesson to continue
+                      <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
+              )
             )}
           </div>
         </div>

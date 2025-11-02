@@ -60,6 +60,42 @@ export default function Course() {
         {course.lessons.map((lesson, index) => {
           const progress = getLessonProgress(course.id, lesson.id)
           const isCompleted = progress?.completed || false
+          
+          // Check if previous lesson is completed (or if this is the first lesson)
+          const prevLesson = index > 0 ? course.lessons[index - 1] : null
+          const prevLessonProgress = prevLesson ? getLessonProgress(course.id, prevLesson.id) : null
+          const isLocked = index > 0 && !prevLessonProgress?.completed
+
+          if (isLocked) {
+            return (
+              <div
+                key={lesson.id}
+                className="card opacity-60 cursor-not-allowed flex items-center justify-between border-2 border-gray-200"
+              >
+                <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex-shrink-0">
+                    <Circle className="text-gray-300" size={24} />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm font-medium text-gray-500">
+                        Lesson {index + 1}
+                      </span>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                        Locked
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-1 text-gray-500">{lesson.title}</h3>
+                    <p className="text-gray-500 text-sm">{lesson.description}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Complete Lesson {index} to unlock
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="text-gray-300" size={20} />
+              </div>
+            )
+          }
 
           return (
             <Link
