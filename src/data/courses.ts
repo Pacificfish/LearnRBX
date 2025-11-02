@@ -370,26 +370,33 @@ Practice creating variables with different types and names to get comfortable!`,
 -- ============================================
 --
 -- Instructions:
--- 1. Create a string variable called 'name' with your name
+-- 1. Write a line to create a string variable called 'name' with your name
 --    Example: local name = "YourName"
--- 2. Create a number variable called 'number' with any number
+-- 2. Write a line to create a number variable called 'number' with any number
 --    Example: local number = 42
--- 3. The print statements will display your variables
+-- 3. The print statements are already provided below
 --
 -- Remember:
 -- - Strings need quotes: "text"
 -- - Numbers don't need quotes: 42
+-- - Use 'local' before the variable name
 -- ============================================
 
--- TODO: Create a string variable called 'name'
--- Replace with your actual name in quotes
-local name = 
+-- TODO: Write a line to create a string variable called 'name'
+-- Format: local name = "your name here"
+-- Example: local name = "Roblox"
 
--- TODO: Create a number variable called 'number'
--- Use any number you like (e.g., 42, 100, 7)
-local number = 
 
--- These will print your variables once you complete the assignments above
+
+
+-- TODO: Write a line to create a number variable called 'number'
+-- Format: local number = your_number_here
+-- Example: local number = 42
+
+
+
+
+-- These print statements will display your variables (already done for you)
 print(name)
 print(number)`,
         solution: `-- Create a variable for your name
