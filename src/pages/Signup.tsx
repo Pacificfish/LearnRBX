@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import { isSupabaseConfigured } from '../lib/supabase'
 
 export default function Signup() {
   const [name, setName] = useState('')
@@ -28,7 +29,14 @@ export default function Signup() {
       await signup(email, password, name)
       navigate('/dashboard')
     } catch (err: any) {
-      setError(err?.message || 'Failed to create account. Please try again.')
+      let errorMessage = err?.message || 'Failed to create account. Please try again.'
+      
+      // Check if it's a network error (Supabase not configured)
+      if (err?.message?.includes('Failed to fetch') || err?.message?.includes('Supabase is not configured')) {
+        errorMessage = 'Supabase is not configured. Please set up your Supabase credentials in the .env file. See SETUP.md for instructions.'
+      }
+      
+      setError(errorMessage)
     }
   }
 
@@ -46,6 +54,14 @@ export default function Signup() {
             </Link>
           </p>
         </div>
+        {!isSupabaseConfigured && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+            <p className="font-medium">⚠️ Supabase Not Configured</p>
+            <p className="text-sm mt-1">
+              Authentication requires Supabase setup. See <code className="bg-yellow-100 px-1 rounded">SETUP.md</code> for instructions.
+            </p>
+          </div>
+        )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

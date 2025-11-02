@@ -3,6 +3,14 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
+// Error class for when Supabase is not configured
+export class SupabaseNotConfiguredError extends Error {
+  constructor() {
+    super('Supabase is not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.')
+    this.name = 'SupabaseNotConfiguredError'
+  }
+}
+
 export interface User {
   id: string
   email: string
@@ -102,6 +110,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       login: async (email: string, password: string) => {
+        if (!isSupabaseConfigured) {
+          throw new SupabaseNotConfiguredError()
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -133,6 +145,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       signup: async (email: string, password: string, name: string) => {
+        if (!isSupabaseConfigured) {
+          throw new SupabaseNotConfiguredError()
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -165,7 +181,9 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: async () => {
-        await supabase.auth.signOut()
+        if (isSupabaseConfigured) {
+          await supabase.auth.signOut()
+        }
         set({ user: null, supabaseUser: null })
       },
     }),
