@@ -366,20 +366,6 @@ export default function Lesson() {
         missingPatterns.forEach(pattern => issues.push(`   • ${pattern}`))
       }
 
-      // Check for common syntax issues
-      const openParens = (trimmedCode.match(/\(/g) || []).length
-      const closeParens = (trimmedCode.match(/\)/g) || []).length
-      if (openParens !== closeParens) {
-        passed = false
-        issues.push('❌ Mismatched parentheses. Check your opening and closing parentheses.')
-      }
-
-      const openQuotes = (trimmedCode.match(/"/g) || []).length
-      if (openQuotes % 2 !== 0) {
-        passed = false
-        issues.push('❌ Mismatched quotes. Make sure all strings are properly closed.')
-      }
-
       // Only pass if no issues and all required patterns are found
       // If there are any issues or missing patterns, definitely fail
       if (issues.length > 0 || missingPatterns.length > 0) {
@@ -394,6 +380,24 @@ export default function Lesson() {
           passed = false
         }
       }
+      }
+      
+      // Always check for syntax issues (parentheses and quotes) for all lessons
+      const openParens = (trimmedCode.match(/\(/g) || []).length
+      const closeParens = (trimmedCode.match(/\)/g) || []).length
+      if (openParens !== closeParens) {
+        passed = false
+        if (!issues.some(i => i.includes('parentheses'))) {
+          issues.push('❌ Mismatched parentheses. Check your opening and closing parentheses.')
+        }
+      }
+
+      const openQuotes = (trimmedCode.match(/"/g) || []).length
+      if (openQuotes % 2 !== 0) {
+        passed = false
+        if (!issues.some(i => i.includes('quotes'))) {
+          issues.push('❌ Mismatched quotes. Make sure all strings are properly closed.')
+        }
       }
     } else {
       // No solution provided - just check if code is meaningful
