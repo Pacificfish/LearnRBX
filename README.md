@@ -41,11 +41,13 @@ An interactive learning platform similar to Codecademy, but specifically designe
    - Run the migration SQL from `supabase/migrations/001_initial_schema.sql`
    - Copy your project URL and anon key
 
-2. **Configure environment variables:**
+2. **Configure environment variables (optional):**
    ```bash
-   cp .env.example .env
+   cp env.example .env
    ```
-   Add your Supabase credentials to `.env`
+   Add your Supabase credentials to `.env` for full features
+   
+   **Note:** The app works without Supabase credentials for testing the UI!
 
 3. **Install and run:**
    ```bash
@@ -62,7 +64,11 @@ An interactive learning platform similar to Codecademy, but specifically designe
 3. Add environment variables in Railway dashboard
 4. Your app will be live automatically!
 
-See [SETUP.md](./SETUP.md) for complete deployment guide.
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide.
+
+### Testing Locally
+
+See [LOCAL_TESTING.md](./LOCAL_TESTING.md) for detailed local testing instructions.
 
 ## Project Structure
 
