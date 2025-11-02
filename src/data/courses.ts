@@ -2720,7 +2720,7 @@ The Humanoid object manages player health.
 ## Health Properties
 
 \`\`\`lua
-local humanoid = character:FindFirstChild("Humanoid")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
 -- Set health values
 humanoid.MaxHealth = 100
