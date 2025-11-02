@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface User {
@@ -29,8 +29,7 @@ export const useAuthStore = create<AuthState>()(
       initialize: async () => {
         try {
           // Check if Supabase is configured
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-          if (!supabaseUrl) {
+          if (!isSupabaseConfigured) {
             console.warn('Supabase not configured. Running in demo mode.')
             set({ loading: false })
             return

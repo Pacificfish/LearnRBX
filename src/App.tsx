@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useProgressStore } from './store/progressStore'
@@ -13,9 +13,11 @@ import Layout from './components/Layout'
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore()
   const { initialize: initProgress } = useProgressStore()
+  const progressInitialized = useRef(false)
 
   useEffect(() => {
-    if (user) {
+    if (user && !progressInitialized.current) {
+      progressInitialized.current = true
       initProgress()
     }
   }, [user, initProgress])
@@ -36,9 +38,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { initialize: initAuth } = useAuthStore()
+  const initialized = useRef(false)
 
   useEffect(() => {
-    initAuth()
+    if (!initialized.current) {
+      initialized.current = true
+      initAuth()
+    }
   }, [initAuth])
 
   return (
