@@ -1,12 +1,9 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x"]
+nixPkgs = ["nodejs-18_x", "nginx"]
 
 [phases.install]
 cmds = ["npm ci"]
 
 [phases.build]
 cmds = ["npm run build"]
-
-[start]
-cmd = "npx serve -s dist -l ${PORT:-3000}"
 
