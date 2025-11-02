@@ -101,7 +101,22 @@ export default function Lesson() {
   useEffect(() => {
     if (lesson) {
       if (progress?.code) {
-        setCode(progress.code)
+        // Check if saved code looks like it has incomplete variable assignments from old template
+        // Old template had: "local name = " (incomplete, no value)
+        // New template has: empty space, students write full line
+        const hasOldIncompleteName = /local\s+name\s*=\s*$/.test(progress.code) || 
+                                    /local\s+name\s*=\s*\n/.test(progress.code)
+        const hasOldIncompleteNumber = /local\s+number\s*=\s*$/.test(progress.code) || 
+                                      /local\s+number\s*=\s*\n/.test(progress.code)
+        const hasOldTemplateComment = progress.code.includes('-- TODO: Create a string variable') &&
+                                     !progress.code.includes('-- TODO: Write a line to create')
+        
+        // If saved code has old incomplete assignments, reset to new template
+        if ((hasOldIncompleteName || hasOldIncompleteNumber) && hasOldTemplateComment) {
+          setCode(lesson.initialCode)
+        } else {
+          setCode(progress.code)
+        }
       } else {
         setCode(lesson.initialCode)
       }
