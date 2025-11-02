@@ -13,40 +13,45 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
+      <nav className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between h-20">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <span className="text-2xl">🎮</span>
-                <span className="text-xl font-bold text-roblox">LearnRBX</span>
+              <Link to="/" className="flex items-center space-x-3 group">
+                <span className="text-3xl transform group-hover:rotate-12 transition-transform duration-300">🎮</span>
+                <span className="text-2xl font-extrabold bg-gradient-to-r from-roblox to-primary-600 bg-clip-text text-transparent">
+                  LearnRBX
+                </span>
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               {user ? (
                 <>
-                  <Link to="/dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-roblox">
-                    <BookOpen size={18} />
+                  <Link 
+                    to="/dashboard" 
+                    className="flex items-center space-x-2 text-gray-700 hover:text-roblox font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-50"
+                  >
+                    <BookOpen size={20} />
                     <span>Dashboard</span>
                   </Link>
-                  <div className="flex items-center space-x-2 text-gray-700">
-                    <User size={18} />
-                    <span>{user.name}</span>
+                  <div className="flex items-center space-x-2 text-gray-700 px-3 py-2 rounded-lg bg-gray-50">
+                    <User size={20} className="text-roblox" />
+                    <span className="font-medium">{user.name}</span>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center space-x-1 text-gray-700 hover:text-red-600"
+                    className="flex items-center space-x-2 text-gray-700 hover:text-red-600 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-red-50"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={20} />
                     <span>Logout</span>
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="btn-secondary">
+                  <Link to="/login" className="btn-secondary text-sm">
                     Login
                   </Link>
-                  <Link to="/signup" className="btn-primary">
+                  <Link to="/signup" className="btn-primary text-sm">
                     Sign Up
                   </Link>
                 </>
@@ -58,9 +63,16 @@ export default function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2024 LearnRBX. Master Roblox Scripting.</p>
+      <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <span className="text-3xl">🎮</span>
+              <span className="text-2xl font-bold">LearnRBX</span>
+            </div>
+            <p className="text-gray-400 mb-2">&copy; 2024 LearnRBX. Master Roblox Scripting.</p>
+            <p className="text-gray-500 text-sm">Built with ❤️ for the Roblox developer community</p>
+          </div>
         </div>
       </footer>
     </div>

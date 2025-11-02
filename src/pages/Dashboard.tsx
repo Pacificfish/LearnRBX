@@ -7,64 +7,73 @@ export default function Dashboard() {
   const { getCourseCompletion } = useProgressStore()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">My Learning Dashboard</h1>
-      
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => {
-          const completion = getCourseCompletion(course.id)
-          const completedLessons = course.lessons.length
-          
-          return (
-            <div key={course.id} className="card">
-              <div className="flex items-start mb-4">
-                <span className="text-4xl mr-3">{course.icon}</span>
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold mb-2">{course.title}</h2>
-                  <p className="text-gray-600 text-sm mb-4">{course.description}</p>
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Progress</span>
-                  <span>{completion}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-roblox h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${completion}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <div className="flex items-center space-x-1">
-                  <Clock size={16} />
-                  <span>{course.estimatedTime}</span>
-                </div>
-                <span className={`px-2 py-1 rounded ${
-                  course.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
-                  course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {course.difficulty}
-                </span>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">
-                  {completedLessons} {completedLessons === 1 ? 'lesson' : 'lessons'}
-                </p>
-              </div>
-
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-12">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
+            <span className="text-gradient">My Learning</span>
+            <br />
+            <span className="text-gray-900">Dashboard</span>
+          </h1>
+          <p className="text-xl text-gray-600">Continue your journey to mastering Roblox scripting</p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {courses.map((course) => {
+            const completion = getCourseCompletion(course.id)
+            const completedLessons = course.lessons.length
+            
+            return (
               <Link
+                key={course.id}
                 to={`/course/${course.id}`}
-                className="btn-primary w-full text-center block"
+                className="card group cursor-pointer"
               >
-                {completion > 0 ? 'Continue Learning' : 'Start Course'}
+                <div className="flex items-start mb-6">
+                  <span className="text-5xl mr-4 transform group-hover:scale-110 transition-transform duration-300">{course.icon}</span>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold mb-2 text-gray-900 group-hover:text-roblox transition-colors">{course.title}</h2>
+                    <p className="text-gray-600 mb-4 leading-relaxed">{course.description}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="flex justify-between items-center text-sm mb-3">
+                    <span className="font-semibold text-gray-700">Progress</span>
+                    <span className="font-bold text-roblox text-lg">{completion}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-roblox to-primary-600 h-3 rounded-full transition-all duration-500 shadow-sm"
+                      style={{ width: `${completion}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm mb-6 pb-6 border-b border-gray-100">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <Clock size={18} className="text-roblox" />
+                    <span className="font-medium">{course.estimatedTime}</span>
+                  </div>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
+                    course.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
+                    course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {course.difficulty}
+                  </span>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600 mb-1">
+                    <span className="font-semibold text-gray-900">{completedLessons}</span> {completedLessons === 1 ? 'lesson' : 'lessons'} available
+                  </p>
+                </div>
+
+                <div className="btn-primary w-full text-center">
+                  {completion > 0 ? 'Continue Learning →' : 'Start Course →'}
+                </div>
               </Link>
-            </div>
           )
         })}
       </div>
