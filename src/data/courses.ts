@@ -2643,6 +2643,174 @@ bindable:Fire("Test")`,
           'Fire BindableEvent',
         ],
       },
+      {
+        id: 'userinputservice',
+        title: 'UserInputService - Player Input',
+        description: 'Handle keyboard, mouse, and touch input for custom controls',
+        content: `# UserInputService - Player Input
+
+UserInputService lets you handle player input (keyboard, mouse, touch, gamepad) in LocalScripts. This is essential for custom controls, camera systems, and interactive features.
+
+## Getting UserInputService
+
+\`\`\`lua
+local UserInputService = game:GetService("UserInputService")
+\`\`\`
+
+## Keyboard Input
+
+Detect when keys are pressed:
+
+\`\`\`lua
+local UserInputService = game:GetService("UserInputService")
+
+-- Detect key press
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end  -- UI handled it
+    
+    if input.KeyCode == Enum.KeyCode.E then
+        print("E key pressed!")
+    elseif input.KeyCode == Enum.KeyCode.Space then
+        print("Space pressed!")
+    end
+end)
+
+-- Detect key release
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.E then
+        print("E key released!")
+    end
+end)
+\`\`\`
+
+## Mouse Input
+
+Handle mouse clicks and movement:
+
+\`\`\`lua
+-- Left mouse click
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        print("Left mouse clicked!")
+    elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+        print("Right mouse clicked!")
+    end
+end)
+
+-- Mouse movement
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mousePosition = input.Position
+        -- Handle mouse movement
+    end
+end)
+\`\`\`
+
+## Touch Input (Mobile)
+
+Handle touch input for mobile devices:
+
+\`\`\`lua
+UserInputService.TouchTapInWorld:Connect(function(touchPositions, gameProcessed)
+    if gameProcessed then return end
+    
+    local touchPos = touchPositions[1]
+    print("Touched at:", touchPos)
+end)
+\`\`\`
+
+## KeyCode Enum
+
+Common key codes:
+- \`Enum.KeyCode.W\`, \`Enum.KeyCode.A\`, \`Enum.KeyCode.S\`, \`Enum.KeyCode.D\` - Movement keys
+- \`Enum.KeyCode.Space\` - Spacebar
+- \`Enum.KeyCode.E\`, \`Enum.KeyCode.F\` - Action keys
+- \`Enum.KeyCode.Return\` - Enter
+- \`Enum.KeyCode.Escape\` - ESC
+
+## Practical Example: Custom Movement
+
+\`\`\`lua
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local keysPressed = {}
+
+-- Track keys
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode then
+        keysPressed[input.KeyCode] = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode then
+        keysPressed[input.KeyCode] = false
+    end
+end)
+
+-- Move based on keys
+RunService.Heartbeat:Connect(function()
+    if keysPressed[Enum.KeyCode.W] then
+        -- Move forward
+    end
+    if keysPressed[Enum.KeyCode.A] then
+        -- Move left
+    end
+end)
+\`\`\`
+
+## Best Practices
+
+1. **Always check gameProcessed** - Prevents conflicts with UI
+2. **Use LocalScripts only** - UserInputService only works in LocalScripts
+3. **Store input state** - Use tables to track multiple keys
+4. **Debounce rapid inputs** - Prevent spam clicking
+
+UserInputService is essential for custom controls and interactive features!`,
+        initialCode: `-- ============================================
+-- TASK: Detect when the E key is pressed
+-- ============================================
+--
+-- Instructions:
+-- 1. Get UserInputService
+-- 2. Connect to InputBegan event
+-- 3. Check if the E key was pressed (Enum.KeyCode.E)
+-- 4. Print a message when E is pressed
+--
+-- Remember:
+-- - Check gameProcessed to avoid UI conflicts
+-- - Use Enum.KeyCode.E for the E key
+-- ============================================
+
+local UserInputService = game:GetService("UserInputService")
+
+-- TODO: Connect to InputBegan and detect E key press
+-- Format: UserInputService.InputBegan:Connect(function(input, gameProcessed) ... end)
+
+`,
+        solution: `local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.E then
+        print("E key pressed!")
+    end
+end)`,
+        hints: [
+          'Get UserInputService with game:GetService("UserInputService")',
+          'InputBegan fires when input starts',
+          'Check input.KeyCode == Enum.KeyCode.E',
+          'Always check gameProcessed first',
+        ],
+        objectives: [
+          'Get UserInputService',
+          'Detect keyboard input',
+          'Handle key press events',
+        ],
+      },
     ],
   },
   {
@@ -2651,7 +2819,7 @@ bindable:Fire("Test")`,
     description: 'Master working with player characters, animations, and humanoids',
     icon: '🤖',
     color: 'orange',
-    estimatedTime: '12 hours',
+    estimatedTime: '15 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -2823,6 +2991,181 @@ track:Play()`,
           'Play the animation',
         ],
       },
+      {
+        id: 'pathfinding',
+        title: 'PathfindingService - AI Navigation',
+        description: 'Create NPCs and AI that can navigate around obstacles automatically',
+        content: `# PathfindingService - AI Navigation
+
+PathfindingService allows NPCs and AI to automatically find paths around obstacles. Essential for enemy AI, NPCs, and automated movement systems.
+
+## What is Pathfinding?
+
+Pathfinding calculates the best route from point A to point B, avoiding obstacles like walls, parts, and terrain. This is used for:
+- Enemy AI that follows players
+- NPCs that patrol areas
+- Automated character movement
+- Quest guides and helpers
+
+## Basic Pathfinding
+
+\`\`\`lua
+local PathfindingService = game:GetService("PathfindingService")
+
+-- Create pathfinding object
+local path = PathfindingService:CreatePath()
+
+-- Compute path from start to goal
+local start = Vector3.new(0, 5, 0)
+local goal = Vector3.new(50, 5, 50)
+
+local success, errorMessage = pcall(function()
+    path:ComputeAsync(start, goal)
+end)
+
+if success then
+    -- Get waypoints (points along the path)
+    local waypoints = path:GetWaypoints()
+    
+    -- Move along the path
+    for i, waypoint in ipairs(waypoints) do
+        -- Move to each waypoint
+        humanoid:MoveTo(waypoint.Position)
+        humanoid.MoveToFinished:Wait()
+    end
+else
+    warn("Pathfinding failed:", errorMessage)
+end
+\`\`\`
+
+## Advanced: Jumping Waypoints
+
+Some waypoints require jumping:
+
+\`\`\`lua
+for i, waypoint in ipairs(waypoints) do
+    humanoid:MoveTo(waypoint.Position)
+    humanoid.MoveToFinished:Wait()
+    
+    if waypoint.Action == Enum.PathWaypointAction.Jump then
+        humanoid.Jump = true
+        task.wait(0.5)  -- Wait for jump to complete
+    end
+end
+\`\`\`
+
+## Setting Agent Parameters
+
+Configure pathfinding behavior:
+
+\`\`\`lua
+local path = PathfindingService:CreatePath({
+    AgentRadius = 2,      -- Size of the agent
+    AgentHeight = 5,      -- Height of the agent
+    AgentCanJump = true,  -- Can jump over obstacles
+    WaypointSpacing = 4,  -- Distance between waypoints
+})
+\`\`\`
+
+## Real-World Example: Enemy Following Player
+
+\`\`\`lua
+local PathfindingService = game:GetService("PathfindingService")
+local RunService = game:GetService("RunService")
+
+local function followPlayer(npcHumanoid, targetPlayer)
+    if not targetPlayer.Character then return end
+    
+    local targetPosition = targetPlayer.Character.HumanoidRootPart.Position
+    local npcPosition = npcHumanoid.RootPart.Position
+    
+    local path = PathfindingService:CreatePath()
+    local success = pcall(function()
+        path:ComputeAsync(npcPosition, targetPosition)
+    end)
+    
+    if success then
+        local waypoints = path:GetWaypoints()
+        for i, waypoint in ipairs(waypoints) do
+            npcHumanoid:MoveTo(waypoint.Position)
+            npcHumanoid.MoveToFinished:Wait()
+            
+            if waypoint.Action == Enum.PathWaypointAction.Jump then
+                npcHumanoid.Jump = true
+                task.wait(0.3)
+            end
+        end
+    end
+end
+\`\`\`
+
+## Best Practices
+
+1. **Use pcall** - Pathfinding can fail (unreachable goals, blocked paths)
+2. **Check success** - Always verify path was computed
+3. **Handle waypoints** - Process each waypoint in order
+4. **Update regularly** - Recompute paths if target moves
+5. **Set agent size** - Match your character/NPC size
+
+PathfindingService is essential for professional AI systems!`,
+        initialCode: `-- ============================================
+-- TASK: Create a pathfinding system
+-- ============================================
+--
+-- Instructions:
+-- 1. Get PathfindingService
+-- 2. Create a path object
+-- 3. Compute a path from (0, 5, 0) to (30, 5, 30)
+-- 4. Get the waypoints and print how many waypoints there are
+--
+-- Remember:
+-- - Use pcall to handle potential errors
+-- - Check if ComputeAsync succeeded
+-- - Use GetWaypoints() to get the path points
+-- ============================================
+
+local PathfindingService = game:GetService("PathfindingService")
+
+-- TODO: Create path and compute it
+local path = PathfindingService:CreatePath()
+
+local success = pcall(function()
+    path:ComputeAsync(Vector3.new(0, 5, 0), Vector3.new(30, 5, 30))
+end)
+
+if success then
+    -- TODO: Get waypoints and print the count
+    local waypoints = 
+    print("Path has " .. #waypoints .. " waypoints")
+else
+    print("Pathfinding failed!")
+end`,
+        solution: `local PathfindingService = game:GetService("PathfindingService")
+
+local path = PathfindingService:CreatePath()
+
+local success = pcall(function()
+    path:ComputeAsync(Vector3.new(0, 5, 0), Vector3.new(30, 5, 30))
+end)
+
+if success then
+    local waypoints = path:GetWaypoints()
+    print("Path has " .. #waypoints .. " waypoints")
+else
+    print("Pathfinding failed!")
+end`,
+        hints: [
+          'Use PathfindingService:CreatePath()',
+          'ComputeAsync(start, goal) calculates path',
+          'Always use pcall - pathfinding can fail',
+          'GetWaypoints() returns array of waypoints',
+        ],
+        objectives: [
+          'Understand PathfindingService',
+          'Compute paths between points',
+          'Handle waypoints',
+        ],
+      },
     ],
   },
   {
@@ -2831,7 +3174,7 @@ track:Play()`,
     description: 'Create and manipulate user interfaces in Roblox',
     icon: '🖥️',
     color: 'yellow',
-    estimatedTime: '11 hours',
+    estimatedTime: '14 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -3040,6 +3383,150 @@ layout.Parent = frame`,
           'Understand UDim2 scaling',
           'Use relative and offset values',
           'Apply UIListLayout for automatic layout',
+        ],
+      },
+      {
+        id: 'advanced-gui-elements',
+        title: 'Advanced GUI Elements',
+        description: 'Master ScrollingFrame, TextBox, ImageLabel, and other advanced UI components',
+        content: `# Advanced GUI Elements
+
+Professional games use many GUI elements beyond basic Frames and TextButtons.
+
+## ScrollingFrame
+
+For content that exceeds the visible area:
+
+\`\`\`lua
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(0, 300, 0, 200)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 500)  -- Scrollable height
+scrollingFrame.ScrollBarThickness = 8
+scrollingFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+\`\`\`
+
+## TextBox
+
+For user text input:
+
+\`\`\`lua
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0, 200, 0, 30)
+textBox.PlaceholderText = "Enter your name..."
+textBox.ClearTextOnFocus = false
+
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        print("User entered: " .. textBox.Text)
+    end
+end)
+\`\`\`
+
+## ImageLabel and ImageButton
+
+Display images and clickable images:
+
+\`\`\`lua
+-- ImageLabel (display only)
+local imageLabel = Instance.new("ImageLabel")
+imageLabel.Size = UDim2.new(0, 100, 0, 100)
+imageLabel.Image = "rbxassetid://123456789"  -- Image asset ID
+imageLabel.BackgroundTransparency = 1
+
+-- ImageButton (clickable image)
+local imageButton = Instance.new("ImageButton")
+imageButton.Size = UDim2.new(0, 100, 0, 100)
+imageButton.Image = "rbxassetid://123456789"
+imageButton.MouseButton1Click:Connect(function()
+    print("Image clicked!")
+end)
+\`\`\`
+
+## UIStroke and UIGradient
+
+Enhance visual appearance:
+
+\`\`\`lua
+-- Add border/outline
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.new(1, 1, 1)
+stroke.Thickness = 2
+stroke.Parent = frame
+
+-- Add gradient fill
+local gradient = Instance.new("UIGradient")
+gradient.ColorSequence = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)),  -- Red
+    ColorSequenceKeypoint.new(1, Color3.new(0, 0, 1))   -- Blue
+}
+gradient.Parent = frame
+\`\`\`
+
+## Toggle Buttons
+
+Create on/off switches:
+
+\`\`\`lua
+local isToggled = false
+local toggleButton = Instance.new("TextButton")
+
+toggleButton.MouseButton1Click:Connect(function()
+    isToggled = not isToggled
+    if isToggled then
+        toggleButton.BackgroundColor3 = Color3.new(0, 1, 0)  -- Green
+        toggleButton.Text = "ON"
+    else
+        toggleButton.BackgroundColor3 = Color3.new(1, 0, 0)  -- Red
+        toggleButton.Text = "OFF"
+    end
+end)
+\`\`\`
+
+## Best Practices
+
+- Use ScrollingFrame for long lists
+- Validate TextBox input
+- Use ImageLabel for backgrounds/icons
+- Add UIStroke for better visibility
+- Create reusable GUI components
+
+Master these elements for professional-quality interfaces!`,
+        initialCode: `-- Create a TextBox for user input
+local textBox = Instance.new(_____)
+textBox.Size = UDim2.new(0, 250, 0, 35)
+textBox.PlaceholderText = "Enter your name..."
+
+-- Connect to FocusLost event
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        print("Welcome, " .. textBox.Text .. "!")
+    end
+end)
+
+textBox.Parent = `,
+        solution: `-- Create a TextBox for user input
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0, 250, 0, 35)
+textBox.PlaceholderText = "Enter your name..."
+
+-- Connect to FocusLost event
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        print("Welcome, " .. textBox.Text .. "!")
+    end
+end)
+
+textBox.Parent = workspace:FindFirstChild("ScreenGui")`,
+        hints: [
+          'Use Instance.new("TextBox")',
+          'FocusLost fires when user finishes typing',
+          'enterPressed is true if Enter was pressed',
+          'Access text with textBox.Text',
+        ],
+        objectives: [
+          'Create a TextBox',
+          'Handle text input',
+          'Connect to FocusLost event',
         ],
       },
     ],
@@ -3560,7 +4047,7 @@ end)`,
     description: 'Learn performance optimization, security, and professional coding practices',
     icon: '⚡',
     color: 'pink',
-    estimatedTime: '11 hours',
+    estimatedTime: '14 hours',
     difficulty: 'Advanced',
     lessons: [
       {
@@ -3794,6 +4281,283 @@ return MathUtils`,
           'Create a ModuleScript',
           'Export functions from module',
           'Understand module organization',
+        ],
+      },
+      {
+        id: 'sound-service',
+        title: 'SoundService - Audio in Games',
+        description: 'Add sound effects and music to enhance your game experience',
+        content: `# SoundService - Audio in Games
+
+Sound is crucial for creating immersive game experiences. SoundService and Sound objects let you add music, sound effects, and ambient audio.
+
+## Creating Sounds
+
+\`\`\`lua
+-- Create a Sound instance
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://123456789"  -- Sound asset ID
+sound.Volume = 0.5  -- 50% volume (0-1 range)
+sound.Looped = false  -- Play once or loop
+sound.Parent = workspace  -- Or attach to a part
+
+-- Play the sound
+sound:Play()
+
+-- Wait for sound to finish
+sound.Ended:Wait()
+\`\`\`
+
+## Sound Properties
+
+\`\`\`lua
+sound.Volume = 0.7        -- 70% volume (0-1)
+sound.Pitch = 1.0         -- Normal pitch (0.5-2.0 range)
+sound.Looped = true       -- Repeat sound
+sound.TimePosition = 0    -- Start position in seconds
+sound.IsPlaying = true    -- Check if currently playing
+\`\`\`
+
+## Playing Sounds from Parts
+
+Attach sounds to parts for spatial audio:
+
+\`\`\`lua
+local part = workspace.Part
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://123456789"
+sound.Parent = part
+
+-- Play when part is touched
+part.Touched:Connect(function(hit)
+    sound:Play()
+end)
+\`\`\`
+
+## Using SoundService for Global Sounds
+
+\`\`\`lua
+local SoundService = game:GetService("SoundService")
+
+-- Music that plays for all players
+local music = Instance.new("Sound")
+music.SoundId = "rbxassetid://123456789"
+music.Looped = true
+music.Volume = 0.3
+music.Parent = SoundService
+
+music:Play()
+\`\`\`
+
+## Sound Groups
+
+Organize sounds with SoundGroups:
+
+\`\`\`lua
+local soundGroup = Instance.new("SoundGroup")
+soundGroup.Name = "Music"
+soundGroup.Volume = 0.5
+soundGroup.Parent = SoundService
+
+-- Add sounds to group
+local music = Instance.new("Sound")
+music.SoundId = "rbxassetid://123456789"
+music.Parent = soundGroup  -- Inherits volume from group
+\`\`\`
+
+## Stopping and Pausing
+
+\`\`\`lua
+sound:Stop()     -- Stops and resets to beginning
+sound:Pause()   -- Pauses (use Resume() to continue)
+sound:Resume()   -- Continues from where paused
+\`\`\`
+
+## Best Practices
+
+1. **Use appropriate volume** - Don't deafen players
+2. **Loop background music** - Use Looped = true
+3. **Spatial audio** - Attach to parts for 3D sound
+4. **SoundGroups** - Organize and control volume
+5. **Clean up** - Remove sounds when done to save memory
+
+Sound enhances player immersion - use it wisely!`,
+        initialCode: `-- ============================================
+-- TASK: Create and play a sound
+-- ============================================
+--
+-- Instructions:
+-- 1. Create a Sound instance
+-- 2. Set the SoundId to "rbxassetid://[any sound ID]"
+-- 3. Set Volume to 0.5
+-- 4. Set the Parent to workspace
+-- 5. Play the sound
+--
+-- Note: Use any valid Roblox sound asset ID
+-- ============================================
+
+-- TODO: Create sound instance
+local sound = Instance.new(_____)
+
+-- TODO: Set SoundId, Volume, and Parent
+sound.SoundId = 
+sound.Volume = 
+sound.Parent = 
+
+-- TODO: Play the sound
+`,
+        solution: `local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://131961136"  -- Example: Epic music
+sound.Volume = 0.5
+sound.Parent = workspace
+
+sound:Play()`,
+        hints: [
+          'Use Instance.new("Sound")',
+          'SoundId format: "rbxassetid://[ID]"',
+          'Volume is between 0 and 1',
+          'Call sound:Play() to start',
+        ],
+        objectives: [
+          'Create a Sound instance',
+          'Configure sound properties',
+          'Play sounds in your game',
+        ],
+      },
+      {
+        id: 'workspace-events',
+        title: 'Workspace Events and Detection',
+        description: 'Detect when instances are added, removed, or changed in the workspace',
+        content: `# Workspace Events and Detection
+
+Workspace events let you react when things are added, removed, or changed in your game world. Essential for dynamic game systems.
+
+## ChildAdded and DescendantAdded
+
+Detect when instances are added to workspace:
+
+\`\`\`lua
+-- Detect when parts are added to workspace
+workspace.ChildAdded:Connect(function(child)
+    if child:IsA("BasePart") then
+        print("New part added: " .. child.Name)
+    end
+end)
+
+-- DescendantAdded detects children of children (recursive)
+workspace.DescendantAdded:Connect(function(descendant)
+    if descendant:IsA("BasePart") then
+        print("Part added anywhere in workspace: " .. descendant.Name)
+    end
+end)
+\`\`\`
+
+## ChildRemoved
+
+Detect when instances are removed:
+
+\`\`\`lua
+workspace.ChildRemoved:Connect(function(child)
+    print("Removed from workspace: " .. child.Name)
+end)
+\`\`\`
+
+## Changed Event
+
+React when properties change:
+
+\`\`\`lua
+local part = workspace.Part
+
+part.Changed:Connect(function(property)
+    if property == "Transparency" then
+        print("Transparency changed!")
+    elseif property == "Size" then
+        print("Size changed!")
+    end
+end)
+
+-- Change it
+part.Transparency = 0.5  -- Triggers Changed event
+\`\`\`
+
+## AncestryChanged
+
+Detect when parent changes:
+
+\`\`\`lua
+local part = Instance.new("Part")
+
+part.AncestryChanged:Connect(function()
+    if part.Parent == workspace then
+        print("Part moved to workspace!")
+    elseif part.Parent == nil then
+        print("Part removed from game!")
+    end
+end)
+\`\`\`
+
+## Practical Example: Auto-Detect Collectibles
+
+\`\`\`lua
+-- Automatically detect collectible parts
+workspace.DescendantAdded:Connect(function(descendant)
+    if descendant:IsA("BasePart") and descendant.Name == "Collectible" then
+        -- Setup collectible behavior
+        descendant.Touched:Connect(function(hit)
+            local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                print("Collectible collected!")
+                descendant:Destroy()
+            end
+        end)
+    end
+end)
+\`\`\`
+
+## Best Practices
+
+1. **Use DescendantAdded for recursive detection**
+2. **Filter by type** - Use IsA() to check instance types
+3. **Clean up connections** - Store connections if needed later
+4. **Handle nil cases** - Instances might be removed before you process them
+
+Workspace events are essential for dynamic, reactive game systems!`,
+        initialCode: `-- ============================================
+-- TASK: Detect when parts are added to workspace
+-- ============================================
+--
+-- Instructions:
+-- 1. Connect to workspace.ChildAdded event
+-- 2. Check if the child is a BasePart using IsA()
+-- 3. Print a message when a part is added
+--
+-- Example:
+-- workspace.ChildAdded:Connect(function(child) ... end)
+-- child:IsA("BasePart") checks the type
+-- ============================================
+
+-- TODO: Connect to ChildAdded and detect BasePart additions
+workspace.ChildAdded:Connect(function(child)
+    -- TODO: Check if it's a BasePart and print
+    if child:IsA(_____) then
+        print("Part added: " .. child.Name)
+    end
+end)`,
+        solution: `workspace.ChildAdded:Connect(function(child)
+    if child:IsA("BasePart") then
+        print("Part added: " .. child.Name)
+    end
+end)`,
+        hints: [
+          'ChildAdded fires when children are added',
+          'Use IsA("BasePart") to check type',
+          'IsA() is a method, use colon: child:IsA()',
+        ],
+        objectives: [
+          'Use ChildAdded event',
+          'Filter instances by type',
+          'React to workspace changes',
         ],
       },
     ],
