@@ -815,6 +815,17 @@ export default function Lesson() {
               </div>
 
               <div className="rounded-lg overflow-hidden border-2 border-gray-200 mb-4">
+                <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+                  <div className="flex items-start space-x-2">
+                    <Target className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 mb-1">📝 Your Task</p>
+                      <p className="text-xs text-gray-700 leading-relaxed">
+                        Complete the code below. Look for <code className="bg-blue-100 px-1 rounded">TODO</code> comments and fill in the missing parts. Click "Test Code" when done!
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <CodeEditor
                   initialCode={code}
                   onChange={setCode}

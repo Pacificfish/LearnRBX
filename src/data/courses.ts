@@ -146,8 +146,20 @@ Understanding these basics is crucial because:
 ## Try It!
 
 Let's print your first message! Try different messages to see how it works.`,
-        initialCode: `-- Print "Hello, World!"
--- Use print("your message here")
+        initialCode: `-- ============================================
+-- TASK: Print "Hello, World!" to the console
+-- ============================================
+--
+-- Instructions:
+-- Use the print() function to display "Hello, World!"
+--
+-- Syntax: print("your message here")
+--
+-- Example: print("Hello, World!")
+-- ============================================
+
+-- TODO: Write a print statement that displays "Hello, World!"
+-- Hint: Use print("Hello, World!")
 
 `,
         solution: `-- Print "Hello, World!"
@@ -353,13 +365,31 @@ Variables are the foundation of programming:
 - **Master them before moving to more complex topics**
 
 Practice creating variables with different types and names to get comfortable!`,
-        initialCode: `-- Create a variable for your name
+        initialCode: `-- ============================================
+-- TASK: Create variables and print them
+-- ============================================
+--
+-- Instructions:
+-- 1. Create a string variable called 'name' with your name
+--    Example: local name = "YourName"
+-- 2. Create a number variable called 'number' with any number
+--    Example: local number = 42
+-- 3. The print statements will display your variables
+--
+-- Remember:
+-- - Strings need quotes: "text"
+-- - Numbers don't need quotes: 42
+-- ============================================
+
+-- TODO: Create a string variable called 'name'
+-- Replace with your actual name in quotes
 local name = 
 
--- Create a variable for a number
+-- TODO: Create a number variable called 'number'
+-- Use any number you like (e.g., 42, 100, 7)
 local number = 
 
--- Print both variables
+-- These will print your variables once you complete the assignments above
 print(name)
 print(number)`,
         solution: `-- Create a variable for your name
@@ -579,12 +609,28 @@ Functions are fundamental to programming:
 - **Industry standard practice**
 
 Master functions before moving to complex topics!`,
-        initialCode: `-- Create a function that prints a greeting
+        initialCode: `-- ============================================
+-- TASK: Create a function that greets someone
+-- ============================================
+--
+-- Instructions:
+-- 1. Complete the greet function to print "Hello, " followed by the name
+-- 2. Use string concatenation with .. to join strings
+-- 3. Example: print("Hello, " .. name .. "!")
+--
+-- The function will be called automatically with "Roblox"
+-- ============================================
+
+-- TODO: Complete this function to print a greeting
+-- It should print: "Hello, " .. name .. "!"
+-- Example: If name is "Roblox", it should print "Hello, Roblox!"
 function greet(name)
-    -- Your code here
+    -- Write your code here
+    -- Use: print("Hello, " .. name .. "!")
+    
 end
 
--- Call the function
+-- This calls your function with "Roblox" - test it with Run Code!
 greet("Roblox")`,
         solution: `-- Create a function that prints a greeting
 function greet(name)
@@ -838,13 +884,34 @@ Tables are used everywhere in Roblox scripting:
 5. **Check if keys exist**: Use \`if table[key] then\` before accessing
 
 Master tables - they're the foundation of organizing data in Lua!`,
-        initialCode: `-- Create an array of items
+        initialCode: `-- ============================================
+-- TASK: Create an array and add items to it
+-- ============================================
+--
+-- Instructions:
+-- 1. The array is already created (local items = {})
+-- 2. Add at least 3 items to the array using table.insert()
+--    Example: table.insert(items, "sword")
+-- 3. Print the first item using items[1]
+--
+-- Remember:
+-- - Use table.insert(table, value) to add items
+-- - Access items with items[1], items[2], etc.
+-- - Arrays start at index 1 in Lua!
+-- ============================================
+
+-- The array is already created
 local items = {}
 
--- Add some items to the array
--- Use table.insert() or items[index] = value
+-- TODO: Add 3 items to the array
+-- Use: table.insert(items, "itemName")
+-- Example: table.insert(items, "sword")
+table.insert(items, )
+table.insert(items, )
+table.insert(items, )
 
--- Print the first item
+-- TODO: Print the first item
+-- Use: print(items[1])
 print(`,
         solution: `-- Create an array of items
 local items = {}
@@ -1095,12 +1162,31 @@ Conditionals are in every game script:
 - **UI updates**: Show/hide elements based on state
 
 Master conditionals - they're how games make decisions!`,
-        initialCode: `local score = 85
+        initialCode: `-- ============================================
+-- TASK: Write conditional logic based on score
+-- ============================================
+--
+-- Instructions:
+-- Write an if-elseif-else statement that prints:
+-- - "Great job!" if score >= 90
+-- - "Good work!" if score >= 70
+-- - "Keep practicing!" otherwise
+--
+-- Syntax:
+-- if condition then
+--     -- code here
+-- elseif condition then
+--     -- code here
+-- else
+--     -- code here
+-- end
+-- ============================================
 
--- Write an if statement that prints:
--- "Great job!" if score >= 90
--- "Good work!" if score >= 70
--- "Keep practicing!" otherwise
+local score = 85
+
+-- TODO: Write the if-elseif-else statement here
+-- Check if score >= 90, then >= 70, otherwise print the third message
+
 `,
         solution: `local score = 85
 
@@ -1426,13 +1512,26 @@ local part = workspace:FindFirstChild("MyPart")
 -- Find first of type
 local script = workspace:FindFirstChildOfClass("Script")
 \`\`\``,
-        initialCode: `-- Create a new Part instance
+        initialCode: `-- ============================================
+-- TASK: Create a Part instance and configure it
+-- ============================================
+--
+-- Instructions:
+-- 1. The part is already created for you
+-- 2. Set part.Parent to workspace (this makes it visible in the game)
+-- 3. Set part.Name to "MyPart" (give it a name)
+--
+-- Example: part.Parent = workspace
+-- Example: part.Name = "MyPart"
+-- ============================================
+
+-- The part is already created here
 local part = Instance.new("Part")
 
--- Set its parent to workspace
+-- TODO: Set the parent to workspace
 part.Parent = 
 
--- Give it a name
+-- TODO: Give the part a name (use "MyPart")
 part.Name = `,
         solution: `-- Create a new Part instance
 local part = Instance.new("Part")
@@ -1551,17 +1650,38 @@ Different materials give different visual effects:
 - **Concrete**: Rough, matte surface
 
 Experiment with different materials to see how they look!`,
-        initialCode: `-- Create a new part
+        initialCode: `-- ============================================
+-- TASK: Create a part and configure its properties
+-- ============================================
+--
+-- Instructions:
+-- 1. The part is created and added to workspace
+-- 2. Set part.Position to Vector3.new(5, 20, 0)
+--    - This places it at x=5, y=20, z=0
+-- 3. Set part.Size to Vector3.new(5, 5, 5)
+--    - This makes it a 5x5x5 cube
+-- 4. Set part.BrickColor to BrickColor.new("Bright red")
+--    - This makes it red
+--
+-- Remember:
+-- - Vector3.new(x, y, z) for Position and Size
+-- - BrickColor.new("ColorName") for colors
+-- ============================================
+
+-- The part is created here
 local part = Instance.new("Part")
 part.Parent = workspace
 
--- Set the part's position to (5, 20, 0)
+-- TODO: Set the part's position to (5, 20, 0)
+-- Use: part.Position = Vector3.new(5, 20, 0)
 part.Position = 
 
--- Set the size to a cube (5x5x5)
+-- TODO: Set the size to a cube (5x5x5)
+-- Use: part.Size = Vector3.new(5, 5, 5)
 part.Size = 
 
--- Change the color to red
+-- TODO: Change the color to red
+-- Use: part.BrickColor = BrickColor.new("Bright red")
 part.BrickColor = `,
         solution: `-- Create a new part
 local part = Instance.new("Part")
@@ -1796,13 +1916,25 @@ Lighting.TimeOfDay = "12:00:00"
 \`\`\`
 
 Services are the foundation of Roblox scripting - master them!`,
-        initialCode: `-- Get the Players service
+        initialCode: `-- ============================================
+-- TASK: Get the Players and Workspace services
+-- ============================================
+-- 
+-- Instructions:
+-- 1. Use game:GetService("Players") to get the Players service
+-- 2. Use game:GetService("Workspace") to get the Workspace service
+-- 3. Assign each to the variables below
+--
+-- Example pattern: local ServiceName = game:GetService("ServiceName")
+-- ============================================
+
+-- TODO: Get the Players service and assign it to Players
 local Players = 
 
--- Get the Workspace service  
+-- TODO: Get the Workspace service and assign it to Workspace
 local Workspace = 
 
--- Print both (you can print services to see they exist)
+-- These print statements will display the services once you complete the assignments above
 print(Players)
 print(Workspace)`,
         solution: `-- Get the Players service
