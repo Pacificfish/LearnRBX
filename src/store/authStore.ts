@@ -53,12 +53,20 @@ export const useAuthStore = create<AuthState>()(
           }
           
           if (session?.user) {
-            // Fetch user profile
-            const { data: profile } = await supabase
+            // Fetch user profile (may not exist yet, that's ok)
+            const { data: profile, error: profileError } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single()
+
+            // Profile not found is fine (will be created on first action)
+            if (profileError && profileError.code !== 'PGRST116') {
+              // Only log non-"not found" errors
+              if (profileError.code !== 'PGRST301') {
+                console.warn('Profile fetch warning:', profileError.message)
+              }
+            }
 
             set({
               supabaseUser: session.user,
@@ -81,11 +89,16 @@ export const useAuthStore = create<AuthState>()(
           // Listen for auth changes
           supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session?.user) {
-              const { data: profile } = await supabase
+              const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
                 .single()
+
+              // Silently handle profile not found
+              if (profileError && profileError.code !== 'PGRST116' && profileError.code !== 'PGRST301') {
+                console.warn('Profile fetch warning:', profileError.message)
+              }
 
               set({
                 supabaseUser: session.user,
@@ -122,12 +135,17 @@ export const useAuthStore = create<AuthState>()(
         if (error) throw error
 
         if (data.user) {
-          // Fetch user profile
-          const { data: profile } = await supabase
+          // Fetch user profile (may not exist yet)
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', data.user.id)
             .single()
+
+          // Profile not found is fine
+          if (profileError && profileError.code !== 'PGRST116' && profileError.code !== 'PGRST301') {
+            console.warn('Profile fetch warning:', profileError.message)
+          }
 
           set({
             supabaseUser: data.user,
@@ -157,25 +175,37 @@ export const useAuthStore = create<AuthState>()(
         if (error) throw error
 
         if (data.user) {
-          // Create profile
+          // Create or update profile (upsert handles both insert and update)
+          // The trigger might have already created a profile, so upsert handles that gracefully
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert({
+            .upsert({
               id: data.user.id,
               name,
               email: data.user.email,
+            }, {
+              onConflict: 'id',
             })
 
-          if (profileError) {
-            console.error('Error creating profile:', profileError)
+          // Only log errors that aren't conflicts (409/23505 = duplicate, which is expected if trigger ran)
+          if (profileError && profileError.code !== '23505' && profileError.code !== 'PGRST116') {
+            // PGRST116 is "duplicate key" in PostgREST, also expected
+            console.warn('Profile creation warning (may already exist):', profileError.message)
           }
+
+          // Fetch the profile to get the latest data
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single()
 
           set({
             supabaseUser: data.user,
             user: {
               id: data.user.id,
               email: data.user.email || '',
-              name,
+              name: profile?.name || name,
             },
           })
         }
