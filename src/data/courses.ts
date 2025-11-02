@@ -1305,96 +1305,330 @@ end`,
       },
       {
         id: 'string-math-operators',
-        title: 'String Operations and Math',
-        description: 'Master string manipulation and mathematical operations',
-        content: `# String Operations and Math
+        title: 'Operators - Math, Comparison, and Logic',
+        description: 'Master all Lua operators: arithmetic, comparison, logical, and string operations',
+        content: `# Operators - Math, Comparison, and Logic
 
-## String Operations
+Operators are symbols or keywords that perform operations on values. Understanding all operator types is essential for writing effective Lua code!
 
-Strings can be concatenated, formatted, and manipulated!
+## Arithmetic Operators
+
+Perform mathematical calculations:
 
 \`\`\`lua
--- Concatenation
-local name = "Roblox"
-local greeting = "Hello, " .. name .. "!"  -- "Hello, Roblox!"
+local a = 10
+local b = 3
 
--- String length
-local text = "Hello"
-print(#text)  -- 5
+-- Addition
+local sum = a + b        -- 13
 
--- String methods
-local str = "hello world"
-print(string.upper(str))    -- "HELLO WORLD"
-print(string.lower(str))    -- "hello world"
-print(string.sub(str, 1, 5)) -- "hello" (substring from index 1 to 5)
+-- Subtraction
+local diff = a - b       -- 7
+
+-- Multiplication
+local product = a * b    -- 30
+
+-- Division (always returns float)
+local quotient = a / b   -- 3.333...
+
+-- Modulo (remainder after division)
+local remainder = a % b -- 1 (10 divided by 3 is 3 with remainder 1)
+
+-- Exponentiation (power)
+local power = a ^ b      -- 1000 (10 to the power of 3)
+
+-- Negation
+local negative = -a      -- -10
 \`\`\`
 
-## Math Operations
+### Operator Precedence
+
+Operators execute in a specific order:
+1. **Parentheses**: \`()\` - Highest priority
+2. **Exponentiation**: \`^\`
+3. **Multiplication/Division/Modulo**: \`*\`, \`/\`, \`%\`
+4. **Addition/Subtraction**: \`+\`, \`-\`
 
 \`\`\`lua
--- Basic operations
-local sum = 5 + 3       -- 8
-local diff = 10 - 4    -- 6
-local prod = 6 * 7     -- 42
-local quot = 20 / 4    -- 5
-local mod = 10 % 3     -- 1 (modulo/remainder)
-local pow = 2 ^ 3      -- 8 (2 to the power of 3)
+local result = 2 + 3 * 4    -- 14 (not 20! Multiplication happens first)
+local result2 = (2 + 3) * 4  -- 20 (parentheses change order)
+\`\`\`
 
--- Math library functions
-print(math.floor(3.7))  -- 3 (round down)
-print(math.ceil(3.2))   -- 4 (round up)
-print(math.max(5, 10, 3))  -- 10 (largest)
-print(math.min(5, 10, 3))  -- 3 (smallest)
-print(math.random(1, 100)) -- Random number between 1 and 100
+## Comparison Operators
+
+Compare two values and return \`true\` or \`false\`:
+
+\`\`\`lua
+local score = 85
+
+-- Equality (==)
+if score == 85 then        -- true
+    print("Exactly 85!")
+end
+
+-- Not equal (~=) - Note: Lua uses ~= not !=
+if score ~= 100 then       -- true
+    print("Not perfect")
+end
+
+-- Less than (<)
+if score < 60 then        -- false
+    print("Failed")
+end
+
+-- Greater than (>)
+if score > 90 then        -- false
+    print("Excellent!")
+end
+
+-- Less than or equal (<=)
+if score <= 50 then       -- false
+    print("Needs improvement")
+end
+
+-- Greater than or equal (>=)
+if score >= 80 then       -- true
+    print("Passing!")
+end
+\`\`\`
+
+### Critical: == vs =
+
+**Common mistake**: Using \`=\` instead of \`==\`
+- \`=\`: Assignment (sets a value)
+- \`==\`: Comparison (checks if equal)
+
+\`\`\`lua
+local health = 100
+
+if health == 100 then  -- ✅ Correct: compares
+    print("Full health")
+end
+
+if health = 100 then  -- ❌ ERROR: tries to assign in if statement!
+    print("This won't work!")
+end
 \`\`\`
 
 ## Logical Operators
 
+Combine or modify boolean conditions:
+
+### AND (&& equivalent in other languages)
+
 \`\`\`lua
-local a = true
-local b = false
+local health = 75
+local hasPotion = true
 
-print(a and b)  -- false (both must be true)
-print(a or b)   -- true (at least one must be true)
-print(not a)     -- false (opposite)
-\`\`\``,
-        initialCode: `-- Create a player name and level
-local playerName = "Hero"
+-- Both conditions must be true
+if health < 100 and hasPotion then
+    print("Use a potion!")
+end
+
+-- Truth table:
+-- true and true = true
+-- true and false = false
+-- false and true = false
+-- false and false = false
+\`\`\`
+
+### OR (|| equivalent)
+
+\`\`\`lua
+local key1 = false
+local key2 = true
+
+-- At least one must be true
+if key1 or key2 then
+    print("Door unlocked!")
+end
+
+-- Truth table:
+-- true or true = true
+-- true or false = true
+-- false or true = true
+-- false or false = false
+\`\`\`
+
+### NOT (! equivalent)
+
+\`\`\`lua
+local isDead = false
+
+-- Negates the value
+if not isDead then
+    print("Player is alive!")
+end
+
+-- Truth table:
+-- not true = false
+-- not false = true
+\`\`\`
+
+### Combining Logical Operators
+
+\`\`\`lua
+local health = 50
+local hasShield = true
+local isBoss = false
+
+-- Complex condition
+if (health < 100 or isBoss) and hasShield then
+    print("Defensive stance!")
+end
+\`\`\`
+
+## String Operators
+
+### Concatenation (..)
+
+Join strings together:
+
+\`\`\`lua
+local firstName = "Roblox"
+local lastName = "Developer"
+local fullName = firstName .. " " .. lastName  -- "Roblox Developer"
+
+-- Can concatenate multiple strings
+local greeting = "Hello, " .. firstName .. "!"  -- "Hello, Roblox!"
+\`\`\`
+
+### String Length (#)
+
+Get the number of characters:
+
+\`\`\`lua
+local text = "Hello"
+local length = #text  -- 5
+print("Length: " .. length)  -- "Length: 5"
+\`\`\`
+
+### String-Number Conversion
+
+When concatenating, numbers convert to strings automatically:
+
+\`\`\`lua
 local level = 25
+local message = "Level: " .. level  -- "Level: 25" (25 becomes "25")
 
--- Create a message that says: "Hero is level 25!"
--- Use string concatenation (..)
+-- But be careful with math operations first!
+local result = "Score: " .. (10 + 5)  -- "Score: 15" (parentheses evaluate first)
+\`\`\`
+
+## Math Library Functions
+
+Lua provides useful math functions:
+
+\`\`\`lua
+-- Rounding
+print(math.floor(3.7))   -- 3 (round down)
+print(math.ceil(3.2))     -- 4 (round up)
+-- Note: Lua doesn't have math.round(), use math.floor(x + 0.5) for nearest integer
+
+-- Min/Max
+print(math.max(5, 10, 3))  -- 10 (largest)
+print(math.min(5, 10, 3))  -- 3 (smallest)
+
+-- Random numbers
+print(math.random())         -- Random float between 0 and 1
+print(math.random(1, 100))   -- Random integer between 1 and 100
+print(math.random(10))       -- Random integer between 1 and 10
+
+-- Absolute value
+print(math.abs(-5))          -- 5
+
+-- Square root
+print(math.sqrt(16))         -- 4
+
+-- Trigonometric functions (for angles)
+print(math.sin(math.rad(90)))  -- 1 (sin of 90 degrees)
+print(math.cos(math.rad(0)))   -- 1 (cos of 0 degrees)
+\`\`\`
+
+## Operator Precedence Table
+
+When multiple operators are in one expression, this is the order:
+
+1. **()** - Parentheses (highest)
+2. **^** - Exponentiation
+3. **- # not** - Unary operators
+4. **\* / %** - Multiplication, division, modulo
+5. **+ - ..** - Addition, subtraction, concatenation
+6. **< > <= >= ~= ==** - Comparison
+7. **and** - Logical AND
+8. **or** - Logical OR (lowest)
+
+\`\`\`lua
+-- Example demonstrating precedence
+local result = 2 + 3 * 4        -- 14 (not 20)
+local result2 = (2 + 3) * 4      -- 20
+local result3 = 5 > 3 and 2 < 4  -- true (comparisons first, then and)
+\`\`\`
+
+## Common Mistakes
+
+1. **Using = instead of ==**: \`if x = 5\` is wrong, use \`if x == 5\`
+2. **Wrong operator**: Lua uses \`~=\` not \`!=\` for "not equal"
+3. **Forgetting parentheses**: \`"Score: " .. 10 + 5\` evaluates to \`"Score: " .. 15\`, not \`"Score: 15"\`
+4. **Operator precedence**: Always use parentheses when unsure!
+
+Mastering operators is essential for all programming tasks!`,
+        initialCode: `-- ============================================
+-- TASK: Use various operators to calculate and display values
+-- ============================================
+--
+-- Instructions:
+-- 1. Calculate the total (a + b * 2)
+--    Example: total = 10 + 5 * 2  (hint: multiplication happens first)
+-- 2. Check if total is greater than 15 using a comparison operator (>=)
+--    Store the result in a variable called 'isHigh'
+-- 3. Create a message using string concatenation (..)
+--    Format: "Total is X, which is high: true/false"
+--
+-- Remember:
+-- - Use >= for "greater than or equal"
+-- - Use .. for string concatenation
+-- - Use parentheses to control order of operations
+-- ============================================
+
+local a = 10
+local b = 5
+
+-- TODO: Calculate total = a + b * 2
+local total = 
+
+-- TODO: Check if total >= 15 and store in 'isHigh'
+local isHigh = 
+
+-- TODO: Create message: "Total is X, which is high: true/false"
 local message = 
 
--- Calculate the player's health (level * 10)
-local health = 
+-- Print the message
+print(message)`,
+        solution: `local a = 10
+local b = 5
 
--- Print both
-print(message)
-print("Health: " .. health)`,
-        solution: `-- Create a player name and level
-local playerName = "Hero"
-local level = 25
+-- Calculate total = a + b * 2
+local total = a + b * 2  -- 10 + 10 = 20
 
--- Create a message that says: "Hero is level 25!"
--- Use string concatenation (..)
-local message = playerName .. " is level " .. level .. "!"
+-- Check if total >= 15
+local isHigh = total >= 15  -- true
 
--- Calculate the player's health (level * 10)
-local health = level * 10
+-- Create message
+local message = "Total is " .. total .. ", which is high: " .. tostring(isHigh)
 
--- Print both
-print(message)
-print("Health: " .. health)`,
+print(message)`,
         hints: [
+          'Multiplication (*) happens before addition (+)',
+          'Use >= for "greater than or equal"',
           'Use .. to concatenate strings',
-          'Numbers are automatically converted to strings when concatenated',
-          'Use * for multiplication',
+          'Use tostring() to convert boolean to string',
         ],
         objectives: [
-          'Concatenate strings using ..',
-          'Perform mathematical operations',
-          'Combine strings and numbers',
+          'Use arithmetic operators (+, *, etc.)',
+          'Use comparison operators (>=, ==, etc.)',
+          'Use string concatenation (..)',
+          'Understand operator precedence',
         ],
       },
       {
