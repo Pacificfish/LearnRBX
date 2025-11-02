@@ -1,6 +1,7 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { LogOut, BookOpen, User } from 'lucide-react'
+import Logo from './Logo'
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
@@ -17,11 +18,8 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-3 group">
-                <span className="text-3xl transform group-hover:rotate-12 transition-transform duration-300">🎮</span>
-                <span className="text-2xl font-extrabold bg-gradient-to-r from-roblox to-primary-600 bg-clip-text text-transparent">
-                  LearnRBX
-                </span>
+              <Link to="/" className="group">
+                <Logo size="md" className="group-hover:scale-105 transition-transform duration-300" />
               </Link>
             </div>
             <div className="flex items-center space-x-6">
@@ -66,9 +64,8 @@ export default function Layout() {
       <footer className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <span className="text-3xl">🎮</span>
-              <span className="text-2xl font-bold">LearnRBX</span>
+            <div className="flex items-center justify-center mb-4">
+              <Logo size="lg" />
             </div>
             <p className="text-gray-400 mb-2">&copy; 2024 LearnRBX. Master Roblox Scripting.</p>
             <p className="text-gray-500 text-sm">Built with ❤️ for the Roblox developer community</p>

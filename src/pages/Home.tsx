@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { courses } from '../data/courses'
 import { ArrowRight, Clock } from 'lucide-react'
+import Logo from '../components/Logo'
 
 export default function Home() {
   const { user } = useAuthStore()
@@ -11,8 +12,8 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Hero Section */}
         <div className="text-center mb-20 animate-fade-in">
-          <div className="inline-block mb-6">
-            <span className="text-6xl animate-bounce">🎮</span>
+          <div className="inline-block mb-6 animate-bounce">
+            <Logo size="lg" className="justify-center" />
           </div>
           <h1 className="text-6xl md:text-7xl font-extrabold mb-6 leading-tight">
             <span className="text-gradient">Learn Roblox</span>
