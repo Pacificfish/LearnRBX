@@ -100,6 +100,10 @@ export default function Lesson() {
 
   useEffect(() => {
     if (lesson) {
+      // Reset console output when lesson changes
+      setConsoleOutput([])
+      setShowSuccess(false)
+      
       if (progress?.code) {
         // Check if saved code looks like it has incomplete variable assignments from old template
         // Old template had: "local name = " (incomplete, no value)
@@ -121,7 +125,7 @@ export default function Lesson() {
         setCode(lesson.initialCode)
       }
     }
-  }, [lesson, progress])
+  }, [lesson, lessonId, progress])
 
   // Save panel width to localStorage
   useEffect(() => {
