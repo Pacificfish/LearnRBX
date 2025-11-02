@@ -6,7 +6,7 @@ import { CheckCircle, Circle, ArrowRight } from 'lucide-react'
 export default function Course() {
   const { courseId } = useParams<{ courseId: string }>()
   const course = courseId ? getCourse(courseId) : undefined
-  const { getLessonProgress, getCourseCompletion } = useProgressStore()
+  const { getLessonProgress, getCourseCompletion, getEstimatedTimeRemaining } = useProgressStore()
 
   if (!course) {
     return (
@@ -17,6 +17,7 @@ export default function Course() {
   }
 
   const completion = getCourseCompletion(course.id)
+  const timeRemaining = getEstimatedTimeRemaining(course.id)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -30,7 +31,17 @@ export default function Course() {
             <h1 className="text-4xl font-bold mb-2">{course.title}</h1>
             <p className="text-xl text-gray-600 mb-4">{course.description}</p>
             <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>{course.estimatedTime}</span>
+              <span>
+                {timeRemaining ? (
+                  <>
+                    <span className="font-medium">{timeRemaining}</span> remaining
+                    <span className="text-gray-400 mx-1">•</span>
+                    <span className="text-gray-400">{course.estimatedTime} total</span>
+                  </>
+                ) : (
+                  course.estimatedTime
+                )}
+              </span>
               <span className={`px-2 py-1 rounded ${
                 course.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
                 course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :

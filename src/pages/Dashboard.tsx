@@ -4,7 +4,7 @@ import { useProgressStore } from '../store/progressStore'
 import { Clock } from 'lucide-react'
 
 export default function Dashboard() {
-  const { getCourseCompletion } = useProgressStore()
+  const { getCourseCompletion, getEstimatedTimeRemaining } = useProgressStore()
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -21,7 +21,8 @@ export default function Dashboard() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {courses.map((course) => {
             const completion = getCourseCompletion(course.id)
-            const completedLessons = course.lessons.length
+            const totalLessons = course.lessons.length
+            const timeRemaining = getEstimatedTimeRemaining(course.id)
             
             return (
               <Link
@@ -53,7 +54,15 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between text-sm mb-6 pb-6 border-b border-gray-100">
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Clock size={18} className="text-roblox" />
-                    <span className="font-medium">{course.estimatedTime}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {timeRemaining || course.estimatedTime}
+                        {timeRemaining && completion > 0 && <span className="text-gray-400 ml-1">remaining</span>}
+                      </span>
+                      {timeRemaining && completion > 0 && (
+                        <span className="text-xs text-gray-400">{course.estimatedTime} total</span>
+                      )}
+                    </div>
                   </div>
                   <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
                     course.difficulty === 'Beginner' ? 'bg-green-100 text-green-700' :
@@ -66,7 +75,7 @@ export default function Dashboard() {
 
                 <div className="mb-6">
                   <p className="text-sm text-gray-600 mb-1">
-                    <span className="font-semibold text-gray-900">{completedLessons}</span> {completedLessons === 1 ? 'lesson' : 'lessons'} available
+                    <span className="font-semibold text-gray-900">{totalLessons}</span> {totalLessons === 1 ? 'lesson' : 'lessons'} available
                   </p>
                 </div>
 

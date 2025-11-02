@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './authStore'
+import { getCourse } from '../data/courses'
 
 export interface LessonProgress {
   lessonId: string
@@ -24,6 +25,7 @@ interface ProgressState {
   updateLessonProgress: (courseId: string, lessonId: string, completed: boolean, code?: string) => Promise<void>
   getLessonProgress: (courseId: string, lessonId: string) => LessonProgress | undefined
   getCourseCompletion: (courseId: string) => number // percentage
+  getEstimatedTimeRemaining: (courseId: string) => string | null // estimated time remaining
 }
 
 export const useProgressStore = create<ProgressState>()((set, get) => ({
@@ -137,14 +139,51 @@ export const useProgressStore = create<ProgressState>()((set, get) => ({
     return get().progress[courseId]?.lessons[lessonId]
   },
   getCourseCompletion: (courseId: string) => {
+    const course = getCourse(courseId)
+    if (!course) return 0
+
     const courseProgress = get().progress[courseId]
     if (!courseProgress) return 0
 
-    const lessons = Object.values(courseProgress.lessons)
-    if (lessons.length === 0) return 0
+    const totalLessons = course.lessons.length
+    if (totalLessons === 0) return 0
 
-    const completed = lessons.filter((l) => l.completed).length
-    return Math.round((completed / lessons.length) * 100)
+    const completed = Object.values(courseProgress.lessons).filter((l) => l.completed).length
+    return Math.round((completed / totalLessons) * 100)
+  },
+  getEstimatedTimeRemaining: (courseId: string) => {
+    const course = getCourse(courseId)
+    if (!course) return null
+
+    const courseProgress = get().progress[courseId]
+    if (!courseProgress) {
+      // No progress yet, return full estimated time
+      return course.estimatedTime
+    }
+
+    const totalLessons = course.lessons.length
+    if (totalLessons === 0) return course.estimatedTime
+
+    const completed = Object.values(courseProgress.lessons).filter((l) => l.completed).length
+    const remaining = totalLessons - completed
+
+    // Parse estimated time (e.g., "12 hours" -> 12)
+    const timeMatch = course.estimatedTime.match(/(\d+(?:\.\d+)?)\s*(hour|hours|hr|hrs)/i)
+    if (!timeMatch) return course.estimatedTime
+
+    const totalHours = parseFloat(timeMatch[1])
+    const hoursPerLesson = totalHours / totalLessons
+    const remainingHours = remaining * hoursPerLesson
+
+    // Format remaining time nicely
+    if (remainingHours < 1) {
+      const minutes = Math.round(remainingHours * 60)
+      return `${minutes} minute${minutes !== 1 ? 's' : ''}`
+    } else if (remainingHours < 2) {
+      return `~1 hour`
+    } else {
+      return `~${Math.round(remainingHours)} hours`
+    }
   },
 }))
 
