@@ -1254,10 +1254,30 @@ for i = 1, 10 do
     print(i)
 end
 \`\`\``,
-        initialCode: `local numbers = {10, 20, 30, 40, 50}
+        initialCode: `-- ============================================
+-- TASK: Loop through an array and print each item
+-- ============================================
+--
+-- Instructions:
+-- 1. Use a for loop with ipairs() to iterate over the numbers array
+-- 2. Print each number (or format it nicely)
+--
+-- Syntax:
+-- for index, value in ipairs(table) do
+--     print(value)
+-- end
+--
+-- Example:
+-- for i, num in ipairs(numbers) do
+--     print("Number " .. i .. ": " .. num)
+-- end
+-- ============================================
 
--- Use a for loop to print each number
--- Use ipairs() to iterate over the table
+local numbers = {10, 20, 30, 40, 50}
+
+-- TODO: Write a for loop using ipairs() to print each number
+-- Format: for index, value in ipairs(numbers) do ... end
+
 `,
         solution: `local numbers = {10, 20, 30, 40, 50}
 
