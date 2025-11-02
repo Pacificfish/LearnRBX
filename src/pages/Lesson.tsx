@@ -629,11 +629,11 @@ export default function Lesson() {
           </div>
         </div>
 
-        <div className="lesson-container flex gap-0" style={{ minHeight: 'calc(100vh - 140px)' }}>
+        <div className="lesson-container flex gap-0" style={{ height: 'calc(100vh - 140px)' }}>
           {/* Left Column - Lesson Content */}
           <div 
-            className="space-y-3 overflow-y-auto pr-3" 
-            style={{ width: `${leftPanelWidth}%`, minWidth: '280px' }}
+            className="space-y-3 overflow-y-auto overflow-x-hidden pr-3" 
+            style={{ width: `${leftPanelWidth}%`, minWidth: '280px', height: 'calc(100vh - 140px)' }}
           >
             {/* Header */}
             <div className="card border-2 border-gray-100 p-4">
@@ -784,8 +784,8 @@ export default function Lesson() {
 
           {/* Right Column - Code Editor */}
           <div 
-            className="lg:sticky lg:top-3 h-fit overflow-y-auto overflow-x-hidden pl-3 pb-4" 
-            style={{ width: `${100 - leftPanelWidth}%`, minWidth: '280px', maxWidth: '80%' }}
+            className="overflow-y-auto overflow-x-hidden pl-3 pb-4" 
+            style={{ width: `${100 - leftPanelWidth}%`, minWidth: '280px', maxWidth: '80%', height: 'calc(100vh - 140px)' }}
           >
             <div className="card border-2 border-roblox/20 shadow-lg bg-white p-3">
               <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
