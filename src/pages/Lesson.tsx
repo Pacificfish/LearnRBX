@@ -134,12 +134,136 @@ export default function Lesson() {
   const progressPercentage = ((currentLessonIndex + 1) / course.lessons.length) * 100
 
   const handleCheck = () => {
-    // Simple check - in production, you'd have more sophisticated validation
-    if (code.trim().length > 0 && code !== lesson?.initialCode && courseId && lessonId) {
+    if (!courseId || !lessonId || !lesson) {
+      setConsoleOutput(['❌ Error: Unable to validate code'])
+      return
+    }
+
+    const trimmedCode = code.trim()
+    const results: string[] = []
+
+    // Check 1: Has the code been modified?
+    if (trimmedCode === lesson.initialCode || trimmedCode.length === 0) {
+      setConsoleOutput([
+        '❌ Test Failed',
+        '',
+        'Please write some code before checking.',
+        'The code editor still contains the starting template.'
+      ])
+      return
+    }
+
+    results.push('🔍 Running tests...')
+    results.push('')
+
+    let passed = true
+    let issues: string[] = []
+
+    // Check 2: Compare with solution if available
+    if (lesson.solution) {
+      // Look for required patterns from solution
+      const requiredPatterns = [
+        /part\.parent\s*=\s*workspace/i,
+        /part\.position\s*=\s*vector3\.new/i,
+        /part\.size\s*=\s*vector3\.new/i,
+        /part\.brickcolor\s*=\s*brickcolor\.new/i,
+        /instance\.new\s*\(\s*["']part["']\s*\)/i,
+        /local\s+\w+\s*=/,
+        /print\s*\(/,
+        /function\s+\w+\s*\(/,
+        /if\s+.+\s+then/,
+        /for\s+.+\s+do/,
+      ]
+
+      const foundPatterns: string[] = []
+      requiredPatterns.forEach((pattern, index) => {
+        if (pattern.test(trimmedCode)) {
+          foundPatterns.push(`✓ Pattern ${index + 1} found`)
+        }
+      })
+
+      // Check for common mistakes
+      if (trimmedCode.includes('part.Parent') && !trimmedCode.includes('part.Parent = workspace')) {
+        issues.push('⚠️  Make sure to set part.Parent = workspace')
+      }
+
+      if (trimmedCode.includes('Position') && !trimmedCode.includes('Vector3.new')) {
+        issues.push('⚠️  Position should use Vector3.new(x, y, z)')
+      }
+
+      if (trimmedCode.includes('Size') && !trimmedCode.includes('Vector3.new')) {
+        issues.push('⚠️  Size should use Vector3.new(width, height, depth)')
+      }
+
+      // Basic validation - check if user code has meaningful content
+      const hasCodeStructure = trimmedCode.includes('=') || trimmedCode.includes('(') || trimmedCode.includes('print')
+
+      if (!hasCodeStructure) {
+        passed = false
+        issues.push('❌ Code appears incomplete. Make sure to write complete statements.')
+      }
+
+      // Check for common syntax issues
+      const openParens = (trimmedCode.match(/\(/g) || []).length
+      const closeParens = (trimmedCode.match(/\)/g) || []).length
+      if (openParens !== closeParens) {
+        passed = false
+        issues.push('❌ Mismatched parentheses. Check your opening and closing parentheses.')
+      }
+
+      const openQuotes = (trimmedCode.match(/"/g) || []).length
+      if (openQuotes % 2 !== 0) {
+        passed = false
+        issues.push('❌ Mismatched quotes. Make sure all strings are properly closed.')
+      }
+
+      if (issues.length === 0 && foundPatterns.length > 0) {
+        passed = true
+      }
+    } else {
+      // No solution provided - just check if code is meaningful
+      const hasContent = trimmedCode.length > 20 && (
+        trimmedCode.includes('=') || 
+        trimmedCode.includes('print') || 
+        trimmedCode.includes('function')
+      )
+      
+      if (!hasContent) {
+        passed = false
+        issues.push('⚠️  Make sure your code contains meaningful statements')
+      } else {
+        passed = true
+      }
+    }
+
+    // Display results
+    if (passed) {
+      results.push('✅ All Tests Passed!')
+      results.push('')
+      results.push('Great job! Your code looks correct.')
+      if (lesson.solution) {
+        results.push('Your implementation matches the expected solution.')
+      }
+      
+      // Mark as complete
       updateLessonProgress(courseId, lessonId, true, code)
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 4000)
+    } else {
+      results.push('❌ Tests Failed')
+      results.push('')
+      if (issues.length > 0) {
+        results.push('Issues found:')
+        issues.forEach(issue => results.push(issue))
+      } else {
+        results.push('Your code doesn\'t match the expected solution.')
+        results.push('Check the hints or solution if you\'re stuck!')
+      }
+      results.push('')
+      results.push('💡 Tip: Review the lesson content and try again.')
     }
+
+    setConsoleOutput(results)
   }
 
   const handleNextHint = () => {
@@ -524,7 +648,7 @@ export default function Lesson() {
                     className="flex items-center space-x-2 btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
                   >
                     <Check size={18} />
-                    <span>Check Code</span>
+                    <span>Test Code</span>
                   </button>
                 </div>
               </div>
@@ -569,14 +693,32 @@ export default function Lesson() {
                 <div className="p-4 min-h-[100px] max-h-[300px] overflow-y-auto">
                   {consoleOutput.length === 0 ? (
                     <div className="text-gray-500 italic">
-                      Click "Run Code" to execute your code and see output here
+                      Click "Run Code" to see output or "Test Code" to validate your solution
                     </div>
                   ) : (
-                    consoleOutput.map((line, index) => (
-                      <div key={index} className="mb-1 text-green-400">
-                        {line}
-                      </div>
-                    ))
+                    consoleOutput.map((line, index) => {
+                      // Style different types of messages
+                      let textColor = 'text-green-400' // Default: green for output
+                      if (line.startsWith('❌')) {
+                        textColor = 'text-red-400'
+                      } else if (line.startsWith('✅')) {
+                        textColor = 'text-green-400'
+                      } else if (line.startsWith('🔍')) {
+                        textColor = 'text-yellow-400'
+                      } else if (line.startsWith('⚠️') || line.startsWith('💡')) {
+                        textColor = 'text-yellow-400'
+                      } else if (line.startsWith('✓')) {
+                        textColor = 'text-green-400'
+                      } else if (line.trim() === '') {
+                        return <div key={index} className="h-2"></div>
+                      }
+                      
+                      return (
+                        <div key={index} className={`mb-1 ${textColor} whitespace-pre-wrap`}>
+                          {line}
+                        </div>
+                      )
+                    })
                   )}
                 </div>
               </div>
