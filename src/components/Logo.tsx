@@ -28,14 +28,14 @@ export default function Logo({ className = '', size = 'md', showText = true }: L
         >
           <defs>
             {/* Main gradient */}
-            <linearGradient id={`gradient-${size}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#00A2FF" />
               <stop offset="50%" stopColor="#0066CC" />
               <stop offset="100%" stopColor="#0051B8" />
             </linearGradient>
             
             {/* Shine gradient */}
-            <linearGradient id={`shine-${size}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="logoShine" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="rgba(255,255,255,0)" />
               <stop offset="50%" stopColor="rgba(255,255,255,0.4)" />
               <stop offset="100%" stopColor="rgba(255,255,255,0)" />
@@ -56,13 +56,13 @@ export default function Logo({ className = '', size = 'md', showText = true }: L
           {/* Main block */}
           <path
             d="M 15 25 L 50 15 L 85 25 L 50 95 Z"
-            fill={`url(#gradient-${size})`}
+            fill="url(#logoGradient)"
           />
           
           {/* Top face highlight */}
           <path
             d="M 15 25 L 50 15 L 85 25 L 50 50 Z"
-            fill="url(#shine-${size})"
+            fill="url(#logoShine)"
             opacity="0.6"
           />
           
