@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { getCourse, getLesson } from '../data/courses'
 import { useProgressStore } from '../store/progressStore'
 import CodeEditor from '../components/CodeEditor'
-import { Check, Lightbulb, ArrowLeft, ArrowRight, Eye, Target, BookOpen, CheckCircle2, Sparkles, Code2 } from 'lucide-react'
+import { Check, Lightbulb, ArrowLeft, ArrowRight, Eye, Target, BookOpen, CheckCircle2, Sparkles, Code2, Terminal, Play, Trash2 } from 'lucide-react'
 
 // Simple markdown renderer for lesson content
 function renderMarkdown(content: string) {
@@ -93,6 +93,8 @@ export default function Lesson() {
     return saved ? parseFloat(saved) : 50
   })
   const [isResizing, setIsResizing] = useState(false)
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([])
+  const [isRunning, setIsRunning] = useState(false)
 
   const progress = courseId && lessonId ? getLessonProgress(courseId, lessonId) : undefined
 
@@ -150,6 +152,109 @@ export default function Lesson() {
     if (hintIndex > 0) {
       setHintIndex(hintIndex - 1)
     }
+  }
+
+  // Simple Lua code executor that captures print() statements
+  const executeCode = () => {
+    setIsRunning(true)
+    setConsoleOutput([])
+    
+    try {
+      const output: string[] = []
+      const variables: Record<string, string | number> = {}
+      
+      // First pass: extract variable assignments
+      const varAssignRegex = /local\s+(\w+)\s*=\s*([^;\n]+)/g
+      let varMatch
+      while ((varMatch = varAssignRegex.exec(code)) !== null) {
+        const varName = varMatch[1]
+        let varValue = varMatch[2].trim()
+        
+        // Remove quotes if it's a string
+        if ((varValue.startsWith('"') && varValue.endsWith('"')) || 
+            (varValue.startsWith("'") && varValue.endsWith("'"))) {
+          variables[varName] = varValue.slice(1, -1)
+        } else if (!isNaN(Number(varValue))) {
+          variables[varName] = Number(varValue)
+        } else {
+          variables[varName] = varValue
+        }
+      }
+      
+      // Second pass: find and evaluate print statements
+      const printRegex = /print\s*\(\s*([^)]+)\s*\)/g
+      let printMatch
+      
+      while ((printMatch = printRegex.exec(code)) !== null) {
+        const printArg = printMatch[1].trim()
+        let result = ''
+        
+        // Handle string literals
+        if ((printArg.startsWith('"') && printArg.endsWith('"')) || 
+            (printArg.startsWith("'") && printArg.endsWith("'"))) {
+          result = printArg.slice(1, -1)
+        }
+        // Handle concatenation with ..
+        else if (printArg.includes('..')) {
+          const parts = printArg.split('..').map(p => p.trim())
+          result = ''
+          for (const part of parts) {
+            // Check if it's a variable
+            if (variables[part]) {
+              result += String(variables[part])
+            } else if ((part.startsWith('"') && part.endsWith('"')) || 
+                       (part.startsWith("'") && part.endsWith("'"))) {
+              result += part.slice(1, -1)
+            } else if (!isNaN(Number(part))) {
+              result += String(Number(part))
+            } else {
+              result += part
+            }
+          }
+        }
+        // Handle single variable
+        else if (variables[printArg]) {
+          result = String(variables[printArg])
+        }
+        // Handle numbers
+        else if (!isNaN(Number(printArg))) {
+          result = String(Number(printArg))
+        }
+        // Handle string with variables (simple cases like "Hello " .. name)
+        else {
+          // Try to find variable references in the argument
+          const varRefRegex = /(\w+)/g
+          const varRefs = printArg.match(varRefRegex) || []
+          result = printArg
+          for (const varRef of varRefs) {
+            if (variables[varRef]) {
+              result = result.replace(varRef, String(variables[varRef]))
+            }
+          }
+          // Clean up any remaining quotes
+          result = result.replace(/["']/g, '').trim()
+        }
+        
+        if (result) {
+          output.push(result)
+        }
+      }
+      
+      // If no output found but code exists, show a message
+      if (output.length === 0 && code.trim().length > 0) {
+        output.push('(No output - add print() statements to see output here)')
+      }
+      
+      setConsoleOutput(output)
+    } catch (error) {
+      setConsoleOutput([`Error: ${error instanceof Error ? error.message : 'Unknown error'}`])
+    } finally {
+      setIsRunning(false)
+    }
+  }
+
+  const clearConsole = () => {
+    setConsoleOutput([])
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -405,13 +510,23 @@ export default function Lesson() {
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">Code Editor</h2>
                 </div>
-                <button
-                  onClick={handleCheck}
-                  className="flex items-center space-x-2 btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-                >
-                  <Check size={18} />
-                  <span>Check Code</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={executeCode}
+                    disabled={isRunning}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg font-medium transition-colors text-sm shadow-md"
+                  >
+                    <Play size={16} />
+                    <span>{isRunning ? 'Running...' : 'Run Code'}</span>
+                  </button>
+                  <button
+                    onClick={handleCheck}
+                    className="flex items-center space-x-2 btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                  >
+                    <Check size={18} />
+                    <span>Check Code</span>
+                  </button>
+                </div>
               </div>
 
               <div className="rounded-lg overflow-hidden border-2 border-gray-200 mb-4">
@@ -433,13 +548,46 @@ export default function Lesson() {
                 </div>
               )}
 
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4">
+              {/* Console Output */}
+              <div className="mt-4 border-2 border-gray-300 rounded-lg bg-gray-900 text-gray-100 font-mono text-sm">
+                <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+                  <div className="flex items-center space-x-2">
+                    <Terminal size={16} className="text-green-400" />
+                    <span className="text-gray-300 font-semibold">Console Output</span>
+                  </div>
+                  {consoleOutput.length > 0 && (
+                    <button
+                      onClick={clearConsole}
+                      className="flex items-center space-x-1 text-gray-400 hover:text-gray-200 transition-colors text-xs"
+                      title="Clear console"
+                    >
+                      <Trash2 size={14} />
+                      <span>Clear</span>
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 min-h-[100px] max-h-[300px] overflow-y-auto">
+                  {consoleOutput.length === 0 ? (
+                    <div className="text-gray-500 italic">
+                      Click "Run Code" to execute your code and see output here
+                    </div>
+                  ) : (
+                    consoleOutput.map((line, index) => (
+                      <div key={index} className="mb-1 text-green-400">
+                        {line}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 mt-4">
                 <div className="flex items-start space-x-3">
                   <Lightbulb className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
                   <div>
                     <p className="text-sm font-semibold text-gray-900 mb-1">💡 Pro Tip</p>
                     <p className="text-sm text-gray-700 leading-relaxed">
-                      Copy your code and test it in Roblox Studio to see it in action! This helps you understand how your code works in a real game environment.
+                      Use <code className="bg-blue-100 px-1 rounded">print()</code> statements in your code to see output here, or copy your code and test it in Roblox Studio!
                     </p>
                   </div>
                 </div>
