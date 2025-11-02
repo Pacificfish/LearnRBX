@@ -36,28 +36,116 @@ export const courses: Course[] = [
         description: 'Introduction to Lua programming and your first code',
         content: `# Getting Started with Lua
 
-Welcome to Lua programming! Lua is the programming language used by Roblox.
+Welcome to Lua programming! Lua is the scripting language that powers every Roblox game. Whether you're making an obby, a simulator, or an RPG, Lua is what makes everything happen.
 
 ## What is Lua?
 
-Lua is a lightweight, powerful scripting language perfect for game development. In Roblox, Lua is used to control everything in your game!
+**Lua** (pronounced "LOO-ah") is a lightweight, fast, and powerful scripting language designed for embedding into applications. Roblox chose Lua because it's:
+- **Simple**: Easy to learn, especially for beginners
+- **Fast**: Optimized for performance in games
+- **Flexible**: Can handle complex game logic
+- **Portable**: Works the same across different platforms
+
+In Roblox, Lua scripts control everything: character movement, game mechanics, UI interactions, physics, and more!
 
 ## Your First Code
 
+Let's write your very first Lua program:
+
 \`\`\`lua
 -- This is a comment! Comments start with --
+-- Comments are ignored by the computer - they're for humans to read
 print("Hello, World!")
 \`\`\`
 
-## Basic Syntax
+This simple line does something powerful: it **displays text**. The \`print()\` function takes text (in quotes) and shows it in the Output window.
 
-- Lines end automatically (no semicolons needed!)
-- Use \`--\` for comments
-- \`print()\` displays text in the output
+### Breaking Down the Code
+
+- **\`--\`**: Starts a comment - everything after this on the line is ignored
+- **\`print()\`**: A built-in Lua function that displays output
+- **\`"Hello, World!"\`**: A string (text) - notice the quotes!
+- **Parentheses**: Required for function calls
+
+## Basic Syntax Rules
+
+Lua has some unique syntax rules that make it beginner-friendly:
+
+### 1. No Semicolons Needed
+
+Unlike many languages, Lua doesn't require semicolons at the end of lines:
+\`\`\`lua
+-- Good!
+print("Hello")
+
+-- Also good!
+print("Hello");
+\`\`\`
+Both work, but most Lua programmers skip the semicolon.
+
+### 2. Comments
+
+Comments help you (and others) understand your code:
+\`\`\`lua
+-- Single line comment
+
+--[[
+    Multi-line comment
+    Can span multiple lines
+    Useful for explaining complex code
+--]]
+\`\`\`
+
+### 3. Case Sensitive
+
+Lua is case-sensitive, meaning uppercase and lowercase matter:
+\`\`\`lua
+print("Hello")  -- Works
+Print("Hello")   -- Error! 'Print' doesn't exist
+PRINT("Hello")   -- Also an error!
+\`\`\`
+
+### 4. Strings Need Quotes
+
+Text must be wrapped in quotes:
+\`\`\`lua
+print("Hello")      -- Correct
+print(Hello)        -- Error! Lua thinks Hello is a variable
+print('Hello')      -- Also correct - single quotes work too
+\`\`\`
+
+## The print() Function
+
+\`print()\` is your best friend for debugging and learning. It displays information in the Output window:
+- In Roblox Studio: View → Output
+- Shows what your code is doing
+- Essential for testing and debugging
+
+### Examples
+
+\`\`\`lua
+print("My name is Roblox")
+print(42)                    -- Prints numbers too!
+print("The answer is: " .. 42)  -- Combining text and numbers
+\`\`\`
+
+## Why This Matters
+
+Understanding these basics is crucial because:
+- **Every script starts with these concepts**
+- **Comments help you remember what your code does**
+- **print() lets you see what's happening**
+- **Syntax errors are common when learning** - these rules help prevent them
+
+## Common Mistakes to Avoid
+
+1. **Forgetting quotes around text**: \`print(Hello)\` won't work - use \`print("Hello")\`
+2. **Missing parentheses**: \`print "Hello"\` won't work - use \`print("Hello")\`
+3. **Typos**: \`prnt("Hello")\` won't work - spell \`print\` correctly
 
 ## Try It!
 
-Let's print your first message!`,
+Let's print your first message! Try different messages to see how it works.`,
         initialCode: `-- Print "Hello, World!"
 -- Use print("your message here")
 
@@ -66,9 +154,10 @@ Let's print your first message!`,
 -- Use print("your message here")
 print("Hello, World!")`,
         hints: [
-          'Use print() function',
-          'Put your message in quotes: "Hello, World!"',
-          'Don\'t forget the parentheses!',
+          'Use the print() function - it\'s a built-in Lua function that displays text',
+          'Put your message inside quotes (double or single): print("Hello, World!")',
+          'Don\'t forget the parentheses after print - function calls always need ()',
+          'The print function expects text (string) in quotes, not a variable name without quotes',
         ],
         objectives: [
           'Write your first line of Lua code',
@@ -82,24 +171,188 @@ print("Hello, World!")`,
         description: 'Learn how to declare variables and work with different data types in Lua',
         content: `# Variables and Data Types
 
-In Lua, variables are used to store data. You don't need to declare the type - Lua figures it out automatically!
+Variables are **containers that store information**. Think of them like labeled boxes where you can put things and retrieve them later. In Lua, variables are how you store and work with data in your scripts.
 
-## Basic Variable Types
+## What Are Variables?
 
-- **Numbers**: Integers and decimals (e.g., 5, 3.14)
-- **Strings**: Text enclosed in quotes (e.g., "Hello", 'World')
-- **Booleans**: true or false
-- **Nil**: Represents "no value"
+A variable is a **named storage location** in your computer's memory. You give it a name (like \`playerName\` or \`health\`) and assign it a value. Later, you can use that name to access or change the value.
 
-## The \`local\` Keyword
+### Why Variables Matter
 
-Always use \`local\` to keep variables from leaking into the global scope!
+Variables let you:
+- **Store information**: Remember values for later use
+- **Make code readable**: \`playerHealth\` is clearer than just \`100\`
+- **Update values**: Change data as your game runs
+- **Reuse values**: Use the same value multiple times without repeating it
+
+## Lua's Dynamic Typing
+
+Unlike some languages, Lua is **dynamically typed**. This means:
+- You **don't need to declare the type** when creating a variable
+- Lua **automatically figures out** what type of data you're storing
+- You can **change the type** of a variable later (though this is usually not recommended)
+
+## Basic Data Types
+
+Lua has several fundamental data types you'll use constantly:
+
+### 1. Numbers
+
+Numbers can be **integers** (whole numbers) or **floats** (decimals):
 
 \`\`\`lua
+local wholeNumber = 42           -- Integer
+local decimalNumber = 3.14159    -- Float (decimal)
+local negative = -10             -- Negative numbers work too
+local largeNumber = 1000000      -- Can be very large
+\`\`\`
+
+**Key Points**:
+- No need to specify if it's an integer or float
+- Lua handles both seamlessly
+- Use for calculations, scores, health, etc.
+
+### 2. Strings
+
+Strings are **text data** - anything you want to display or store as text:
+
+\`\`\`lua
+local name = "Roblox"           -- Double quotes
+local greeting = 'Hello'        -- Single quotes work too
+local emptyString = ""          -- Empty string (still exists!)
+local numberAsString = "123"    -- This is text, not a number!
+\`\`\`
+
+**Important Notes**:
+- Quotes are **required** - without them, Lua thinks it's a variable name
+- \`"123"\` is different from \`123\` (string vs number)
+- Can concatenate (join) strings with \`..\`: \`"Hello" .. "World"\` = \`"HelloWorld"\`
+
+### 3. Booleans
+
+Booleans represent **true or false** - perfect for conditions and flags:
+
+\`\`\`lua
+local isPlayerAlive = true      -- Player is alive
+local isGamePaused = false      -- Game is not paused
+local canJump = true             -- Player can jump
+\`\`\`
+
+**Use Cases**:
+- Track state (is something on/off, alive/dead, etc.)
+- Control game logic with if statements
+- Remember yes/no decisions
+
+### 4. Nil
+
+Nil means **"no value"** or **"doesn't exist"**:
+
+\`\`\`lua
+local emptyVariable = nil       -- Explicitly no value
+local unassignedVariable        -- Also nil (if never assigned)
+\`\`\`
+
+**Common Uses**:
+- Check if something exists: \`if variable == nil then ...\`
+- Clear a value: \`variable = nil\`
+- Default return when something isn't found
+
+## The \`local\` Keyword - Critical!
+
+**Always use \`local\`** when creating variables. This is one of the most important best practices in Lua!
+
+### Why Local Matters
+
+\`\`\`lua
+-- BAD: Global variable (pollutes global scope)
+name = "Roblox"
+
+-- GOOD: Local variable (scoped to current block)
 local name = "Roblox"
-local age = 10
-local isActive = true
-\`\`\``,
+\`\`\`
+
+**Problems with Global Variables**:
+1. **Name conflicts**: Another script might use the same name
+2. **Performance**: Slower than local variables
+3. **Memory**: Can't be garbage collected as easily
+4. **Debugging**: Harder to track where values come from
+
+### Local Scope
+
+\`local\` variables exist only in the **scope** where they're created:
+
+\`\`\`lua
+local x = 10        -- x exists here
+
+if true then
+    local y = 20    -- y only exists in this if block
+    print(x)        -- Can access x (outer scope)
+    print(y)        -- Can access y (inner scope)
+end
+
+print(y)            -- ERROR! y doesn't exist here anymore
+\`\`\`
+
+## Variable Naming Best Practices
+
+Good variable names make code readable:
+
+\`\`\`lua
+-- GOOD: Clear and descriptive
+local playerHealth = 100
+local playerName = "Hero"
+local isGameActive = true
+
+-- BAD: Unclear what they mean
+local h = 100           -- What is h?
+local x = "Hero"        -- What is x?
+local flag = true       -- Flag for what?
+\`\`\`
+
+**Naming Rules**:
+- Start with a letter or underscore
+- Can contain letters, numbers, and underscores
+- Case-sensitive: \`playerName\` ≠ \`playername\`
+- Use camelCase for readability: \`playerHealth\` not \`player_health\`
+
+## Assigning and Reassigning
+
+You can change variable values:
+
+\`\`\`lua
+local health = 100     -- Initial value
+health = 50            -- Change it
+health = health - 10    -- Subtract 10
+health = 0             -- Set to zero
+\`\`\`
+
+**Note**: You don't need \`local\` again when reassigning - only when first creating the variable!
+
+## Common Patterns
+
+\`\`\`lua
+-- Store player information
+local playerName = "RobloxPlayer"
+local playerLevel = 25
+local playerCoins = 1500
+
+-- Store game state
+local isGameRunning = true
+local currentWave = 1
+
+-- Store calculated values
+local totalScore = playerLevel * 10 + playerCoins
+\`\`\`
+
+## Why Understanding Variables is Crucial
+
+Variables are the foundation of programming:
+- **Every script uses them**
+- **Game state is stored in variables**
+- **Without variables, you can't remember anything**
+- **Master them before moving to more complex topics**
+
+Practice creating variables with different types and names to get comfortable!`,
         initialCode: `-- Create a variable for your name
 local name = 
 
@@ -135,25 +388,197 @@ print(number)`,
         description: 'Learn how to create and use functions',
         content: `# Functions
 
-Functions are reusable blocks of code that perform specific tasks.
+Functions are **reusable blocks of code** that perform specific tasks. Think of them as recipes - you write the recipe once, then use it multiple times with different ingredients (parameters).
+
+## Why Functions Matter
+
+Without functions, you'd repeat the same code over and over. Functions let you:
+- **Avoid repetition**: Write once, use many times
+- **Organize code**: Break complex problems into smaller pieces
+- **Make code readable**: \`healPlayer(player, 50)\` is clearer than 20 lines of healing logic
+- **Debug easily**: Fix bugs in one place instead of many
+
+## What is a Function?
+
+A function is a named block of code that:
+1. Takes **inputs** (parameters/arguments)
+2. Performs **operations**
+3. Can **return** a result (optional)
 
 ## Creating Functions
+
+The basic syntax is:
+
+\`\`\`lua
+function functionName(parameter1, parameter2)
+    -- Code here
+    -- Do something with parameters
+end
+\`\`\`
+
+### Your First Function
+
+Let's create a simple greeting function:
 
 \`\`\`lua
 function greet(name)
     print("Hello, " .. name .. "!")
 end
+
+-- Now use it:
+greet("Roblox")      -- Prints: "Hello, Roblox!"
+greet("Developer")    -- Prints: "Hello, Developer!"
+\`\`\`
+
+**Breaking it down**:
+- \`function\`: Keyword that starts function definition
+- \`greet\`: The function's name (you choose this)
+- \`(name)\`: Parameter list - \`name\` is a variable that holds the input
+- \`print(...)\`: The function's body - what it does
+- \`end\`: Keyword that ends the function
+
+### Multiple Parameters
+
+Functions can take multiple inputs:
+
+\`\`\`lua
+function introduce(name, age)
+    print(name .. " is " .. age .. " years old")
+end
+
+introduce("Roblox", 18)  -- Prints: "Roblox is 18 years old"
+\`\`\`
+
+### No Parameters
+
+Functions don't always need parameters:
+
+\`\`\`lua
+function sayHello()
+    print("Hello, World!")
+end
+
+sayHello()  -- Prints: "Hello, World!"
 \`\`\`
 
 ## Returning Values
 
+Functions can **return** results using the \`return\` keyword:
+
 \`\`\`lua
 function add(a, b)
-    return a + b
+    local sum = a + b
+    return sum
 end
 
-local result = add(5, 3)  -- result is 8
-\`\`\``,
+local result = add(5, 3)  -- result is now 8
+print(result)              -- Prints: 8
+\`\`\`
+
+### Why Return is Powerful
+
+Returned values let you use function results:
+
+\`\`\`lua
+function calculateDamage(baseDamage, multiplier)
+    return baseDamage * multiplier
+end
+
+local damage = calculateDamage(10, 2.5)  -- 25 damage
+local finalHealth = playerHealth - damage
+\`\`\`
+
+### Multiple Returns
+
+Lua functions can return multiple values:
+
+\`\`\`lua
+function getPlayerStats(player)
+    return player.Level, player.Health, player.Gold
+end
+
+local level, health, gold = getPlayerStats(myPlayer)
+-- Now you have all three values!
+\`\`\`
+
+## Calling Functions
+
+To use a function, you **call** it with parentheses:
+
+\`\`\`lua
+-- Define the function
+function greet(name)
+    print("Hello, " .. name)
+end
+
+-- Call the function (use it)
+greet("Roblox")     -- Correct - calls the function
+greet               -- Wrong - this is the function itself, doesn't execute it
+\`\`\`
+
+## Function Scope
+
+Variables inside functions are **local to that function**:
+
+\`\`\`lua
+function calculate()
+    local x = 10    -- x only exists in this function
+    return x * 2
+end
+
+print(x)            -- ERROR! x doesn't exist here
+\`\`\`
+
+## Common Patterns
+
+### Helper Functions
+
+Small functions that do one thing well:
+
+\`\`\`lua
+function clamp(value, min, max)
+    if value < min then
+        return min
+    elseif value > max then
+        return max
+    else
+        return value
+    end
+end
+
+local health = clamp(playerHealth, 0, 100)  -- Keeps health between 0-100
+\`\`\`
+
+### Functions for Game Logic
+
+\`\`\`lua
+function dealDamage(target, amount)
+    if target and target.Humanoid then
+        target.Humanoid.Health = target.Humanoid.Health - amount
+        print("Dealt " .. amount .. " damage!")
+    end
+end
+
+dealDamage(player.Character, 25)
+\`\`\`
+
+## Best Practices
+
+1. **Name functions clearly**: \`healPlayer()\` not \`hp()\`
+2. **Keep functions focused**: One function, one job
+3. **Use parameters**: Don't hardcode values inside functions
+4. **Return values**: When appropriate, return results instead of just printing
+5. **Local functions**: Use \`local function\` to avoid global scope pollution
+
+## Why Functions Are Essential
+
+Functions are fundamental to programming:
+- **Every game uses them extensively**
+- **Makes code maintainable and readable**
+- **Foundation for more advanced concepts**
+- **Industry standard practice**
+
+Master functions before moving to complex topics!`,
         initialCode: `-- Create a function that prints a greeting
 function greet(name)
     -- Your code here
@@ -185,25 +610,234 @@ greet("Roblox")`,
         description: 'Learn how to work with tables - Lua\'s only data structure',
         content: `# Tables and Arrays
 
-Tables are Lua's only data structure - they can be used as arrays, dictionaries, objects, and more!
+**Tables are Lua's only data structure** - and they're incredibly powerful! Think of a table as a container that can hold multiple pieces of information. Unlike many languages that have separate types for arrays, dictionaries, and objects, Lua uses tables for everything.
 
-## Creating Tables
+## What is a Table?
+
+A table is a **collection of key-value pairs**. Each piece of data in a table has:
+- A **key**: How you identify/access the data
+- A **value**: The actual data stored
+
+Tables can be used as:
+- **Arrays**: Ordered lists (keys are numbers: 1, 2, 3...)
+- **Dictionaries**: Key-value stores (keys are strings: "name", "level"...)
+- **Objects**: Structures that hold related data
+- **And much more!**
+
+## Array-Style Tables (Lists)
+
+Arrays are **ordered lists** where items are accessed by their position (index):
 
 \`\`\`lua
--- Array-style table
+-- Create an array (list) of items
+local items = {"sword", "shield", "potion"}
+\`\`\`
+
+**Important**: Lua arrays start at **index 1**, not 0! This is different from many languages.
+
+### Accessing Array Elements
+
+\`\`\`lua
 local items = {"sword", "shield", "potion"}
 
--- Dictionary-style table
+print(items[1])  -- "sword" (first item)
+print(items[2])  -- "shield" (second item)
+print(items[3])  -- "potion" (third item)
+print(items[4])  -- nil (doesn't exist)
+\`\`\`
+
+### Adding Items to Arrays
+
+\`\`\`lua
+local items = {}
+
+-- Method 1: Using table.insert()
+table.insert(items, "sword")
+table.insert(items, "shield")
+-- items now contains: {"sword", "shield"}
+
+-- Method 2: Direct assignment
+items[1] = "sword"
+items[2] = "shield"
+-- Same result
+
+-- Method 3: Initialize with values
+local weapons = {"sword", "axe", "bow"}
+\`\`\`
+
+### Getting Array Length
+
+Use the \`#\` operator to get the number of items:
+
+\`\`\`lua
+local items = {"sword", "shield", "potion"}
+print(#items)  -- Prints: 3
+\`\`\`
+
+## Dictionary-Style Tables (Key-Value Pairs)
+
+Dictionaries store data with **named keys** instead of numeric positions:
+
+\`\`\`lua
+-- Create a dictionary-style table
 local player = {
     name = "RobloxPlayer",
+    level = 10,
+    health = 100,
+    gold = 500
+}
+\`\`\`
+
+### Accessing Dictionary Values
+
+\`\`\`lua
+-- Method 1: Dot notation (preferred for readability)
+print(player.name)      -- "RobloxPlayer"
+print(player.level)     -- 10
+
+-- Method 2: Bracket notation (more flexible)
+print(player["name"])   -- "RobloxPlayer"
+print(player["level"])  -- 10
+
+-- Bracket notation allows variables as keys!
+local key = "name"
+print(player[key])      -- "RobloxPlayer"
+\`\`\`
+
+### Adding/Modifying Dictionary Values
+
+\`\`\`lua
+local player = {}
+
+-- Add values
+player.name = "Hero"
+player.level = 1
+player.health = 100
+
+-- Or initialize all at once
+local player = {
+    name = "Hero",
+    level = 1,
+    health = 100
+}
+
+-- Modify values
+player.level = 2         -- Level up!
+player.health = player.health - 10  -- Take damage
+\`\`\`
+
+## Mixing Arrays and Dictionaries
+
+Tables can be both! This is powerful:
+
+\`\`\`lua
+local player = {
+    name = "Hero",           -- Dictionary style
+    level = 10,                 -- Dictionary style
+    inventory = {             -- Nested array!
+        "sword",
+        "shield",
+        "potion"
+    },
+    stats = {                 -- Nested dictionary!
+        health = 100,
+        mana = 50,
+        strength = 25
+    }
+}
+
+-- Access nested data
+print(player.name)                    -- "Hero"
+print(player.inventory[1])            -- "sword"
+print(player.stats.health)            -- 100
+\`\`\`
+
+## Iterating Over Tables
+
+### Iterating Arrays (ipairs)
+
+Use \`ipairs\` to loop through arrays in order:
+
+\`\`\`lua
+local items = {"sword", "shield", "potion"}
+
+for index, value in ipairs(items) do
+    print(index .. ": " .. value)
+end
+
+-- Output:
+-- 1: sword
+-- 2: shield
+-- 3: potion
+\`\`\`
+
+### Iterating Dictionaries (pairs)
+
+Use \`pairs\` to loop through all key-value pairs:
+
+\`\`\`lua
+local player = {
+    name = "Hero",
     level = 10,
     health = 100
 }
 
--- Accessing values
-print(items[1])  -- "sword"
-print(player.name)  -- "RobloxPlayer"
-\`\`\``,
+for key, value in pairs(player) do
+    print(key .. ": " .. tostring(value))
+end
+
+-- Output (order may vary):
+-- name: Hero
+-- level: 10
+-- health: 100
+\`\`\`
+
+## Common Table Operations
+
+### Removing Items
+
+\`\`\`lua
+local items = {"sword", "shield", "potion"}
+
+-- Remove last item
+table.remove(items)  -- Removes "potion"
+
+-- Remove specific index
+table.remove(items, 1)  -- Removes "sword", shifts remaining items
+\`\`\`
+
+### Finding Items
+
+\`\`\`lua
+local items = {"sword", "shield", "potion"}
+
+-- Check if table contains a value (simple search)
+for i, item in ipairs(items) do
+    if item == "sword" then
+        print("Found sword at index " .. i)
+        break
+    end
+end
+\`\`\`
+
+## Why Tables Are Essential
+
+Tables are used everywhere in Roblox scripting:
+- **Player inventories**: Lists of items
+- **Game data**: Player stats, game settings
+- **Collections**: Groups of parts, enemies, etc.
+- **Configuration**: Game settings, item data
+- **State management**: Tracking game state
+
+## Best Practices
+
+1. **Use arrays for ordered lists**: When order matters
+2. **Use dictionaries for named data**: When you need descriptive keys
+3. **Keep tables organized**: Use clear, consistent naming
+4. **Initialize properly**: Set up structure before using
+5. **Check if keys exist**: Use \`if table[key] then\` before accessing
+
+Master tables - they're the foundation of organizing data in Lua!`,
         initialCode: `-- Create an array of items
 local items = {}
 
@@ -239,9 +873,53 @@ print(items[1])`,
         description: 'Control the flow of your code with conditionals',
         content: `# If Statements and Conditions
 
-Conditionals let your code make decisions based on conditions.
+**Conditionals** let your code make decisions - they're how you tell your program "if this is true, do that, otherwise do something else." Without conditionals, code would run the same way every time, making games impossible!
+
+## What Are Conditionals?
+
+Conditionals check if something is true or false, then execute different code based on the result. They're the foundation of game logic:
+- "If player health is low, show warning"
+- "If player has enough coins, allow purchase"
+- "If enemy is near, start attack"
 
 ## Basic If Statement
+
+The simplest conditional checks one condition:
+
+\`\`\`lua
+local health = 75
+
+if health > 50 then
+    print("You're healthy!")
+end
+\`\`\`
+
+**Breaking it down**:
+- \`if\`: Starts the conditional
+- \`health > 50\`: The condition (checking if health is greater than 50)
+- \`then\`: Required keyword
+- \`print(...)\`: Code that runs if condition is true
+- \`end\`: Closes the if statement
+
+### If-Else
+
+Add an \`else\` clause to handle when the condition is false:
+
+\`\`\`lua
+local health = 75
+
+if health > 50 then
+    print("You're healthy!")
+else
+    print("You need healing!")
+end
+\`\`\`
+
+Now the code always prints something - either "healthy" or "need healing".
+
+### If-ElseIf-Else
+
+Chain multiple conditions with \`elseif\`:
 
 \`\`\`lua
 local health = 75
@@ -255,14 +933,168 @@ else
 end
 \`\`\`
 
+**Important**: Conditions are checked **in order**. Once one is true, the rest are skipped!
+
 ## Comparison Operators
 
-- \`==\` equals
-- \`~=\` not equals
-- \`<\` less than
-- \`>\` greater than
-- \`<=\` less than or equal
-- \`>=\` greater than or equal`,
+These operators compare values and return true/false:
+
+### Equality Checks
+
+\`\`\`lua
+local health = 100
+
+-- == (equals) - Checks if values are equal
+if health == 100 then
+    print("Full health!")
+end
+
+-- ~= (not equals) - Checks if values are different
+if health ~= 0 then
+    print("Still alive!")
+end
+\`\`\`
+
+**Critical Note**: Use \`==\` for comparison, NOT \`=\`! 
+- \`==\`: Compares (returns true/false)
+- \`=\`: Assigns (sets a value)
+
+### Comparison Operators
+
+\`\`\`lua
+local score = 85
+
+-- < (less than)
+if score < 60 then
+    print("Failed")
+end
+
+-- > (greater than)
+if score > 90 then
+    print("Excellent!")
+end
+
+-- <= (less than or equal)
+if score <= 50 then
+    print("Needs improvement")
+end
+
+-- >= (greater than or equal)
+if score >= 80 then
+    print("Passing!")
+end
+\`\`\`
+
+## Logical Operators
+
+Combine multiple conditions:
+
+### AND (both must be true)
+
+\`\`\`lua
+local health = 75
+local hasPotion = true
+
+if health < 100 and hasPotion then
+    print("Use a potion!")
+end
+\`\`\`
+
+### OR (at least one must be true)
+
+\`\`\`lua
+local key1 = true
+local key2 = false
+
+if key1 or key2 then
+    print("Door unlocked!")
+end
+\`\`\`
+
+### NOT (opposite)
+
+\`\`\`lua
+local isPaused = false
+
+if not isPaused then
+    print("Game is running!")
+end
+\`\`\`
+
+## Real-World Examples
+
+### Health System
+
+\`\`\`lua
+local playerHealth = 45
+
+if playerHealth <= 0 then
+    print("Player died!")
+    -- Trigger respawn
+elseif playerHealth < 25 then
+    print("Critical health! Find healing!")
+elseif playerHealth < 50 then
+    print("Low health warning")
+else
+    print("Health is good")
+end
+\`\`\`
+
+### Score-Based Rewards
+
+\`\`\`lua
+local score = 1250
+
+if score >= 1000 then
+    print("Gold medal!")
+elseif score >= 500 then
+    print("Silver medal!")
+elseif score >= 250 then
+    print("Bronze medal!")
+else
+    print("Keep practicing!")
+end
+\`\`\`
+
+### Access Control
+
+\`\`\`lua
+local playerLevel = 15
+local requiredLevel = 10
+local hasPermission = true
+
+if playerLevel >= requiredLevel and hasPermission then
+    print("Access granted!")
+else
+    print("Access denied!")
+end
+\`\`\`
+
+## Common Mistakes
+
+1. **Using = instead of ==**: \`if health = 100\` is wrong! Use \`if health == 100\`
+2. **Missing then**: Every \`if\` needs \`then\`
+3. **Missing end**: Every \`if\` block needs \`end\`
+4. **Wrong operator**: \`~=\` not \`!=\` (Lua uses ~= for "not equals")
+
+## Best Practices
+
+1. **Use clear conditions**: \`if playerHealth < 25\` not \`if playerHealth == low\`
+2. **Order matters**: Check most specific conditions first
+3. **Use elseif for ranges**: Cleaner than multiple if statements
+4. **Add comments**: Explain why conditions matter
+5. **Handle all cases**: Use \`else\` for unexpected values
+
+## Why Conditionals Are Essential
+
+Conditionals are in every game script:
+- **Game state**: Menu, playing, paused
+- **Player actions**: Can jump? Can attack?
+- **AI logic**: Enemy behavior decisions
+- **Game mechanics**: Win/lose conditions
+- **UI updates**: Show/hide elements based on state
+
+Master conditionals - they're how games make decisions!`,
         initialCode: `local score = 85
 
 -- Write an if statement that prints:
@@ -280,9 +1112,10 @@ else
     print("Keep practicing!")
 end`,
         hints: [
-          'Use >= for "greater than or equal"',
-          'Use elseif for multiple conditions',
-          'The else catches everything else',
+          'Use >= (greater than or equal) to check if score is 90 or higher: score >= 90',
+          'Chain conditions with elseif: if condition1 then ... elseif condition2 then ... else ... end',
+          'The else clause handles all cases that don\'t match previous conditions',
+          'Remember: conditions are checked in order, so put the highest threshold first',
         ],
         objectives: [
           'Write an if statement',
@@ -626,25 +1459,98 @@ part.Name = "MyPart"`,
         description: 'Create and manipulate parts in your Roblox game',
         content: `# Working with Parts
 
-Parts are the 3D building blocks of Roblox games.
+Parts are the **3D building blocks** of Roblox games. Think of them as the LEGO bricks that you use to construct your world. Every wall, floor, platform, obstacle, or decorative element in your game is typically a Part.
 
-## Creating and Positioning Parts
+## What is a Part?
+
+A Part is a **BasePart** - the most fundamental 3D object in Roblox. It's a solid 3D shape that exists in the game world. By default, parts are invisible until you set their properties like size, position, and color.
+
+## Creating Your First Part
+
+To create a part, you use \`Instance.new("Part")\`. This creates a new Part instance, but it won't appear in your game until you set its \`Parent\` property to something visible (like \`workspace\`).
+
+### Step-by-Step Breakdown
+
+Let's break down the creation process:
 
 \`\`\`lua
+-- Step 1: Create a new Part instance
 local part = Instance.new("Part")
+-- At this point, the part exists but is invisible!
+
+-- Step 2: Set the parent to workspace (makes it visible in the game)
 part.Parent = workspace
+-- Now the part appears, but it's at position (0, 0, 0) with default size
+
+-- Step 3: Position the part in 3D space
 part.Position = Vector3.new(0, 10, 0)
+-- The part moves to 10 studs above the origin
+
+-- Step 4: Set the size (dimensions) of the part
 part.Size = Vector3.new(4, 4, 4)
+-- Creates a 4x4x4 cube
+
+-- Step 5: Change the color
 part.BrickColor = BrickColor.new("Bright blue")
+-- Changes the part's color to bright blue
+
+-- Step 6: (Optional) Change the material for visual effects
 part.Material = Enum.Material.Neon
+-- Makes the part glow! Great for futuristic games
 \`\`\`
 
-## Vector3
+## Understanding Vector3
 
-Vector3 represents 3D coordinates: (x, y, z)
-- X: left/right
-- Y: up/down (height)
-- Z: forward/back`,
+**Vector3** is crucial for working with 3D space in Roblox. It represents a point or direction in 3D coordinates.
+
+### The Three Components
+
+- **X (left/right)**: The horizontal position. Positive X goes to the right, negative goes left.
+- **Y (up/down)**: The vertical position (height). Positive Y goes up, negative goes down.
+- **Z (forward/back)**: The depth position. Positive Z goes forward (toward you), negative goes back.
+
+### Visual Example
+
+Imagine standing at the origin (0, 0, 0) looking forward:
+- **Vector3.new(5, 0, 0)**: 5 studs to your right
+- **Vector3.new(0, 10, 0)**: 10 studs above you
+- **Vector3.new(0, 0, 5)**: 5 studs in front of you
+- **Vector3.new(5, 10, 3)**: 5 studs right, 10 studs up, 3 studs forward
+
+### Common Use Cases
+
+- **Position**: Where the part sits in the world
+- **Size**: How big the part is (width, height, depth)
+- **Velocity**: Direction and speed of movement (if physics is enabled)
+
+## Important Properties
+
+### Position vs CFrame
+
+- **Position**: Just the center point (Vector3)
+- **CFrame**: Position + rotation (more advanced, covered later)
+
+For now, use \`Position\` for simple placement.
+
+### Size Explained
+
+Size is also a Vector3:
+- **X**: Width (left-right dimension)
+- **Y**: Height (vertical dimension)
+- **Z**: Depth (forward-back dimension)
+
+\`Vector3.new(5, 2, 10)\` creates a part that's 5 studs wide, 2 studs tall, and 10 studs deep.
+
+### Materials
+
+Different materials give different visual effects:
+- **Plastic**: Default, solid appearance
+- **Neon**: Glows and emits light
+- **Metal**: Shiny, reflective surface
+- **Glass**: Transparent with reflections
+- **Concrete**: Rough, matte surface
+
+Experiment with different materials to see how they look!`,
         initialCode: `-- Create a new part
 local part = Instance.new("Part")
 part.Parent = workspace
@@ -686,23 +1592,210 @@ part.BrickColor = BrickColor.new("Bright red")`,
         description: 'Learn about Roblox Services and how to access them',
         content: `# Understanding Services
 
-Services are the core systems in Roblox. Everything important is a service!
+**Services** are the core systems that power Roblox. Think of them as the "operating system" of your game - they manage players, the world, data, and everything else. Understanding services is crucial for professional Roblox development.
 
-## Common Services
+## What is a Service?
 
-- **Workspace**: Contains all physical objects
-- **Players**: Manages all players in the game
-- **ReplicatedStorage**: Data shared between client and server
-- **Lighting**: Controls lighting and environment
-- **StarterPlayer**: Player starting items
+A Service is a **special type of Instance** that manages a specific aspect of your game. Services are:
+- **Always available**: You can access them anytime via \`game:GetService()\`
+- **Global**: They exist across your entire game
+- **Pre-built**: Roblox creates them automatically
+- **Powerful**: They control core game functionality
 
-## Getting Services
+## Why Services Matter
+
+Services are how you interact with Roblox's built-in systems:
+- Can't manage players without the Players service
+- Can't place objects in the world without Workspace
+- Can't save data without DataStoreService
+- Can't communicate between scripts without ReplicatedStorage
+
+## Common Services Explained
+
+### Workspace
+
+**Purpose**: The 3D world where all physical objects exist.
+
+\`\`\`lua
+local Workspace = game:GetService("Workspace")
+
+-- Everything in your game world is in Workspace
+-- Parts, Models, Terrain - all children of Workspace
+local myPart = Workspace:FindFirstChild("MyPart")
+\`\`\`
+
+**Key Features**:
+- Contains all visible objects
+- Handles physics (gravity, collisions)
+- Where players interact with the world
+- Changes here are visible to all players
+
+### Players
+
+**Purpose**: Manages all players currently in your game.
 
 \`\`\`lua
 local Players = game:GetService("Players")
+
+-- Get all players
+local allPlayers = Players:GetPlayers()
+
+-- Listen for player joining
+Players.PlayerAdded:Connect(function(player)
+    print(player.Name .. " joined!")
+end)
+\`\`\`
+
+**Key Features**:
+- \`Players:GetPlayers()\`: Returns a table of all players
+- \`Players.LocalPlayer\`: The current player (LocalScript only)
+- \`Players.PlayerAdded\`: Event fired when someone joins
+- \`Players.PlayerRemoving\`: Event fired when someone leaves
+
+### ReplicatedStorage
+
+**Purpose**: Shared storage accessible by both client AND server.
+
+\`\`\`lua
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Common use: Store RemoteEvents and RemoteFunctions
+local myRemote = ReplicatedStorage:WaitForChild("MyRemoteEvent")
+\`\`\`
+
+**Key Features**:
+- Visible to both server and client scripts
+- Perfect for RemoteEvents/RemoteFunctions
+- Can store ModuleScripts both sides need
+- Changes sync automatically
+
+### ServerStorage
+
+**Purpose**: Storage only accessible by server scripts (not clients).
+
+\`\`\`lua
+local ServerStorage = game:GetService("ServerStorage")
+
+-- Store things players shouldn't access directly
+local itemTemplates = ServerStorage:FindFirstChild("Items")
+\`\`\`
+
+**Use Cases**:
+- Item templates to clone
+- Server-only data
+- Prevents exploiters from accessing sensitive data
+
+### Lighting
+
+**Purpose**: Controls environmental lighting, atmosphere, and visual effects.
+
+\`\`\`lua
+local Lighting = game:GetService("Lighting")
+
+-- Change time of day
+Lighting.TimeOfDay = "14:00:00"  -- 2 PM
+
+-- Change brightness
+Lighting.Brightness = 2
+
+-- Change ambient color
+Lighting.Ambient = Color3.fromRGB(100, 100, 100)
+\`\`\`
+
+**Key Features**:
+- TimeOfDay: Controls sun position (creates day/night cycle)
+- Brightness: Overall light level
+- Ambient: Global ambient lighting color
+- Fog: Atmospheric effects
+
+## Getting Services
+
+**Always use \`game:GetService()\`** to get services:
+
+\`\`\`lua
+local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
-\`\`\``,
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+\`\`\`
+
+**Why this method?**
+- More reliable than \`game.Players\` (can fail if service hasn't loaded)
+- Makes dependencies explicit
+- Recommended by Roblox best practices
+
+### Service Naming
+
+Service names are **case-sensitive** and must match exactly:
+- ✅ \`game:GetService("Players")\` - Correct
+- ❌ \`game:GetService("players")\` - Wrong (lowercase)
+- ❌ \`game:GetService("Player")\` - Wrong (singular)
+
+## When to Use Each Service
+
+### Server Scripts
+- **Players**: Manage all players
+- **Workspace**: Modify game world
+- **ServerStorage**: Store server-only data
+- **ReplicatedStorage**: Share data with clients
+- **DataStoreService**: Save player data
+
+### LocalScripts (Client)
+- **Players**: Access LocalPlayer
+- **ReplicatedStorage**: Get RemoteEvents to fire to server
+- **Lighting**: Read lighting properties (rarely modify)
+- **UserInputService**: Handle player input (keyboard, mouse)
+
+## Service Events
+
+Many services have events you can connect to:
+
+\`\`\`lua
+local Players = game:GetService("Players")
+
+-- Player joining
+Players.PlayerAdded:Connect(function(player)
+    print(player.Name .. " joined!")
+end)
+
+-- Player leaving
+Players.PlayerRemoving:Connect(function(player)
+    print(player.Name .. " left!")
+end)
+\`\`\`
+
+## Best Practices
+
+1. **Get services at the top** of your script
+2. **Use GetService()** not direct property access
+3. **Store in local variables** for readability
+4. **Use WaitForChild()** if service might not exist yet
+5. **Understand server vs client** accessibility
+
+## Common Patterns
+
+### Initialize Service at Start
+
+\`\`\`lua
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+-- Set up game when it starts
+Players.PlayerAdded:Connect(function(player)
+    -- Player setup code
+end)
+\`\`\`
+
+### Access Service Properties
+
+\`\`\`lua
+local Lighting = game:GetService("Lighting")
+
+-- Change lighting properties
+Lighting.Brightness = 3
+Lighting.TimeOfDay = "12:00:00"
+\`\`\`
+
+Services are the foundation of Roblox scripting - master them!`,
         initialCode: `-- Get the Players service
 local Players = 
 
