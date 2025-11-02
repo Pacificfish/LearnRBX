@@ -31,6 +31,52 @@ export const courses: Course[] = [
     difficulty: 'Beginner',
     lessons: [
       {
+        id: 'getting-started',
+        title: 'Getting Started with Lua',
+        description: 'Introduction to Lua programming and your first code',
+        content: `# Getting Started with Lua
+
+Welcome to Lua programming! Lua is the programming language used by Roblox.
+
+## What is Lua?
+
+Lua is a lightweight, powerful scripting language perfect for game development. In Roblox, Lua is used to control everything in your game!
+
+## Your First Code
+
+\`\`\`lua
+-- This is a comment! Comments start with --
+print("Hello, World!")
+\`\`\`
+
+## Basic Syntax
+
+- Lines end automatically (no semicolons needed!)
+- Use \`--\` for comments
+- \`print()\` displays text in the output
+
+## Try It!
+
+Let's print your first message!`,
+        initialCode: `-- Print "Hello, World!"
+-- Use print("your message here")
+
+`,
+        solution: `-- Print "Hello, World!"
+-- Use print("your message here")
+print("Hello, World!")`,
+        hints: [
+          'Use print() function',
+          'Put your message in quotes: "Hello, World!"',
+          'Don\'t forget the parentheses!',
+        ],
+        objectives: [
+          'Write your first line of Lua code',
+          'Use the print() function',
+          'Understand basic Lua syntax',
+        ],
+      },
+      {
         id: 'variables',
         title: 'Variables and Data Types',
         description: 'Learn how to declare variables and work with different data types in Lua',
