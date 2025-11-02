@@ -36,41 +36,41 @@ function renderMarkdown(content: string) {
       return
     }
 
-    // Headers
-    if (line.startsWith('# ')) {
-      elements.push(<h1 key={index} className="text-3xl font-bold mb-4 mt-6 text-gray-900">{line.substring(2)}</h1>)
-    } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={index} className="text-2xl font-bold mb-3 mt-5 text-gray-900">{line.substring(3)}</h2>)
-    } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={index} className="text-xl font-semibold mb-2 mt-4 text-gray-900">{line.substring(4)}</h3>)
-    }
-    // Bold text
-    else if (line.includes('**')) {
-      const parts = line.split('**')
-      const processed = parts.map((part, i) => {
-        if (i % 2 === 1) {
-          return <strong key={i} className="font-semibold text-gray-900">{part}</strong>
-        }
-        return part
-      })
-      elements.push(<p key={index} className="mb-4 text-gray-700 leading-relaxed">{processed}</p>)
-    }
-    // Lists
-    else if (line.trim().startsWith('- ')) {
-      elements.push(
-        <li key={index} className="mb-2 text-gray-700 ml-4">
-          {line.trim().substring(2)}
-        </li>
-      )
-    }
-    // Empty line
-    else if (line.trim() === '') {
-      // Skip empty lines
-    }
-    // Regular paragraph
-    else {
-      elements.push(<p key={index} className="mb-4 text-gray-700 leading-relaxed">{line}</p>)
-    }
+          // Headers
+          if (line.startsWith('# ')) {
+            elements.push(<h1 key={index} className="text-xl font-bold mb-2 mt-3 text-gray-900">{line.substring(2)}</h1>)
+          } else if (line.startsWith('## ')) {
+            elements.push(<h2 key={index} className="text-lg font-bold mb-1.5 mt-2.5 text-gray-900">{line.substring(3)}</h2>)
+          } else if (line.startsWith('### ')) {
+            elements.push(<h3 key={index} className="text-base font-semibold mb-1 mt-2 text-gray-900">{line.substring(4)}</h3>)
+          }
+          // Bold text
+          else if (line.includes('**')) {
+            const parts = line.split('**')
+            const processed = parts.map((part, i) => {
+              if (i % 2 === 1) {
+                return <strong key={i} className="font-semibold text-gray-900">{part}</strong>
+              }
+              return part
+            })
+            elements.push(<p key={index} className="mb-2 text-sm text-gray-700 leading-relaxed">{processed}</p>)
+          }
+          // Lists
+          else if (line.trim().startsWith('- ')) {
+            elements.push(
+              <li key={index} className="mb-1 text-sm text-gray-700 ml-3">
+                {line.trim().substring(2)}
+              </li>
+            )
+          }
+          // Empty line
+          else if (line.trim() === '') {
+            // Skip empty lines
+          }
+          // Regular paragraph
+          else {
+            elements.push(<p key={index} className="mb-2 text-sm text-gray-700 leading-relaxed">{line}</p>)
+          }
   })
 
   return <div className="space-y-2">{elements}</div>
@@ -565,60 +565,60 @@ export default function Lesson() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
             <span className="font-medium">Course Progress</span>
-            <span>{Math.round(progressPercentage)}% Complete</span>
+            <span>{Math.round(progressPercentage)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-roblox to-blue-600 h-2.5 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-roblox to-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <Link
             to={`/course/${courseId}`}
-            className="flex items-center space-x-2 text-gray-600 hover:text-roblox transition-colors font-medium"
+            className="flex items-center space-x-1.5 text-gray-600 hover:text-roblox transition-colors text-sm font-medium"
           >
-            <ArrowLeft size={18} />
-            <span>Back to Course</span>
+            <ArrowLeft size={16} />
+            <span>Back</span>
           </Link>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             {prevLessonNav && (
               <Link
                 to={`/course/${courseId}/lesson/${prevLessonNav.id}`}
-                className="flex items-center space-x-2 btn-secondary text-sm px-4 py-2"
+                className="flex items-center space-x-1.5 btn-secondary text-xs px-3 py-1.5"
               >
-                <ArrowLeft size={16} />
-                <span>Previous</span>
+                <ArrowLeft size={14} />
+                <span>Prev</span>
               </Link>
             )}
             {nextLesson && (
               progress?.completed ? (
                 <Link
                   to={`/course/${courseId}/lesson/${nextLesson.id}`}
-                  className="flex items-center space-x-2 btn-primary text-sm px-4 py-2 shadow-lg hover:shadow-xl"
+                  className="flex items-center space-x-1.5 btn-primary text-xs px-3 py-1.5 shadow-md hover:shadow-lg"
                 >
                   <span>Next</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={14} />
                 </Link>
               ) : (
                 <div className="relative group">
                   <button
                     disabled
-                    className="flex items-center space-x-2 bg-gray-300 text-gray-500 cursor-not-allowed text-sm px-4 py-2 rounded-lg shadow-sm"
+                    className="flex items-center space-x-1.5 bg-gray-300 text-gray-500 cursor-not-allowed text-xs px-3 py-1.5 rounded-lg"
                   >
                     <span>Next</span>
-                    <ArrowRight size={16} />
+                    <ArrowRight size={14} />
                   </button>
                   <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-10">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 shadow-lg whitespace-nowrap">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg py-1.5 px-2.5 shadow-lg whitespace-nowrap">
                       Complete this lesson to continue
                       <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
                     </div>
@@ -629,107 +629,107 @@ export default function Lesson() {
           </div>
         </div>
 
-        <div className="lesson-container flex gap-0" style={{ minHeight: 'calc(100vh - 200px)' }}>
+        <div className="lesson-container flex gap-0" style={{ minHeight: 'calc(100vh - 140px)' }}>
           {/* Left Column - Lesson Content */}
           <div 
-            className="space-y-6 overflow-y-auto pr-4" 
-            style={{ width: `${leftPanelWidth}%`, minWidth: '300px' }}
+            className="space-y-3 overflow-y-auto pr-3" 
+            style={{ width: `${leftPanelWidth}%`, minWidth: '280px' }}
           >
             {/* Header */}
-            <div className="card border-2 border-gray-100">
-              <div className="flex items-start justify-between mb-4">
+            <div className="card border-2 border-gray-100 p-4">
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <BookOpen className="text-roblox" size={18} />
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-1.5 text-xs">
+                      <BookOpen className="text-roblox" size={14} />
                       <span className="text-gray-600 font-medium">
                         Lesson {currentLessonIndex + 1} of {course.lessons.length}
                       </span>
                     </div>
                     {progress?.completed && (
-                      <span className="flex items-center space-x-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                        <CheckCircle2 size={14} />
-                        <span>Completed</span>
+                      <span className="flex items-center space-x-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                        <CheckCircle2 size={12} />
+                        <span>Done</span>
                       </span>
                     )}
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-extrabold mb-3 text-gray-900">
+                  <h1 className="text-2xl font-extrabold mb-1.5 text-gray-900">
                     {lesson.title}
                   </h1>
-                  <p className="text-lg text-gray-600 leading-relaxed">{lesson.description}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{lesson.description}</p>
                 </div>
               </div>
             </div>
 
             {/* Objectives */}
-            <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100">
-              <div className="flex items-center space-x-2 mb-4">
-                <Target className="text-blue-600" size={20} />
-                <h2 className="text-xl font-bold text-gray-900">Learning Objectives</h2>
+            <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 p-3">
+              <div className="flex items-center space-x-1.5 mb-2">
+                <Target className="text-blue-600" size={16} />
+                <h2 className="text-sm font-bold text-gray-900">Objectives</h2>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-1.5">
                 {lesson.objectives.map((objective, index) => (
-                  <li key={index} className="flex items-start space-x-3">
+                  <li key={index} className="flex items-start space-x-2">
                     <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                        <Check className="text-white" size={14} />
+                      <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Check className="text-white" size={10} />
                       </div>
                     </div>
-                    <span className="text-gray-700 leading-relaxed flex-1">{objective}</span>
+                    <span className="text-xs text-gray-700 leading-relaxed flex-1">{objective}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Content */}
-            <div className="card border-2 border-gray-100">
-              <div className="prose prose-lg max-w-none">
+            <div className="card border-2 border-gray-100 p-4">
+              <div className="prose prose-sm max-w-none">
                 {renderMarkdown(lesson.content)}
               </div>
             </div>
 
             {/* Hints */}
             {lesson.hints.length > 0 && (
-              <div className="card border-2 border-yellow-100 bg-gradient-to-br from-yellow-50 to-amber-50">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Lightbulb className="text-yellow-600" size={22} />
-                    <h2 className="text-xl font-bold text-gray-900">Hints</h2>
+              <div className="card border-2 border-yellow-100 bg-gradient-to-br from-yellow-50 to-amber-50 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-1.5">
+                    <Lightbulb className="text-yellow-600" size={16} />
+                    <h2 className="text-sm font-bold text-gray-900">Hints</h2>
                   </div>
                   {!showHint && (
                     <button
                       onClick={() => setShowHint(true)}
-                      className="flex items-center space-x-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-sm"
+                      className="flex items-center space-x-1 px-2.5 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded font-medium transition-colors text-xs"
                     >
-                      <Sparkles size={16} />
-                      <span>Show Hint</span>
+                      <Sparkles size={12} />
+                      <span>Show</span>
                     </button>
                   )}
                 </div>
                 {showHint && (
-                  <div className="space-y-4">
-                    <div className="bg-white border-2 border-yellow-200 rounded-lg p-5 shadow-sm">
-                      <p className="text-gray-800 leading-relaxed">{lesson.hints[hintIndex]}</p>
+                  <div className="space-y-2">
+                    <div className="bg-white border-2 border-yellow-200 rounded-lg p-3 shadow-sm">
+                      <p className="text-xs text-gray-800 leading-relaxed">{lesson.hints[hintIndex]}</p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600 font-medium">
-                        Hint {hintIndex + 1} of {lesson.hints.length}
+                      <div className="text-xs text-gray-600 font-medium">
+                        {hintIndex + 1} / {lesson.hints.length}
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-1.5">
                         {hintIndex > 0 && (
                           <button
                             onClick={handlePrevHint}
-                            className="px-3 py-1.5 bg-white border border-yellow-300 text-gray-700 rounded-lg hover:bg-yellow-50 transition-colors text-sm font-medium"
+                            className="px-2 py-1 bg-white border border-yellow-300 text-gray-700 rounded hover:bg-yellow-50 transition-colors text-xs font-medium"
                           >
-                            Previous
+                            Prev
                           </button>
                         )}
                         {hintIndex < lesson.hints.length - 1 && (
                           <button
                             onClick={handleNextHint}
-                            className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors text-sm font-medium"
+                            className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded transition-colors text-xs font-medium"
                           >
-                            Next Hint
+                            Next
                           </button>
                         )}
                       </div>
@@ -741,19 +741,19 @@ export default function Lesson() {
 
             {/* Solution */}
             {lesson.solution && (
-              <div className="card border-2 border-purple-100 bg-gradient-to-br from-purple-50 to-pink-50">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">Solution</h2>
+              <div className="card border-2 border-purple-100 bg-gradient-to-br from-purple-50 to-pink-50 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-bold text-gray-900">Solution</h2>
                   <button
                     onClick={() => setShowSolution(!showSolution)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-colors text-sm"
+                    className="flex items-center space-x-1 px-2.5 py-1 bg-purple-500 hover:bg-purple-600 text-white rounded font-medium transition-colors text-xs"
                   >
-                    <Eye size={16} />
-                    <span>{showSolution ? 'Hide' : 'Show'} Solution</span>
+                    <Eye size={12} />
+                    <span>{showSolution ? 'Hide' : 'Show'}</span>
                   </button>
                 </div>
                 {showSolution && (
-                  <div className="mt-4 rounded-lg overflow-hidden border-2 border-purple-200">
+                  <div className="mt-2 rounded-lg overflow-hidden border-2 border-purple-200">
                     <CodeEditor
                       initialCode={lesson.solution}
                       readOnly={true}
@@ -784,44 +784,44 @@ export default function Lesson() {
 
           {/* Right Column - Code Editor */}
           <div 
-            className="lg:sticky lg:top-8 h-fit overflow-y-auto overflow-x-hidden pl-4 pb-8" 
-            style={{ width: `${100 - leftPanelWidth}%`, minWidth: '300px', maxWidth: '80%' }}
+            className="lg:sticky lg:top-3 h-fit overflow-y-auto overflow-x-hidden pl-3 pb-4" 
+            style={{ width: `${100 - leftPanelWidth}%`, minWidth: '280px', maxWidth: '80%' }}
           >
-            <div className="card border-2 border-roblox/20 shadow-xl bg-white">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-roblox to-blue-600 flex items-center justify-center">
-                    <Code2 className="text-white" size={20} />
+            <div className="card border-2 border-roblox/20 shadow-lg bg-white p-3">
+              <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-7 h-7 rounded bg-gradient-to-br from-roblox to-blue-600 flex items-center justify-center">
+                    <Code2 className="text-white" size={14} />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">Code Editor</h2>
+                  <h2 className="text-sm font-bold text-gray-900">Code Editor</h2>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1.5">
                   <button
                     onClick={executeCode}
                     disabled={isRunning}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded-lg font-medium transition-colors text-sm shadow-md"
+                    className="flex items-center space-x-1 px-2.5 py-1 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded font-medium transition-colors text-xs shadow-sm"
                   >
-                    <Play size={16} />
-                    <span>{isRunning ? 'Running...' : 'Run Code'}</span>
+                    <Play size={12} />
+                    <span>{isRunning ? 'Running' : 'Run'}</span>
                   </button>
                   <button
                     onClick={handleCheck}
-                    className="flex items-center space-x-2 btn-primary shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+                    className="flex items-center space-x-1 btn-primary text-xs px-2.5 py-1 shadow-md hover:shadow-lg"
                   >
-                    <Check size={18} />
-                    <span>Test Code</span>
+                    <Check size={14} />
+                    <span>Test</span>
                   </button>
                 </div>
               </div>
 
-              <div className="rounded-lg overflow-hidden border-2 border-gray-200 mb-4">
-                <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
-                  <div className="flex items-start space-x-2">
-                    <Target className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+              <div className="rounded-lg overflow-hidden border-2 border-gray-200 mb-2">
+                <div className="bg-blue-50 border-b border-blue-200 px-2.5 py-1.5">
+                  <div className="flex items-start space-x-1.5">
+                    <Target className="text-blue-600 flex-shrink-0 mt-0.5" size={12} />
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">📝 Your Task</p>
+                      <p className="text-xs font-semibold text-gray-900 mb-0.5">📝 Your Task</p>
                       <p className="text-xs text-gray-700 leading-relaxed">
-                        Complete the code below. Look for <code className="bg-blue-100 px-1 rounded">TODO</code> comments and fill in the missing parts. Click "Test Code" when done!
+                        Complete the code. Look for <code className="bg-blue-100 px-0.5 rounded text-xs">TODO</code> comments. Click "Test" when done!
                       </p>
                     </div>
                   </div>
@@ -833,23 +833,23 @@ export default function Lesson() {
               </div>
 
               {showSuccess && (
-                <div className="mb-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-4 rounded-lg shadow-lg animate-fade-in border-2 border-green-300">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 size={20} />
+                <div className="mb-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-lg shadow-md animate-fade-in border-2 border-green-300">
+                  <div className="flex items-center space-x-1.5">
+                    <CheckCircle2 size={14} />
                     <div>
-                      <p className="font-bold">Great job!</p>
-                      <p className="text-sm text-green-50">Your code looks good. Marked as complete!</p>
+                      <p className="font-bold text-xs">Great job!</p>
+                      <p className="text-xs text-green-50">Marked as complete!</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Console Output */}
-              <div className="mt-4 border-2 border-gray-300 rounded-lg bg-gray-900 text-gray-100 font-mono text-sm">
-                <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-                  <div className="flex items-center space-x-2">
-                    <Terminal size={16} className="text-green-400" />
-                    <span className="text-gray-300 font-semibold">Console Output</span>
+              <div className="mt-2 border-2 border-gray-300 rounded-lg bg-gray-900 text-gray-100 font-mono text-xs">
+                <div className="flex items-center justify-between px-2 py-1 bg-gray-800 border-b border-gray-700">
+                  <div className="flex items-center space-x-1.5">
+                    <Terminal size={12} className="text-green-400" />
+                    <span className="text-gray-300 font-semibold text-xs">Console</span>
                   </div>
                   {consoleOutput.length > 0 && (
                     <button
@@ -857,15 +857,15 @@ export default function Lesson() {
                       className="flex items-center space-x-1 text-gray-400 hover:text-gray-200 transition-colors text-xs"
                       title="Clear console"
                     >
-                      <Trash2 size={14} />
-                      <span>Clear</span>
+                      <Trash2 size={10} />
+                      <span className="text-xs">Clear</span>
                     </button>
                   )}
                 </div>
-                <div className="p-4 min-h-[100px] max-h-[300px] overflow-y-auto">
+                <div className="p-2 min-h-[80px] max-h-[200px] overflow-y-auto">
                   {consoleOutput.length === 0 ? (
-                    <div className="text-gray-500 italic">
-                      Click "Run Code" to see output or "Test Code" to validate your solution
+                    <div className="text-gray-500 italic text-xs">
+                      Click "Run" to see output or "Test" to validate
                     </div>
                   ) : (
                     consoleOutput.map((line, index) => {
@@ -882,11 +882,11 @@ export default function Lesson() {
                       } else if (line.startsWith('✓')) {
                         textColor = 'text-green-400'
                       } else if (line.trim() === '') {
-                        return <div key={index} className="h-2"></div>
+                        return <div key={index} className="h-1"></div>
                       }
                       
                       return (
-                        <div key={index} className={`mb-1 ${textColor} whitespace-pre-wrap`}>
+                        <div key={index} className={`mb-0.5 ${textColor} whitespace-pre-wrap text-xs`}>
                           {line}
                         </div>
                       )
@@ -895,13 +895,13 @@ export default function Lesson() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 mt-4">
-                <div className="flex items-start space-x-3">
-                  <Lightbulb className="text-blue-600 flex-shrink-0 mt-0.5" size={18} />
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-2 mt-2">
+                <div className="flex items-start space-x-1.5">
+                  <Lightbulb className="text-blue-600 flex-shrink-0 mt-0.5" size={12} />
                   <div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">💡 Pro Tip</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      Use <code className="bg-blue-100 px-1 rounded">print()</code> statements in your code to see output here, or copy your code and test it in Roblox Studio!
+                    <p className="text-xs font-semibold text-gray-900 mb-0.5">💡 Pro Tip</p>
+                    <p className="text-xs text-gray-700 leading-relaxed">
+                      Use <code className="bg-blue-100 px-0.5 rounded text-xs">print()</code> to see output, or test in Roblox Studio!
                     </p>
                   </div>
                 </div>
