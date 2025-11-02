@@ -43,9 +43,14 @@ function App() {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true
-      initAuth()
+      console.log('🔐 Initializing auth...')
+      initAuth().catch((error) => {
+        console.error('❌ Auth initialization failed:', error)
+      })
     }
   }, [initAuth])
+  
+  console.log('📱 App component rendered')
 
   return (
     <Router>

@@ -3,24 +3,34 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+console.log('🚀 Starting app initialization...')
+
 try {
   const rootElement = document.getElementById('root')
   if (!rootElement) {
     throw new Error('Root element not found')
   }
 
+  console.log('✅ Root element found, rendering app...')
+  
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
   )
+  
+  console.log('✅ App rendered successfully')
 } catch (error) {
-  console.error('Failed to render app:', error)
+  console.error('❌ Failed to render app:', error)
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+  const errorStack = error instanceof Error ? error.stack : ''
+  
   document.body.innerHTML = `
-    <div style="padding: 2rem; font-family: system-ui;">
-      <h1>Failed to load application</h1>
-      <p>${error instanceof Error ? error.message : 'Unknown error'}</p>
-      <p>Please check the browser console for more details.</p>
+    <div style="padding: 2rem; font-family: system-ui; max-width: 800px; margin: 0 auto;">
+      <h1 style="color: #dc2626;">Failed to load application</h1>
+      <p><strong>Error:</strong> ${errorMessage}</p>
+      <pre style="background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 12px;">${errorStack}</pre>
+      <p>Please check the browser console (F12) for more details.</p>
     </div>
   `
 }
