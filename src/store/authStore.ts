@@ -28,8 +28,22 @@ export const useAuthStore = create<AuthState>()(
       loading: true,
       initialize: async () => {
         try {
+          // Check if Supabase is configured
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+          if (!supabaseUrl) {
+            console.warn('Supabase not configured. Running in demo mode.')
+            set({ loading: false })
+            return
+          }
+
           // Get current session
-          const { data: { session } } = await supabase.auth.getSession()
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+          
+          if (sessionError) {
+            console.error('Error getting session:', sessionError)
+            set({ loading: false })
+            return
+          }
           
           if (session?.user) {
             // Fetch user profile
