@@ -27,7 +27,7 @@ export const courses: Course[] = [
     description: 'Master the fundamentals of Lua programming language',
     icon: '📚',
     color: 'blue',
-    estimatedTime: '6 hours',
+    estimatedTime: '12 hours',
     difficulty: 'Beginner',
     lessons: [
       {
@@ -321,6 +321,19 @@ while count < 5 do
     count = count + 1
     print("Count: " .. count)
 end
+\`\`\`
+
+## Break Statement
+
+Use \`break\` to exit a loop early:
+
+\`\`\`lua
+for i = 1, 10 do
+    if i == 5 then
+        break  -- Exit loop when i is 5
+    end
+    print(i)
+end
 \`\`\``,
         initialCode: `local numbers = {10, 20, 30, 40, 50}
 
@@ -343,6 +356,207 @@ end`,
           'Access both index and value in loop',
         ],
       },
+      {
+        id: 'string-math-operators',
+        title: 'String Operations and Math',
+        description: 'Master string manipulation and mathematical operations',
+        content: `# String Operations and Math
+
+## String Operations
+
+Strings can be concatenated, formatted, and manipulated!
+
+\`\`\`lua
+-- Concatenation
+local name = "Roblox"
+local greeting = "Hello, " .. name .. "!"  -- "Hello, Roblox!"
+
+-- String length
+local text = "Hello"
+print(#text)  -- 5
+
+-- String methods
+local str = "hello world"
+print(string.upper(str))    -- "HELLO WORLD"
+print(string.lower(str))    -- "hello world"
+print(string.sub(str, 1, 5)) -- "hello" (substring from index 1 to 5)
+\`\`\`
+
+## Math Operations
+
+\`\`\`lua
+-- Basic operations
+local sum = 5 + 3       -- 8
+local diff = 10 - 4    -- 6
+local prod = 6 * 7     -- 42
+local quot = 20 / 4    -- 5
+local mod = 10 % 3     -- 1 (modulo/remainder)
+local pow = 2 ^ 3      -- 8 (2 to the power of 3)
+
+-- Math library functions
+print(math.floor(3.7))  -- 3 (round down)
+print(math.ceil(3.2))   -- 4 (round up)
+print(math.max(5, 10, 3))  -- 10 (largest)
+print(math.min(5, 10, 3))  -- 3 (smallest)
+print(math.random(1, 100)) -- Random number between 1 and 100
+\`\`\`
+
+## Logical Operators
+
+\`\`\`lua
+local a = true
+local b = false
+
+print(a and b)  -- false (both must be true)
+print(a or b)   -- true (at least one must be true)
+print(not a)     -- false (opposite)
+\`\`\``,
+        initialCode: `-- Create a player name and level
+local playerName = "Hero"
+local level = 25
+
+-- Create a message that says: "Hero is level 25!"
+-- Use string concatenation (..)
+local message = 
+
+-- Calculate the player's health (level * 10)
+local health = 
+
+-- Print both
+print(message)
+print("Health: " .. health)`,
+        solution: `-- Create a player name and level
+local playerName = "Hero"
+local level = 25
+
+-- Create a message that says: "Hero is level 25!"
+-- Use string concatenation (..)
+local message = playerName .. " is level " .. level .. "!"
+
+-- Calculate the player's health (level * 10)
+local health = level * 10
+
+-- Print both
+print(message)
+print("Health: " .. health)`,
+        hints: [
+          'Use .. to concatenate strings',
+          'Numbers are automatically converted to strings when concatenated',
+          'Use * for multiplication',
+        ],
+        objectives: [
+          'Concatenate strings using ..',
+          'Perform mathematical operations',
+          'Combine strings and numbers',
+        ],
+      },
+      {
+        id: 'scope-and-error-handling',
+        title: 'Variable Scope and Error Handling',
+        description: 'Understand scope, and learn to handle errors with pcall',
+        content: `# Variable Scope and Error Handling
+
+## Variable Scope
+
+Variables can be \`local\` (limited scope) or \`global\` (accessible everywhere). Always use \`local\` unless you absolutely need global!
+
+\`\`\`lua
+-- Local variable (only accessible in this scope)
+local x = 10
+
+if true then
+    local y = 20  -- Only exists in this if block
+    print(x)       -- Can access x (outer scope)
+    print(y)       -- 20
+end
+
+-- print(y) would error - y doesn't exist here!
+
+-- Global variable (accessible everywhere - avoid!)
+globalVar = 100  -- No 'local' keyword
+\`\`\`
+
+## Error Handling with pcall
+
+\`pcall\` (protected call) safely runs code that might error:
+
+\`\`\`lua
+local success, result = pcall(function()
+    local value = someVariableThatMightNotExist
+    return value * 2
+end)
+
+if success then
+    print("Success! Result: " .. result)
+else
+    print("Error occurred: " .. result)
+end
+\`\`\`
+
+## Best Practices
+
+- Always use \`local\` for variables
+- Use \`pcall\` when accessing things that might not exist
+- Check for \`nil\` before using values:
+\`\`\`lua
+local part = workspace:FindFirstChild("MyPart")
+if part then
+    print("Found part: " .. part.Name)
+else
+    warn("Part not found!")
+end
+\`\`\``,
+        initialCode: `-- Try to find a part that might not exist
+-- Use pcall to safely check if it exists
+
+local function findPart(name)
+    -- Use pcall to safely access workspace
+    local success, part = pcall(function()
+        return workspace:FindFirstChild(name)
+    end)
+    
+    if success and part then
+        print("Found: " .. part.Name)
+        return part
+    else
+        print("Part not found!")
+        return nil
+    end
+end
+
+-- Test it
+findPart("MyPart")`,
+        solution: `-- Try to find a part that might not exist
+-- Use pcall to safely check if it exists
+
+local function findPart(name)
+    -- Use pcall to safely access workspace
+    local success, part = pcall(function()
+        return workspace:FindFirstChild(name)
+    end)
+    
+    if success and part then
+        print("Found: " .. part.Name)
+        return part
+    else
+        print("Part not found!")
+        return nil
+    end
+end
+
+-- Test it
+findPart("MyPart")`,
+        hints: [
+          'pcall returns success (boolean) and the result',
+          'Check both success AND if the result exists',
+          'Always return nil if not found',
+        ],
+        objectives: [
+          'Understand local vs global scope',
+          'Use pcall for error handling',
+          'Safely check for nil values',
+        ],
+      },
     ],
   },
   {
@@ -351,7 +565,7 @@ end`,
     description: 'Master the core concepts of Roblox scripting and Studio',
     icon: '🎮',
     color: 'green',
-    estimatedTime: '8 hours',
+    estimatedTime: '12 hours',
     difficulty: 'Beginner',
     lessons: [
       {
@@ -627,6 +841,187 @@ print("This script runs on the server!")`,
           'Identify when to use each',
         ],
       },
+      {
+        id: 'cframe-rotations',
+        title: 'CFrame and Rotations',
+        description: 'Master CFrame for precise part positioning and rotation',
+        content: `# CFrame and Rotations
+
+CFrame (Coordinate Frame) is more powerful than Vector3 - it handles both position AND rotation!
+
+## CFrame Basics
+
+\`\`\`lua
+local part = Instance.new("Part")
+part.Parent = workspace
+
+-- Position using CFrame
+part.CFrame = CFrame.new(0, 10, 0)
+
+-- Position and rotation
+part.CFrame = CFrame.new(0, 10, 0) * CFrame.Angles(0, math.rad(45), 0)
+
+-- Look at a point
+local target = Vector3.new(10, 0, 10)
+part.CFrame = CFrame.lookAt(part.Position, target)
+\`\`\`
+
+## CFrame Operations
+
+\`\`\`lua
+-- Rotate around an axis
+local angle = math.rad(45)  -- Convert degrees to radians
+part.CFrame = part.CFrame * CFrame.Angles(0, angle, 0)
+
+-- Move relative to current position
+part.CFrame = part.CFrame * CFrame.new(0, 5, 0)  -- Move up 5 studs
+
+-- Get position from CFrame
+local position = part.CFrame.Position  -- Returns Vector3
+\`\`\`
+
+## Why CFrame?
+
+- Precise rotation control
+- Better for moving parts smoothly
+- Essential for advanced mechanics`,
+        initialCode: `local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(2, 2, 2)
+part.Anchored = true
+
+-- Set position to (0, 5, 0)
+part.CFrame = CFrame.new(0, 5, 0)
+
+-- Rotate 90 degrees around Y axis (use math.rad to convert degrees to radians)
+part.CFrame = part.CFrame * CFrame.Angles(0, math.rad(90), 0)
+
+print("Part positioned and rotated!")`,
+        solution: `local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(2, 2, 2)
+part.Anchored = true
+
+-- Set position to (0, 5, 0)
+part.CFrame = CFrame.new(0, 5, 0)
+
+-- Rotate 90 degrees around Y axis (use math.rad to convert degrees to radians)
+part.CFrame = part.CFrame * CFrame.Angles(0, math.rad(90), 0)
+
+print("Part positioned and rotated!")`,
+        hints: [
+          'CFrame.new(x, y, z) sets position',
+          'CFrame.Angles(x, y, z) uses radians',
+          'Use math.rad() to convert degrees to radians',
+        ],
+        objectives: [
+          'Position a part using CFrame',
+          'Rotate a part using CFrame.Angles',
+          'Understand radians vs degrees',
+        ],
+      },
+      {
+        id: 'tweenservice-runservice',
+        title: 'TweenService and RunService',
+        description: 'Animate parts smoothly and run code every frame',
+        content: `# TweenService and RunService
+
+## TweenService - Smooth Animations
+
+TweenService creates smooth animations between values:
+
+\`\`\`lua
+local TweenService = game:GetService("TweenService")
+
+local part = workspace.Part
+local tweenInfo = TweenInfo.new(
+    2,  -- Duration (seconds)
+    Enum.EasingStyle.Linear,
+    Enum.EasingDirection.InOut
+)
+
+-- Tween position
+local goal = {Position = Vector3.new(10, 5, 0)}
+local tween = TweenService:Create(part, tweenInfo, goal)
+tween:Play()
+
+-- Wait for tween to complete
+tween.Completed:Wait()
+print("Tween finished!")
+\`\`\`
+
+## RunService - Frame-by-Frame Code
+
+RunService lets you run code every frame:
+
+\`\`\`lua
+local RunService = game:GetService("RunService")
+
+-- Heartbeat runs every frame on server and client
+RunService.Heartbeat:Connect(function(deltaTime)
+    -- deltaTime is time since last frame
+    print("Frame time: " .. deltaTime)
+end)
+
+-- RenderStepped (LocalScript only) - runs before rendering
+RunService.RenderStepped:Connect(function()
+    -- Update UI every frame
+end)
+\`\`\`
+
+## Wait Patterns
+
+\`\`\`lua
+-- wait() - pauses script (deprecated, use task.wait())
+task.wait(1)  -- Wait 1 second
+task.wait()  -- Wait 1 frame
+
+-- WaitForChild - wait for object to exist
+local part = workspace:WaitForChild("MyPart")  -- Waits until part exists
+\`\`\``,
+        initialCode: `local TweenService = game:GetService("TweenService")
+local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(4, 4, 4)
+part.Position = Vector3.new(0, 5, 0)
+part.Anchored = true
+
+-- Create a tween that moves the part from (0, 5, 0) to (10, 5, 0) over 2 seconds
+local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local goal = {Position = Vector3.new(10, 5, 0)}
+local tween = TweenService:Create(part, tweenInfo, goal)
+
+-- Play the tween
+tween:Play()
+
+print("Tween started!")`,
+        solution: `local TweenService = game:GetService("TweenService")
+local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(4, 4, 4)
+part.Position = Vector3.new(0, 5, 0)
+part.Anchored = true
+
+-- Create a tween that moves the part from (0, 5, 0) to (10, 5, 0) over 2 seconds
+local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+local goal = {Position = Vector3.new(10, 5, 0)}
+local tween = TweenService:Create(part, tweenInfo, goal)
+
+-- Play the tween
+tween:Play()
+
+print("Tween started!")`,
+        hints: [
+          'TweenInfo.new(duration, easingStyle, easingDirection)',
+          'goal is a table of properties to animate',
+          'Call tween:Play() to start the animation',
+        ],
+        objectives: [
+          'Create a tween using TweenService',
+          'Animate a part\'s position',
+          'Understand TweenInfo properties',
+        ],
+      },
     ],
   },
   {
@@ -635,7 +1030,7 @@ print("This script runs on the server!")`,
     description: 'Master events, RemoteEvents, and client-server communication',
     icon: '⚡',
     color: 'purple',
-    estimatedTime: '10 hours',
+    estimatedTime: '11 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -812,6 +1207,140 @@ print(response)`,
         ],
       },
       {
+        id: 'debouncing',
+        title: 'Debouncing - Prevent Event Spam',
+        description: 'Learn to prevent events from firing too frequently - critical for professional scripting',
+        content: `# Debouncing
+
+Debouncing prevents events from firing too frequently. This is **essential** for professional scripting!
+
+## The Problem
+
+Without debouncing, events can fire hundreds of times per second, causing:
+- Performance issues
+- Unintended behavior
+- Spam/exploits
+
+## Simple Debouncing Pattern
+
+\`\`\`lua
+local canTrigger = true  -- Debounce flag
+
+part.Touched:Connect(function(hit)
+    if not canTrigger then return end  -- Exit if still debouncing
+    
+    canTrigger = false  -- Set debounce
+    
+    -- Your code here
+    print("Triggered!")
+    
+    task.wait(1)  -- Wait before allowing again
+    canTrigger = true
+end)
+\`\`\`
+
+## Better: Per-Player Debouncing
+
+\`\`\`lua
+local debounceTable = {}  -- Track each player
+
+part.Touched:Connect(function(hit)
+    local character = hit.Parent
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local player = game.Players:GetPlayerFromCharacter(character)
+    if not player then return end
+    
+    -- Check if this player is debounced
+    if debounceTable[player.UserId] then return end
+    debounceTable[player.UserId] = true
+    
+    -- Your code here
+    print(player.Name .. " triggered!")
+    
+    task.wait(1)  -- Wait
+    debounceTable[player.UserId] = nil  -- Allow again
+end)
+\`\`\`
+
+## Best Practice
+
+Always debounce events that can fire rapidly (Touched, Clicked, etc.)!`,
+        initialCode: `-- Create a debounced touched event
+-- Only allow one trigger per second per player
+
+local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(4, 1, 4)
+part.Position = Vector3.new(0, 0.5, 0)
+part.Anchored = true
+
+-- Debounce table (tracks each player)
+local debounceTable = {}
+
+part.Touched:Connect(function(hit)
+    local character = hit.Parent
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local player = game.Players:GetPlayerFromCharacter(character)
+    if not player then return end
+    
+    -- Check debounce
+    if debounceTable[player.UserId] then return end
+    debounceTable[player.UserId] = true
+    
+    -- Print message
+    print(player.Name .. " touched the part!")
+    
+    -- Wait then reset debounce
+    task.wait(1)
+    debounceTable[player.UserId] = nil
+end)`,
+        solution: `-- Create a debounced touched event
+-- Only allow one trigger per second per player
+
+local part = Instance.new("Part")
+part.Parent = workspace
+part.Size = Vector3.new(4, 1, 4)
+part.Position = Vector3.new(0, 0.5, 0)
+part.Anchored = true
+
+-- Debounce table (tracks each player)
+local debounceTable = {}
+
+part.Touched:Connect(function(hit)
+    local character = hit.Parent
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    
+    local player = game.Players:GetPlayerFromCharacter(character)
+    if not player then return end
+    
+    -- Check debounce
+    if debounceTable[player.UserId] then return end
+    debounceTable[player.UserId] = true
+    
+    -- Print message
+    print(player.Name .. " touched the part!")
+    
+    -- Wait then reset debounce
+    task.wait(1)
+    debounceTable[player.UserId] = nil
+end)`,
+        hints: [
+          'Use a table to track debounce state per player',
+          'Check debounce BEFORE executing code',
+          'Reset debounce after waiting',
+        ],
+        objectives: [
+          'Understand why debouncing is needed',
+          'Implement simple debouncing',
+          'Create per-player debouncing system',
+        ],
+      },
+      {
         id: 'bindable-events',
         title: 'BindableEvents - Same-Side Communication',
         description: 'Communicate between scripts on the same side (server or client)',
@@ -876,7 +1405,7 @@ bindable:Fire("Test")`,
     description: 'Master working with player characters, animations, and humanoids',
     icon: '🤖',
     color: 'orange',
-    estimatedTime: '8 hours',
+    estimatedTime: '12 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -1056,7 +1585,7 @@ track:Play()`,
     description: 'Create and manipulate user interfaces in Roblox',
     icon: '🖥️',
     color: 'yellow',
-    estimatedTime: '10 hours',
+    estimatedTime: '11 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -1275,7 +1804,7 @@ layout.Parent = frame`,
     description: 'Save and load player data using DataStores',
     icon: '💾',
     color: 'red',
-    estimatedTime: '8 hours',
+    estimatedTime: '12 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
@@ -1785,7 +2314,7 @@ end)`,
     description: 'Learn performance optimization, security, and professional coding practices',
     icon: '⚡',
     color: 'pink',
-    estimatedTime: '10 hours',
+    estimatedTime: '11 hours',
     difficulty: 'Advanced',
     lessons: [
       {
