@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { courses } from '../data/courses'
 import { useProgressStore } from '../store/progressStore'
-import { Clock, CheckCircle, Circle } from 'lucide-react'
+import { Clock } from 'lucide-react'
 
 export default function Dashboard() {
   const { getCourseCompletion } = useProgressStore()

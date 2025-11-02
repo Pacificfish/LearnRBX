@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { courses } from '../data/courses'
-import { ArrowRight, Clock, TrendingUp } from 'lucide-react'
+import { ArrowRight, Clock } from 'lucide-react'
 
 export default function Home() {
   const { user } = useAuthStore()

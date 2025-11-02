@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { getCourse, getLesson } from '../data/courses'
 import { useProgressStore } from '../store/progressStore'
 import CodeEditor from '../components/CodeEditor'
@@ -7,7 +7,6 @@ import { Check, Lightbulb, ArrowLeft, ArrowRight, Eye } from 'lucide-react'
 
 export default function Lesson() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
-  const navigate = useNavigate()
   const course = courseId ? getCourse(courseId) : undefined
   const lesson = courseId && lessonId ? getLesson(courseId, lessonId) : undefined
   const { getLessonProgress, updateLessonProgress } = useProgressStore()
@@ -44,7 +43,7 @@ export default function Lesson() {
 
   const handleCheck = () => {
     // Simple check - in production, you'd have more sophisticated validation
-    if (code.trim().length > 0 && code !== lesson.initialCode) {
+    if (code.trim().length > 0 && code !== lesson?.initialCode && courseId && lessonId) {
       updateLessonProgress(courseId, lessonId, true, code)
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 3000)
