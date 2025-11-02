@@ -197,46 +197,142 @@ export default function Lesson() {
 
     // Check 2: Compare with solution if available
     if (lesson.solution) {
-      // Look for required patterns from solution
-      const requiredPatterns = [
-        /part\.parent\s*=\s*workspace/i,
-        /part\.position\s*=\s*vector3\.new/i,
-        /part\.size\s*=\s*vector3\.new/i,
-        /part\.brickcolor\s*=\s*brickcolor\.new/i,
-        /instance\.new\s*\(\s*["']part["']\s*\)/i,
-        /local\s+\w+\s*=/,
-        /print\s*\(/,
-        /function\s+\w+\s*\(/,
-        /if\s+.+\s+then/,
-        /for\s+.+\s+do/,
-      ]
+      // Normalize solution and user code for comparison (remove comments, whitespace)
+      const normalizeCode = (code: string) => {
+        return code
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0 && !line.startsWith('--'))
+          .join('\n')
+          .replace(/\s+/g, ' ')
+          .toLowerCase()
+      }
 
-      const foundPatterns: string[] = []
-      requiredPatterns.forEach((pattern, index) => {
-        if (pattern.test(trimmedCode)) {
-          foundPatterns.push(`✓ Pattern ${index + 1} found`)
+      const normalizedSolution = normalizeCode(lesson.solution)
+
+      // Check each line for incomplete assignments
+      const lines = trimmedCode.split('\n')
+      for (const line of lines) {
+        const trimmedLine = line.trim()
+        // Check if line has assignment but no value (ends with = or = followed by only whitespace)
+        if (trimmedLine.match(/local\s+\w+\s*=\s*$/) || trimmedLine.match(/^\s*\w+\s*=\s*$/)) {
+          passed = false
+          issues.push('❌ Found incomplete assignments. Make sure to assign values to variables.')
+          break
+        }
+      }
+
+      // Check for obviously wrong or invalid assignments (like "sdf", random text, undefined)
+      const invalidAssignments = trimmedCode.match(/local\s+\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i) ||
+                                trimmedCode.match(/^\s*\w+\s*=\s*(sdf|undefined|null|NaN|asdf|test|placeholder|TODO|FIXME|xxx|abc)/i)
+      if (invalidAssignments) {
+        passed = false
+        issues.push('❌ Invalid assignment detected. Make sure to use correct values, not placeholders or test values.')
+      }
+
+      // Check each line more carefully for incomplete statements
+      for (const line of lines) {
+        const trimmedLine = line.trim()
+        // Check if assignment operator exists but no valid value follows
+        // Valid values: game, Instance, Vector3, BrickColor, print, function, numbers, strings
+        if (trimmedLine.includes('=') && trimmedLine.match(/=\s*$/) && !trimmedLine.match(/=\s*(game|Instance|Vector3|BrickColor|print|function|\w+\(|\d+|["'])/)) {
+          passed = false
+          if (!issues.some(i => i.includes('incomplete'))) {
+            issues.push('❌ Incomplete statement detected. Check for missing values after assignment operator (=).')
+          }
+          break
+        }
+      }
+
+      // Extract required patterns from solution dynamically
+      const requiredPatterns: { pattern: RegExp; name: string; required: boolean }[] = []
+      
+      // Check for GetService pattern
+      if (normalizedSolution.includes('getservice')) {
+        requiredPatterns.push({
+          pattern: /game:\s*GetService\s*\(\s*["']Players["']\s*\)/i,
+          name: 'Get Players service using game:GetService("Players")',
+          required: true
+        })
+        requiredPatterns.push({
+          pattern: /game:\s*GetService\s*\(\s*["']Workspace["']\s*\)/i,
+          name: 'Get Workspace service using game:GetService("Workspace")',
+          required: true
+        })
+      }
+
+      // Check for Instance.new pattern
+      if (normalizedSolution.includes('instance.new')) {
+        requiredPatterns.push({
+          pattern: /Instance\.new\s*\(\s*["']Part["']\s*\)/i,
+          name: 'Create Part using Instance.new("Part")',
+          required: true
+        })
+      }
+
+      // Check for part properties
+      if (normalizedSolution.includes('part.parent')) {
+        requiredPatterns.push({
+          pattern: /part\.Parent\s*=\s*workspace/i,
+          name: 'Set part.Parent to workspace',
+          required: true
+        })
+      }
+
+      if (normalizedSolution.includes('part.position') || normalizedSolution.includes('vector3.new')) {
+        requiredPatterns.push({
+          pattern: /part\.Position\s*=\s*Vector3\.new/i,
+          name: 'Set part.Position using Vector3.new',
+          required: true
+        })
+      }
+
+      if (normalizedSolution.includes('part.size')) {
+        requiredPatterns.push({
+          pattern: /part\.Size\s*=\s*Vector3\.new/i,
+          name: 'Set part.Size using Vector3.new',
+          required: true
+        })
+      }
+
+      if (normalizedSolution.includes('part.brickcolor')) {
+        requiredPatterns.push({
+          pattern: /part\.BrickColor\s*=\s*BrickColor\.new/i,
+          name: 'Set part.BrickColor using BrickColor.new',
+          required: true
+        })
+      }
+
+      // Check for print statements if in solution
+      if (normalizedSolution.includes('print')) {
+        requiredPatterns.push({
+          pattern: /print\s*\(/i,
+          name: 'Use print() function',
+          required: false
+        })
+      }
+
+      // Check for functions if in solution
+      if (normalizedSolution.includes('function')) {
+        requiredPatterns.push({
+          pattern: /function\s+\w+\s*\(/i,
+          name: 'Define a function',
+          required: true
+        })
+      }
+
+      // Validate all required patterns
+      const missingPatterns: string[] = []
+      requiredPatterns.forEach(({ pattern, name, required }) => {
+        if (required && !pattern.test(trimmedCode)) {
+          missingPatterns.push(name)
+          passed = false
         }
       })
 
-      // Check for common mistakes
-      if (trimmedCode.includes('part.Parent') && !trimmedCode.includes('part.Parent = workspace')) {
-        issues.push('⚠️  Make sure to set part.Parent = workspace')
-      }
-
-      if (trimmedCode.includes('Position') && !trimmedCode.includes('Vector3.new')) {
-        issues.push('⚠️  Position should use Vector3.new(x, y, z)')
-      }
-
-      if (trimmedCode.includes('Size') && !trimmedCode.includes('Vector3.new')) {
-        issues.push('⚠️  Size should use Vector3.new(width, height, depth)')
-      }
-
-      // Basic validation - check if user code has meaningful content
-      const hasCodeStructure = trimmedCode.includes('=') || trimmedCode.includes('(') || trimmedCode.includes('print')
-
-      if (!hasCodeStructure) {
-        passed = false
-        issues.push('❌ Code appears incomplete. Make sure to write complete statements.')
+      if (missingPatterns.length > 0) {
+        issues.push(`❌ Missing required elements:`)
+        missingPatterns.forEach(pattern => issues.push(`   • ${pattern}`))
       }
 
       // Check for common syntax issues
@@ -253,8 +349,19 @@ export default function Lesson() {
         issues.push('❌ Mismatched quotes. Make sure all strings are properly closed.')
       }
 
-      if (issues.length === 0 && foundPatterns.length > 0) {
-        passed = true
+      // Only pass if no issues and all required patterns are found
+      // If there are any issues or missing patterns, definitely fail
+      if (issues.length > 0 || missingPatterns.length > 0) {
+        passed = false
+      }
+      
+      // Double-check: if no required patterns were found at all, fail
+      if (requiredPatterns.length > 0 && requiredPatterns.filter(p => p.required).length > 0) {
+        const requiredCount = requiredPatterns.filter(p => p.required).length
+        const foundCount = requiredPatterns.filter(p => p.required && p.pattern.test(trimmedCode)).length
+        if (foundCount < requiredCount) {
+          passed = false
+        }
       }
     } else {
       // No solution provided - just check if code is meaningful
