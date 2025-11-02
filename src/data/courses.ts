@@ -2276,7 +2276,7 @@ print("Tween started!")`,
     description: 'Master events, RemoteEvents, and client-server communication',
     icon: '⚡',
     color: 'purple',
-    estimatedTime: '11 hours',
+    estimatedTime: '14 hours',
     difficulty: 'Intermediate',
     lessons: [
       {
