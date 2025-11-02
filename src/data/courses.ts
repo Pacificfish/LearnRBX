@@ -582,9 +582,10 @@ local health = clamp(playerHealth, 0, 100)  -- Keeps health between 0-100
 ### Functions for Game Logic
 
 \`\`\`lua
-function dealDamage(target, amount)
-    if target and target.Humanoid then
-        target.Humanoid.Health = target.Humanoid.Health - amount
+function dealDamage(character, amount)
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.Health = humanoid.Health - amount
         print("Dealt " .. amount .. " damage!")
     end
 end
@@ -2735,8 +2736,8 @@ humanoid:TakeDamage(25)  -- Reduces health by 25
 \`\`\``,
         initialCode: `local Players = game:GetService("Players")
 local player = Players:GetPlayers()[1]  -- Get first player
-local character = player.Character
-local humanoid = character:FindFirstChild("Humanoid")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
 -- Set max health to 150
 humanoid.MaxHealth = 
@@ -2745,8 +2746,8 @@ humanoid.MaxHealth =
 humanoid.Health = `,
         solution: `local Players = game:GetService("Players")
 local player = Players:GetPlayers()[1]  -- Get first player
-local character = player.Character
-local humanoid = character:FindFirstChild("Humanoid")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
 -- Set max health to 150
 humanoid.MaxHealth = 150
@@ -3158,7 +3159,7 @@ end)
 \`\`\`lua
 -- Save every 5 minutes
 while true do
-    wait(300)  -- 5 minutes
+    task.wait(300)  -- 5 minutes
     
     for _, player in pairs(Players:GetPlayers()) do
         pcall(function()
@@ -3510,7 +3511,7 @@ blueTeam.Parent = Teams
 
 -- Assign player to team
 Players.PlayerAdded:Connect(function(player)
-    wait(1)  -- Wait for character to spawn
+    task.wait(1)  -- Wait for character to spawn
     player.Team = redTeam  -- or randomly assign
 end)
 \`\`\``,
@@ -3590,7 +3591,7 @@ end
 -- Run every 5 seconds instead of every frame
 while true do
     updatePlayers()
-    wait(5)
+    task.wait(5)
 end
 
 -- Cache references
