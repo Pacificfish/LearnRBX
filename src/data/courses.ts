@@ -2253,7 +2253,8 @@ end)
 
 -- Listen for when a player joins
 Players.PlayerAdded:Connect(function(player)
-    -- Print a welcome message with the player's name
+    -- TODO: Print a welcome message using the player's name
+    -- Example: Welcome, <name>!
     print(_____)
 end)`,
         solution: `local Players = game:GetService("Players")
