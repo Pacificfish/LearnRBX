@@ -10,10 +10,11 @@ interface ProgressHeaderProps {
   nextDisabled?: boolean
   prevLabel?: string
   nextLabel?: string
+  courseId?: string
 }
 
 export default function ProgressHeader({
-  courseTitle,
+  courseTitle: _courseTitle,
   progressPct,
   onPrev,
   onNext,
@@ -21,16 +22,19 @@ export default function ProgressHeader({
   nextDisabled = false,
   prevLabel = 'Previous',
   nextLabel = 'Next',
+  courseId,
 }: ProgressHeaderProps) {
+  const backUrl = courseId ? `/course/${courseId}` : '/dashboard'
+  
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between mb-3">
         <Link
-          to={`/course/${courseTitle.toLowerCase().replace(/\s+/g, '-')}`}
-          className="flex items-center space-x-1.5 text-gray-600 hover:text-roblox transition-colors text-sm font-medium"
+          to={backUrl}
+          className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400 hover:text-roblox transition-colors text-sm font-medium"
         >
           <ArrowLeft size={16} />
-          <span>Back</span>
+          <span>← Back</span>
         </Link>
         <div className="flex items-center space-x-2">
           {onPrev && (

@@ -62,9 +62,23 @@ export default function ConsolePanel({ lines, status = 'idle', onClear }: Consol
               return <div key={index} className="h-1"></div>
             }
 
+            // Add timestamp for non-empty lines
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+              hour12: false, 
+              hour: '2-digit', 
+              minute: '2-digit', 
+              second: '2-digit' 
+            })
+            const showTimestamp = line.trim() !== '' && !line.startsWith('🔍') && !line.startsWith('✅') && !line.startsWith('❌')
+
             return (
-              <div key={index} className={`mb-0.5 ${textColor} whitespace-pre-wrap text-xs`}>
-                {line}
+              <div key={index} className={`mb-0.5 ${textColor} whitespace-pre-wrap text-xs flex items-start`}>
+                {showTimestamp && (
+                  <span className="text-gray-500 dark:text-gray-600 mr-2 flex-shrink-0 text-[10px]">
+                    [{timestamp}]
+                  </span>
+                )}
+                <span className="flex-1">{line}</span>
               </div>
             )
           })

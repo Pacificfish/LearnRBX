@@ -11,6 +11,7 @@ import GamificationBar from '../components/learnrbx/GamificationBar'
 import CompletionCelebration from '../components/learnrbx/CompletionCelebration'
 import { validatePlayersLesson, validateSimplePrint } from '../utils/lessonValidation'
 import { mockRunLua } from '../utils/codeExecution'
+import { Play, Check } from 'lucide-react'
 
 // Simple markdown renderer
 function renderMarkdown(content: string) {
@@ -80,6 +81,7 @@ export default function LessonNew() {
   const [code, setCode] = useState(lesson?.initialCode || '')
   const [objectives, setObjectives] = useState<{ label: string; done: boolean }[]>([])
   const [showCelebration, setShowCelebration] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
   const initializedRef = useRef(false)
 
   const progress = courseId && lessonId ? getLessonProgress(courseId, lessonId) : undefined
@@ -168,11 +170,16 @@ export default function LessonNew() {
 
   // Handle Run
   const handleRun = async (codeToRun: string): Promise<RunResult> => {
-    return mockRunLua(codeToRun)
+    setStatus('running')
+    const result = await mockRunLua(codeToRun)
+    setStatus(result.success ? 'success' : 'error')
+    setTimeout(() => setStatus('idle'), 1000)
+    return result
   }
 
   // Handle Test
   const handleTest = async (codeToTest: string): Promise<TestResult> => {
+    setStatus('running')
     let result: TestResult
 
     // Use lesson-specific validation if available
@@ -206,7 +213,11 @@ export default function LessonNew() {
       if (allDone) {
         setShowCelebration(true)
       }
+      setStatus('success')
+    } else {
+      setStatus('error')
     }
+    setTimeout(() => setStatus('idle'), 1000)
 
     return result
   }
@@ -253,6 +264,32 @@ export default function LessonNew() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Sticky header on mobile */}
+      <div className="sticky top-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 lg:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+            <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{lesson.title}</span>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleRun(code)}
+                disabled={status === 'running'}
+                className="flex items-center space-x-1 px-2 py-1 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded text-xs"
+              >
+                <Play size={12} />
+                <span>Run</span>
+              </button>
+              <button
+                onClick={() => handleTest(code)}
+                disabled={status === 'running'}
+                className="flex items-center space-x-1 px-2 py-1 btn-primary text-xs"
+              >
+                <Check size={12} />
+                <span>Test</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <ProgressHeader
           courseTitle={course.title}
@@ -263,6 +300,7 @@ export default function LessonNew() {
           nextDisabled={!nextLesson || !progress?.completed}
           prevLabel="Previous"
           nextLabel="Next"
+          courseId={courseId}
         />
 
         <GamificationBar />

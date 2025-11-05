@@ -5,6 +5,8 @@ import type * as Monaco from 'monaco-editor'
 import { Play, Check, Copy, RotateCcw, Lightbulb } from 'lucide-react'
 import ConsolePanel from './ConsolePanel'
 import HintToggle from './HintToggle'
+import { useToast } from '../../hooks/useToast'
+import ToastContainer from './Toast'
 
 export interface RunResult {
   output: string[]
@@ -46,6 +48,7 @@ export default function CodePlayground({
   const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   const monacoRef = useRef<typeof Monaco | null>(null)
+  const { toasts, showToast, removeToast } = useToast()
 
   // Load saved code from localStorage
   useEffect(() => {
@@ -148,6 +151,14 @@ export default function CodePlayground({
 
       setConsoleLines(output)
       setStatus(result.passed ? 'success' : 'error')
+
+      // Show toast notification
+      if (result.passed) {
+        showToast('Nice! You printed the player\'s name.', 'success')
+      } else {
+        const failMessage = result.messages.find(m => m.type === 'fail')?.text || 'Test failed. Check the console for details.'
+        showToast(failMessage, 'error')
+      }
     } catch (error) {
       setConsoleLines([`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`])
       setStatus('error')
@@ -166,12 +177,12 @@ export default function CodePlayground({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code)
-    // Could show a toast here
+    showToast('Code copied to clipboard!', 'info', 2000)
   }
 
   return (
     <div className="space-y-3">
-      <div className="card border-2 border-roblox/20 dark:border-roblox/30 shadow-lg bg-white dark:bg-gray-800 p-3">
+      <div className="card border-2 border-gray-300 dark:border-gray-600 shadow-lg bg-white dark:bg-gray-800 p-4">
         <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-1.5">
             <div className="w-7 h-7 rounded bg-gradient-to-br from-roblox to-blue-600 flex items-center justify-center">
@@ -277,6 +288,11 @@ export default function CodePlayground({
             <HintToggle hints={hints} />
           </div>
         )}
+      </div>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {status === 'success' && 'Test passed'}
+        {status === 'error' && 'Test failed'}
       </div>
     </div>
   )

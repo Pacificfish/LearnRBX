@@ -26,10 +26,10 @@ export function validatePlayersLesson(code: string): ValidationResult {
   
   if (hasPlayersService) {
     objectives[0].done = true
-    messages.push({ type: 'pass', text: '✓ Players service accessed correctly' })
+    messages.push({ type: 'pass', text: 'Players service accessed correctly' })
   } else {
     passed = false
-    messages.push({ type: 'fail', text: '✗ Need to get Players service using game:GetService("Players")' })
+    messages.push({ type: 'fail', text: 'Need to get Players service using game:GetService("Players")' })
   }
 
   // Check for PlayerAdded listener
@@ -38,22 +38,22 @@ export function validatePlayersLesson(code: string): ValidationResult {
   
   if (hasListener) {
     objectives[1].done = true
-    messages.push({ type: 'pass', text: '✓ PlayerAdded event connected correctly' })
+    messages.push({ type: 'pass', text: 'PlayerAdded event connected correctly' })
   } else {
     passed = false
-    messages.push({ type: 'fail', text: '✗ Need to connect to Players.PlayerAdded:Connect(function(player)' })
+    messages.push({ type: 'fail', text: 'Need to connect to Players.PlayerAdded:Connect(function(player)' })
   }
 
-  // Check for print with player.Name
+  // Check for print with player.Name - allow spaces/quotes
   const printsName = /print\s*\(\s*[^)]*player\s*\.\s*Name[^)]*\)/m.test(code) ||
                      /print\s*\(\s*[^)]*player\s*\.\s*name[^)]*\)/i.test(code)
   
   if (printsName) {
     objectives[2].done = true
-    messages.push({ type: 'pass', text: '✓ Player name accessed and printed correctly' })
+    messages.push({ type: 'pass', text: 'Player name accessed and printed correctly' })
   } else {
     passed = false
-    messages.push({ type: 'fail', text: '✗ Need to print player.Name in your print statement' })
+    messages.push({ type: 'fail', text: 'Make sure your print uses player.Name.' })
   }
 
   if (passed) {
