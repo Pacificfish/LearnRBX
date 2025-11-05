@@ -24,8 +24,8 @@ function renderMarkdown(content: string) {
     if (line.startsWith('```')) {
       if (inCodeBlock) {
         elements.push(
-          <pre key={`code-${index}`} className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto my-4 text-sm font-mono">
-            <code>{currentCodeBlock.join('\n')}</code>
+          <pre key={`code-${index}`} className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto my-4 text-sm font-mono border border-gray-700 dark:border-gray-600">
+            <code className="text-gray-100">{currentCodeBlock.join('\n')}</code>
           </pre>
         )
         currentCodeBlock = []
@@ -42,28 +42,28 @@ function renderMarkdown(content: string) {
     }
 
     if (line.startsWith('# ')) {
-      elements.push(<h1 key={index} className="text-xl font-bold mb-2 mt-3 text-gray-900 dark:text-gray-100">{line.substring(2)}</h1>)
+      elements.push(<h1 key={index} className="text-xl font-bold mb-2 mt-3 text-gray-900 dark:text-white">{line.substring(2)}</h1>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={index} className="text-lg font-bold mb-1.5 mt-2.5 text-gray-900 dark:text-gray-100">{line.substring(3)}</h2>)
+      elements.push(<h2 key={index} className="text-lg font-bold mb-1.5 mt-2.5 text-gray-900 dark:text-white">{line.substring(3)}</h2>)
     } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={index} className="text-base font-semibold mb-1 mt-2 text-gray-900 dark:text-gray-100">{line.substring(4)}</h3>)
+      elements.push(<h3 key={index} className="text-base font-semibold mb-1 mt-2 text-gray-900 dark:text-white">{line.substring(4)}</h3>)
     } else if (line.includes('**')) {
       const parts = line.split('**')
       const processed = parts.map((part, i) => {
         if (i % 2 === 1) {
-          return <strong key={i} className="font-semibold text-gray-900 dark:text-gray-100">{part}</strong>
+          return <strong key={i} className="font-semibold text-gray-900 dark:text-white">{part}</strong>
         }
-        return part
+        return <span key={i} className="text-gray-900 dark:text-gray-100">{part}</span>
       })
-      elements.push(<p key={index} className="mb-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{processed}</p>)
+      elements.push(<p key={index} className="mb-2 text-sm text-gray-900 dark:text-gray-100 leading-relaxed font-medium">{processed}</p>)
     } else if (line.trim().startsWith('- ')) {
       elements.push(
-        <li key={index} className="mb-1 text-sm text-gray-700 dark:text-gray-300 ml-3">
+        <li key={index} className="mb-1 text-sm text-gray-900 dark:text-gray-100 ml-3 font-medium">
           {line.trim().substring(2)}
         </li>
       )
     } else if (line.trim() !== '') {
-      elements.push(<p key={index} className="mb-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{line}</p>)
+      elements.push(<p key={index} className="mb-2 text-sm text-gray-900 dark:text-gray-100 leading-relaxed font-medium">{line}</p>)
     }
   })
 
