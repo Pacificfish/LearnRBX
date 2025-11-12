@@ -3,20 +3,11 @@ import { useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'learnrbx-dark-mode'
 
-function getInitialDarkMode() {
-  if (typeof window === 'undefined') return false
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'true') return true
-    if (stored === 'false') return false
-  } catch (error) {
-    console.warn('Unable to read theme preference', error)
-  }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
 export default function DarkModeToggle() {
-  const [darkMode, setDarkMode] = useState<boolean>(getInitialDarkMode)
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false
+    return document.documentElement.classList.contains('dark')
+  })
 
   useEffect(() => {
     const root = document.documentElement
@@ -29,16 +20,17 @@ export default function DarkModeToggle() {
       root.classList.remove('dark')
       body.classList.remove('dark')
     }
-
-    try {
-      localStorage.setItem(STORAGE_KEY, darkMode.toString())
-    } catch (error) {
-      console.warn('Unable to store theme preference', error)
-    }
   }, [darkMode])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // Sync initial state with DOM (covers pre-render script or server render)
+    const root = document.documentElement
+    const isDark = root.classList.contains('dark')
+    if (isDark !== darkMode) {
+      setDarkMode(isDark)
+    }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleMediaChange = (event: MediaQueryListEvent) => {
@@ -68,7 +60,13 @@ export default function DarkModeToggle() {
   }, [])
 
   const toggleMode = () => {
-    setDarkMode((prev) => !prev)
+    const next = !darkMode
+    setDarkMode(next)
+    try {
+      localStorage.setItem(STORAGE_KEY, next ? 'true' : 'false')
+    } catch (error) {
+      console.warn('Unable to store theme preference', error)
+    }
   }
 
   return (
