@@ -73,7 +73,8 @@ export function validatePlayersLesson(code: string): ValidationResult {
  * Generic validation for simple print statements
  */
 export function validateSimplePrint(code: string, expectedText: string): ValidationResult {
-  const normalizedCode = code.toLowerCase()
+  const codeWithoutComments = code.replace(/--.*$/gm, '')
+  const normalizedCode = codeWithoutComments.toLowerCase()
   const normalizedExpected = expectedText.toLowerCase()
 
   const hasPrint = normalizedCode.includes('print(')

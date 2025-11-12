@@ -182,6 +182,23 @@ export default function LessonNew() {
     setStatus('running')
     let result: TestResult
 
+    // Prevent submission of untouched template
+    const sanitizedInitial = lesson.initialCode.replace(/\s+/g, '')
+    const sanitizedUser = codeToTest.replace(/\s+/g, '')
+    if (sanitizedInitial === sanitizedUser) {
+      result = {
+        passed: false,
+        messages: [
+          { type: 'fail', text: 'Please complete the TODOs before testing. The code still matches the starter template.' },
+        ],
+        objectives: lesson.objectives.map((obj) => ({ label: obj, done: false })),
+      }
+      setStatus('error')
+      setTimeout(() => setStatus('idle'), 1000)
+      setObjectives(result.objectives)
+      return result
+    }
+
     // Use lesson-specific validation if available
     if (lessonId === 'players' || lesson.title.toLowerCase().includes('player')) {
       result = validatePlayersLesson(codeToTest)
