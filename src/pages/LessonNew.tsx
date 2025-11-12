@@ -340,10 +340,17 @@ export default function LessonNew() {
         <div className="grid lg:grid-cols-2 gap-6 items-start lg:gap-6">
           {/* Left Column */}
           <div className={`space-y-4 pr-1 ${desktopPanelHeight} lg:overflow-y-auto lg:pr-4`}>
-            <ObjectivesCard items={objectives} />
-            <LessonPanel title={lesson.title}>
-              {renderMarkdown(lesson.content)}
-            </LessonPanel>
+            <div className="space-y-4">
+              <LessonPanel title={lesson.title}>
+                {renderMarkdown(lesson.content)}
+              </LessonPanel>
+              <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-4 shadow-sm">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                  What you need to do
+                </h3>
+                <ObjectivesCard items={objectives} title="Lesson Objectives" />
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
