@@ -414,12 +414,21 @@ export default function LessonNew() {
                   <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                     What you need to do
                   </h3>
-                  {instructionLines.length > 0 && (
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                  {instructionLines.length > 0 ? (
+                    <ol className="list-decimal list-inside space-y-2 text-sm text-gray-800 dark:text-gray-200">
                       {instructionLines.map((line, index) => (
-                        <li key={index}>{line}</li>
+                        <li key={index}>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">
+                            Step {index + 1}:
+                          </span>{' '}
+                          <span>{line}</span>
+                        </li>
                       ))}
-                    </ul>
+                    </ol>
+                  ) : (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Follow the lesson above and complete the TODOs in the editor.
+                    </p>
                   )}
                 </div>
                 <ObjectivesCard items={objectives} title="Lesson Objectives" />
