@@ -256,15 +256,21 @@ export default function LessonNew() {
     setStatus('running')
     let result: TestResult
 
-    // Prevent submission of untouched template
+    // Prevent submission of unchanged template or trivial edits
     const cleanedUserCode = sanitizeUserCode(codeToTest)
-    const sanitizedInitial = sanitizedCode.replace(/\s+/g, '')
-    const sanitizedUser = cleanedUserCode.replace(/\s+/g, '')
-    if (sanitizedInitial === sanitizedUser) {
+    const normalizedInitial = sanitizedCode.replace(/\s+/g, '')
+    const normalizedUser = cleanedUserCode.replace(/\s+/g, '')
+
+    const madeMeaningfulChange =
+      cleanedUserCode.trim().length > 0 &&
+      cleanedUserCode.trim() !== sanitizedCode.trim() &&
+      normalizedInitial !== normalizedUser
+
+    if (!madeMeaningfulChange) {
       result = {
         passed: false,
         messages: [
-          { type: 'fail', text: 'Please complete the TODOs before testing. The code still matches the starter template.' },
+          { type: 'fail', text: 'Make meaningful changes to the TODO sections before testing.' },
         ],
         objectives: lesson.objectives.map((obj) => ({ label: obj, done: false })),
       }
