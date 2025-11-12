@@ -32,6 +32,7 @@ interface CodePlaygroundProps {
   onTest?: (code: string) => Promise<TestResult>
   onCodeChange?: (code: string) => void
   readOnly?: boolean
+  storageKey: string
 }
 
 export default function CodePlayground({
@@ -42,6 +43,7 @@ export default function CodePlayground({
   onTest,
   onCodeChange,
   readOnly = false,
+  storageKey,
 }: CodePlaygroundProps) {
   const [code, setCode] = useState(initialCode)
   const [consoleLines, setConsoleLines] = useState<string[]>([])
@@ -52,21 +54,21 @@ export default function CodePlayground({
 
   // Load saved code from localStorage
   useEffect(() => {
-    const savedCode = localStorage.getItem(`lesson-code-${initialCode.slice(0, 20)}`)
+    const savedCode = localStorage.getItem(`lesson-code-${storageKey}`)
     if (savedCode) {
       setCode(savedCode)
     } else {
       setCode(initialCode)
     }
-  }, [initialCode])
+  }, [initialCode, storageKey])
 
   // Save code to localStorage on change
   useEffect(() => {
     if (code !== initialCode) {
-      localStorage.setItem(`lesson-code-${initialCode.slice(0, 20)}`, code)
+      localStorage.setItem(`lesson-code-${storageKey}`, code)
     }
     onCodeChange?.(code)
-  }, [code, initialCode, onCodeChange])
+  }, [code, initialCode, onCodeChange, storageKey])
 
   // Setup Monaco decorations for TODO highlighting
   useEffect(() => {
@@ -170,7 +172,7 @@ export default function CodePlayground({
   const handleReset = () => {
     if (confirm('Reset code to initial template? This will discard your changes.')) {
       setCode(initialCode)
-      localStorage.removeItem(`lesson-code-${initialCode.slice(0, 20)}`)
+      localStorage.removeItem(`lesson-code-${storageKey}`)
       setConsoleLines([])
     }
   }

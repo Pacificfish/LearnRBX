@@ -342,6 +342,7 @@ export default function LessonNew() {
               onRun={handleRun}
               onTest={handleTest}
               onCodeChange={setCode}
+              storageKey={`${courseId || 'course'}-${lessonId}`}
             />
           </div>
         </div>
