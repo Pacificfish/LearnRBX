@@ -20,6 +20,33 @@ export default function DarkModeToggle() {
     localStorage.setItem('darkMode', darkMode.toString())
   }, [darkMode])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const syncMode = () => {
+      const stored = localStorage.getItem('darkMode')
+      if (stored === 'true') {
+        setDarkMode(true)
+        document.documentElement.classList.add('dark')
+      } else if (stored === 'false') {
+        setDarkMode(false)
+        document.documentElement.classList.remove('dark')
+      }
+    }
+
+    const storageListener = (event: StorageEvent) => {
+      if (event.key === 'darkMode') {
+        syncMode()
+      }
+    }
+
+    // Ensure initial sync (covers cases where class was set before mount)
+    syncMode()
+
+    window.addEventListener('storage', storageListener)
+    return () => window.removeEventListener('storage', storageListener)
+  }, [])
+
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
