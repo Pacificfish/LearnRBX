@@ -241,39 +241,24 @@ export default function CodePlayground({
         </div>
 
         <div className="rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 mb-2">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-2.5 py-1.5">
-            <div className="flex items-start space-x-1.5">
-              <div className="flex-shrink-0 mt-0.5">
-                <div className="w-3 h-3 rounded-full bg-yellow-400 dark:bg-yellow-500"></div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-900 dark:text-gray-100 mb-0.5">📝 Your Task</p>
-                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-                  Complete the code. Look for <code className="bg-blue-100 dark:bg-blue-900 px-0.5 rounded text-xs">TODO</code> comments. Click "Test" when done!
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-200 dark:border-gray-700">
-            <Editor
-              height="300px"
-              defaultLanguage="lua"
-              value={code}
-              onChange={(value) => setCode(value || '')}
-              onMount={handleEditorDidMount}
-              theme="vs"
-              options={{
-                readOnly,
-                fontSize: 14,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                wordWrap: 'on',
-                lineNumbers: 'on',
-                renderWhitespace: 'selection',
-                tabSize: 2,
-              }}
-            />
-          </div>
+          <Editor
+            height="300px"
+            defaultLanguage="lua"
+            value={code}
+            onChange={(value) => setCode(value || '')}
+            onMount={handleEditorDidMount}
+            theme="vs"
+            options={{
+              readOnly,
+              fontSize: 14,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              wordWrap: 'on',
+              lineNumbers: 'on',
+              renderWhitespace: 'selection',
+              tabSize: 2,
+            }}
+          />
         </div>
 
         <ConsolePanel
