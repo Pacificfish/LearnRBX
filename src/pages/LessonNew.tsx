@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getCourse, getLesson } from '../data/courses'
 import { useProgressStore } from '../store/progressStore'
@@ -75,6 +75,7 @@ function extractLessonMeta(initialCode?: string) {
     return {
       sanitizedCode: '',
       instructionLines: [] as string[],
+      headerLineCount: 0,
     }
   }
 
@@ -103,6 +104,7 @@ function extractLessonMeta(initialCode?: string) {
   return {
     sanitizedCode,
     instructionLines,
+    headerLineCount: startIndex,
   }
 }
 
@@ -114,7 +116,7 @@ export default function LessonNew() {
   const { getLessonProgress, updateLessonProgress } = useProgressStore()
   const { grantXP, incrementStreak } = useGamificationStore()
 
-  const { sanitizedCode, instructionLines } = useMemo(
+  const { sanitizedCode, instructionLines, headerLineCount } = useMemo(
     () => extractLessonMeta(lesson?.initialCode),
     [lesson?.initialCode]
   )
@@ -126,6 +128,17 @@ export default function LessonNew() {
   const initializedRef = useRef(false)
 
   const progress = courseId && lessonId ? getLessonProgress(courseId, lessonId) : undefined
+
+  const sanitizeUserCode = useCallback(
+    (rawCode: string | null | undefined) => {
+      if (!rawCode) return sanitizedCode
+      if (headerLineCount <= 0) return rawCode
+      const lines = rawCode.split('\n')
+      if (lines.length <= headerLineCount) return rawCode
+      return lines.slice(headerLineCount).join('\n')
+    },
+    [headerLineCount, sanitizedCode]
+  )
 
   // Initialize objectives from lesson
   useEffect(() => {
@@ -146,11 +159,20 @@ export default function LessonNew() {
     const localSaved = localStorage.getItem(localKey)
 
     if (localSaved !== null) {
-      setCode(localSaved)
+      const cleaned = sanitizeUserCode(localSaved)
+      setCode(cleaned)
+      if (cleaned !== localSaved) {
+        try {
+          localStorage.setItem(localKey, cleaned)
+        } catch (error) {
+          console.warn('Unable to update stored lesson code', error)
+        }
+      }
     } else if (progress?.code) {
-      setCode(progress.code)
+      const cleaned = sanitizeUserCode(progress.code)
+      setCode(cleaned)
       try {
-        localStorage.setItem(localKey, progress.code)
+        localStorage.setItem(localKey, cleaned)
       } catch (error) {
         console.warn('Unable to sync progress code to local storage', error)
       }
@@ -158,7 +180,7 @@ export default function LessonNew() {
       setCode(sanitizedCode)
     }
     initializedRef.current = true
-  }, [lesson, progress, courseId, lessonId, sanitizedCode])
+  }, [lesson, progress, courseId, lessonId, sanitizedCode, sanitizeUserCode])
 
   // Reset on lesson change
   useEffect(() => {
@@ -235,8 +257,9 @@ export default function LessonNew() {
     let result: TestResult
 
     // Prevent submission of untouched template
+    const cleanedUserCode = sanitizeUserCode(codeToTest)
     const sanitizedInitial = sanitizedCode.replace(/\s+/g, '')
-    const sanitizedUser = codeToTest.replace(/\s+/g, '')
+    const sanitizedUser = cleanedUserCode.replace(/\s+/g, '')
     if (sanitizedInitial === sanitizedUser) {
       result = {
         passed: false,
@@ -253,12 +276,12 @@ export default function LessonNew() {
 
     // Use lesson-specific validation if available
     if (lessonId === 'players' || lesson.title.toLowerCase().includes('player')) {
-      result = validatePlayersLesson(codeToTest)
+      result = validatePlayersLesson(cleanedUserCode)
     } else if (lessonId === 'getting-started') {
-      result = validateSimplePrint(codeToTest, 'Hello, World!')
+      result = validateSimplePrint(cleanedUserCode, 'Hello, World!')
     } else {
       // Generic validation
-      const hasCode = codeToTest.trim().length > 0 && codeToTest.trim() !== sanitizedCode.trim()
+      const hasCode = cleanedUserCode.trim().length > 0 && cleanedUserCode.trim() !== sanitizedCode.trim()
       result = {
         passed: hasCode,
         messages: hasCode
@@ -273,7 +296,7 @@ export default function LessonNew() {
 
     // If passed, update progress and grant rewards
     if (result.passed && courseId && lessonId) {
-      updateLessonProgress(courseId, lessonId, true, codeToTest)
+      updateLessonProgress(courseId, lessonId, true, cleanedUserCode)
       grantXP(10)
       incrementStreak()
 
