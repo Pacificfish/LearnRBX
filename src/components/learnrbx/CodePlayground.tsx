@@ -17,6 +17,8 @@ export interface TestResult {
   passed: boolean
   messages: { type: 'pass' | 'fail' | 'info'; text: string }[]
   objectives: { label: string; done: boolean }[]
+  actualOutput?: string[]
+  expectedOutput?: string[]
 }
 
 interface TodoRange {
@@ -150,6 +152,26 @@ export default function CodePlayground({
           output.push(`ℹ️  ${msg.text}`)
         }
       })
+
+      if (result.actualOutput) {
+        output.push('')
+        if (result.actualOutput.length > 0) {
+          output.push('🧪 Your Output:')
+          result.actualOutput.forEach((line) => output.push(`   • ${line}`))
+        } else {
+          output.push('🧪 Your Output: (no output)')
+        }
+      }
+
+      if (result.expectedOutput) {
+        output.push('')
+        if (result.expectedOutput.length > 0) {
+          output.push('🎯 Expected Output:')
+          result.expectedOutput.forEach((line) => output.push(`   • ${line}`))
+        } else {
+          output.push('🎯 Expected Output: (no output required)')
+        }
+      }
 
       setConsoleLines(output)
       setStatus(result.passed ? 'success' : 'error')

@@ -7,6 +7,7 @@ export interface Lesson {
   solution?: string
   hints: string[]
   objectives: string[]
+  expectedOutput?: string[]
 }
 
 export interface Course {
@@ -175,6 +176,9 @@ print("Hello, World!")`,
           'Write your first line of Lua code',
           'Use the print() function',
           'Understand basic Lua syntax',
+        ],
+        expectedOutput: [
+          'Hello, World!',
         ],
       },
       {
@@ -418,6 +422,10 @@ print(number)`,
           'Create a number variable',
           'Use print() to display values',
         ],
+        expectedOutput: [
+          'Hero',
+          '100',
+        ],
       },
       {
         id: 'functions',
@@ -656,6 +664,9 @@ greet("Roblox")`,
           'Create a function that takes a parameter',
           'Use string concatenation',
           'Call the function with an argument',
+        ],
+        expectedOutput: [
+          'Hello, Roblox!',
         ],
       },
       {

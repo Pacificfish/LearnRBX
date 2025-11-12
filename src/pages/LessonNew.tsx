@@ -129,6 +129,20 @@ export default function LessonNew() {
 
   const progress = courseId && lessonId ? getLessonProgress(courseId, lessonId) : undefined
 
+  const expectedOutputs = useMemo(() => {
+    if (!lesson) return []
+    if (lesson.expectedOutput && lesson.expectedOutput.length > 0) {
+      return lesson.expectedOutput
+    }
+    if (lesson.solution) {
+      const solutionRun = mockRunLua(lesson.solution)
+      if (solutionRun.success && solutionRun.output.length > 0) {
+        return solutionRun.output
+      }
+    }
+    return []
+  }, [lesson])
+
   const sanitizeUserCode = useCallback(
     (rawCode: string | null | undefined) => {
       if (!rawCode) return sanitizedCode
@@ -280,6 +294,10 @@ export default function LessonNew() {
       return result
     }
 
+    const userRun = mockRunLua(cleanedUserCode)
+    const normalizedUserOutputs = userRun.output.map((line) => line.trim())
+    const normalizedExpectedOutputs = expectedOutputs.map((line) => line.trim())
+
     // Use lesson-specific validation if available
     if (lessonId === 'players' || lesson.title.toLowerCase().includes('player')) {
       result = validatePlayersLesson(cleanedUserCode)
@@ -294,6 +312,26 @@ export default function LessonNew() {
           ? [{ type: 'pass', text: 'Code looks good!' }]
           : [{ type: 'fail', text: 'Please write some code before testing.' }],
         objectives: lesson.objectives.map((obj) => ({ label: obj, done: hasCode })),
+      }
+    }
+
+    if (normalizedExpectedOutputs.length > 0) {
+      const outputsMatch =
+        normalizedExpectedOutputs.length === normalizedUserOutputs.length &&
+        normalizedExpectedOutputs.every((value, index) => value === normalizedUserOutputs[index])
+
+      if (!outputsMatch) {
+        result = {
+          passed: false,
+          messages: [
+            ...result.messages.filter((msg) => msg.type !== 'pass'),
+            {
+              type: 'fail',
+              text: `Output mismatch. Expected: ${normalizedExpectedOutputs.join(', ') || '(none)'}. Received: ${normalizedUserOutputs.join(', ') || '(no output)'}.`,
+            },
+          ],
+          objectives: lesson.objectives.map((obj) => ({ label: obj, done: false })),
+        }
       }
     }
 
