@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getCourse, getLesson } from '../data/courses'
 import { useProgressStore } from '../store/progressStore'
@@ -70,6 +70,42 @@ function renderMarkdown(content: string) {
   return <div className="space-y-2">{elements}</div>
 }
 
+function extractLessonMeta(initialCode?: string) {
+  if (!initialCode) {
+    return {
+      sanitizedCode: '',
+      instructionLines: [] as string[],
+    }
+  }
+
+  const lines = initialCode.split('\n')
+  const headerLines: string[] = []
+  let startIndex = 0
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim()
+    const isTodoLine = trimmed.startsWith('-- TODO') || trimmed.startsWith('--TODO')
+    const isCodeLine = trimmed.length > 0 && !trimmed.startsWith('--')
+
+    if (isTodoLine || isCodeLine) {
+      startIndex = i
+      break
+    }
+    headerLines.push(lines[i])
+  }
+
+  const sanitizedCode = lines.slice(startIndex).join('\n') || initialCode
+
+  const instructionLines = headerLines
+    .map((line) => line.replace(/^--\s?/, '').trim())
+    .filter((line) => line.length > 0 && !/^=+$/.test(line))
+
+  return {
+    sanitizedCode,
+    instructionLines,
+  }
+}
+
 export default function LessonNew() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
   const navigate = useNavigate()
@@ -78,7 +114,12 @@ export default function LessonNew() {
   const { getLessonProgress, updateLessonProgress } = useProgressStore()
   const { grantXP, incrementStreak } = useGamificationStore()
 
-  const [code, setCode] = useState(lesson?.initialCode || '')
+  const { sanitizedCode, instructionLines } = useMemo(
+    () => extractLessonMeta(lesson?.initialCode),
+    [lesson?.initialCode]
+  )
+
+  const [code, setCode] = useState(sanitizedCode)
   const [objectives, setObjectives] = useState<{ label: string; done: boolean }[]>([])
   const [showCelebration, setShowCelebration] = useState(false)
   const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
@@ -114,19 +155,17 @@ export default function LessonNew() {
         console.warn('Unable to sync progress code to local storage', error)
       }
     } else {
-      setCode(lesson.initialCode)
+      setCode(sanitizedCode)
     }
     initializedRef.current = true
-  }, [lesson, progress, courseId, lessonId])
+  }, [lesson, progress, courseId, lessonId, sanitizedCode])
 
   // Reset on lesson change
   useEffect(() => {
     initializedRef.current = false
     setShowCelebration(false)
-    if (lesson) {
-      setCode(lesson.initialCode)
-    }
-  }, [lessonId, lesson])
+    setCode(sanitizedCode)
+  }, [lessonId, sanitizedCode])
 
   if (!course || !lesson) {
     return (
@@ -196,7 +235,7 @@ export default function LessonNew() {
     let result: TestResult
 
     // Prevent submission of untouched template
-    const sanitizedInitial = lesson.initialCode.replace(/\s+/g, '')
+    const sanitizedInitial = sanitizedCode.replace(/\s+/g, '')
     const sanitizedUser = codeToTest.replace(/\s+/g, '')
     if (sanitizedInitial === sanitizedUser) {
       result = {
@@ -219,7 +258,7 @@ export default function LessonNew() {
       result = validateSimplePrint(codeToTest, 'Hello, World!')
     } else {
       // Generic validation
-      const hasCode = codeToTest.trim().length > 0 && codeToTest.trim() !== lesson.initialCode.trim()
+      const hasCode = codeToTest.trim().length > 0 && codeToTest.trim() !== sanitizedCode.trim()
       result = {
         passed: hasCode,
         messages: hasCode
@@ -282,15 +321,18 @@ export default function LessonNew() {
   }, [prevLesson, nextLesson, progress])
 
   // Find TODO ranges for highlighting
-  const todoRanges: { startLine: number; endLine: number }[] = []
-  if (lesson.initialCode) {
-    const lines = lesson.initialCode.split('\n')
-    lines.forEach((line, index) => {
-      if (line.includes('TODO') || line.includes('_____')) {
-        todoRanges.push({ startLine: index + 1, endLine: index + 1 })
-      }
-    })
-  }
+  const todoRanges: { startLine: number; endLine: number }[] = useMemo(() => {
+    const ranges: { startLine: number; endLine: number }[] = []
+    if (sanitizedCode) {
+      const lines = sanitizedCode.split('\n')
+      lines.forEach((line, index) => {
+        if (line.includes('TODO') || line.includes('_____')) {
+          ranges.push({ startLine: index + 1, endLine: index + 1 })
+        }
+      })
+    }
+    return ranges
+  }, [sanitizedCode])
 
   const desktopPanelHeight = 'lg:max-h-[calc(100vh-220px)]'
 
@@ -344,10 +386,19 @@ export default function LessonNew() {
               <LessonPanel title={lesson.title}>
                 {renderMarkdown(lesson.content)}
               </LessonPanel>
-              <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-4 shadow-sm">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
-                  What you need to do
-                </h3>
+              <div className="bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl p-4 shadow-sm space-y-3">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                    What you need to do
+                  </h3>
+                  {instructionLines.length > 0 && (
+                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-800 dark:text-gray-200">
+                      {instructionLines.map((line, index) => (
+                        <li key={index}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
                 <ObjectivesCard items={objectives} title="Lesson Objectives" />
               </div>
             </div>
