@@ -99,21 +99,34 @@ export default function LessonNew() {
 
   // Load code from progress
   useEffect(() => {
-    if (lesson && !initializedRef.current) {
-      if (progress?.code) {
-        setCode(progress.code)
-      } else {
-        setCode(lesson.initialCode)
+    if (!lesson || !courseId || !lessonId || initializedRef.current) return
+
+    const localKey = `lesson-code-${courseId}-${lessonId}`
+    const localSaved = localStorage.getItem(localKey)
+
+    if (localSaved !== null) {
+      setCode(localSaved)
+    } else if (progress?.code) {
+      setCode(progress.code)
+      try {
+        localStorage.setItem(localKey, progress.code)
+      } catch (error) {
+        console.warn('Unable to sync progress code to local storage', error)
       }
-      initializedRef.current = true
+    } else {
+      setCode(lesson.initialCode)
     }
-  }, [lesson, progress])
+    initializedRef.current = true
+  }, [lesson, progress, courseId, lessonId])
 
   // Reset on lesson change
   useEffect(() => {
     initializedRef.current = false
     setShowCelebration(false)
-  }, [lessonId])
+    if (lesson) {
+      setCode(lesson.initialCode)
+    }
+  }, [lessonId, lesson])
 
   if (!course || !lesson) {
     return (
