@@ -262,6 +262,8 @@ export default function LessonNew() {
     })
   }
 
+  const desktopPanelHeight = 'lg:max-h-[calc(100vh-220px)]'
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Sticky header on mobile */}
@@ -305,9 +307,9 @@ export default function LessonNew() {
 
         <GamificationBar />
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-6 items-start lg:gap-6">
           {/* Left Column */}
-          <div className="space-y-4">
+          <div className={`space-y-4 pr-1 ${desktopPanelHeight} lg:overflow-y-auto lg:pr-4`}>
             <ObjectivesCard items={objectives} />
             <LessonPanel title={lesson.title}>
               {renderMarkdown(lesson.content)}
@@ -315,7 +317,7 @@ export default function LessonNew() {
           </div>
 
           {/* Right Column */}
-          <div>
+          <div className={`space-y-3 ${desktopPanelHeight} lg:overflow-y-auto`}>
             <CodePlayground
               initialCode={code}
               todoRanges={todoRanges}
