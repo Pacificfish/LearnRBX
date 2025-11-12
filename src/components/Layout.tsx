@@ -2,7 +2,6 @@ import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { LogOut, BookOpen, User } from 'lucide-react'
 import Logo from './Logo'
-import DarkModeToggle from './DarkModeToggle'
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
@@ -24,7 +23,6 @@ export default function Layout() {
               </Link>
             </div>
             <div className="flex items-center space-x-6">
-              <DarkModeToggle />
               {user ? (
                 <>
                   <Link 
