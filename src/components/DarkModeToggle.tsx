@@ -1,55 +1,79 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+const STORAGE_KEY = 'learnrbx-dark-mode'
+
+function getInitialDarkMode() {
+  if (typeof window === 'undefined') return false
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'true') return true
+    if (stored === 'false') return false
+  } catch (error) {
+    console.warn('Unable to read theme preference', error)
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 export default function DarkModeToggle() {
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('darkMode')
-      if (saved) return saved === 'true'
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-    }
-    return false
-  })
+  const [darkMode, setDarkMode] = useState<boolean>(getInitialDarkMode)
 
   useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+
     if (darkMode) {
-      document.documentElement.classList.add('dark')
+      root.classList.add('dark')
+      body.classList.add('dark')
     } else {
-      document.documentElement.classList.remove('dark')
+      root.classList.remove('dark')
+      body.classList.remove('dark')
     }
-    localStorage.setItem('darkMode', darkMode.toString())
+
+    try {
+      localStorage.setItem(STORAGE_KEY, darkMode.toString())
+    } catch (error) {
+      console.warn('Unable to store theme preference', error)
+    }
   }, [darkMode])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const syncMode = () => {
-      const stored = localStorage.getItem('darkMode')
-      if (stored === 'true') {
-        setDarkMode(true)
-        document.documentElement.classList.add('dark')
-      } else if (stored === 'false') {
-        setDarkMode(false)
-        document.documentElement.classList.remove('dark')
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored === null) {
+          setDarkMode(event.matches)
+        }
+      } catch (error) {
+        console.warn('Unable to respond to system theme change', error)
       }
     }
 
-    const storageListener = (event: StorageEvent) => {
-      if (event.key === 'darkMode') {
-        syncMode()
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY && event.newValue !== null) {
+        setDarkMode(event.newValue === 'true')
       }
     }
 
-    // Ensure initial sync (covers cases where class was set before mount)
-    syncMode()
+    mediaQuery.addEventListener('change', handleMediaChange)
+    window.addEventListener('storage', handleStorageChange)
 
-    window.addEventListener('storage', storageListener)
-    return () => window.removeEventListener('storage', storageListener)
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaChange)
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
+
+  const toggleMode = () => {
+    setDarkMode((prev) => !prev)
+  }
 
   return (
     <button
-      onClick={() => setDarkMode(!darkMode)}
+      onClick={toggleMode}
       className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       aria-label="Toggle dark mode"
       title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}

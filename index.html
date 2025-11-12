@@ -7,16 +7,19 @@
     <title>LearnRBX - Master Roblox Scripting</title>
     <script>
       ;(function () {
+        const STORAGE_KEY = 'learnrbx-dark-mode'
         try {
-          const stored = localStorage.getItem('darkMode')
+          const stored = localStorage.getItem(STORAGE_KEY)
           const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-          if (stored === 'true' || (!stored && prefersDark)) {
+          const shouldEnable = stored === 'true' || (stored === null && prefersDark)
+          if (shouldEnable) {
             document.documentElement.classList.add('dark')
+            document.body?.classList?.add?.('dark')
           } else {
             document.documentElement.classList.remove('dark')
+            document.body?.classList?.remove?.('dark')
           }
         } catch (error) {
-          // Fail silently if access denied (e.g., private mode)
           console.warn('Unable to access dark mode preference:', error)
         }
       })()
